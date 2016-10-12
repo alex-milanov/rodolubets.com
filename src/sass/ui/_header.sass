@@ -1,0 +1,65 @@
+@mixin no-margin-padding
+	margin: 0px
+	padding: 0px
+
+@mixin header-height($h)
+	display: inline-block
+	box-sizing: border-box
+	height: $h
+	line-height: $h
+
+#ui
+	padding: 20px 90px
+	header
+		width: 100%
+		margin-top: 0px
+		vertical-align: bottom
+		.title
+			+no-margin-padding
+			display: block
+			height: 94px
+			box-sizing: content-box
+			padding-bottom: 15px
+			h1
+				float: left
+				+no-margin-padding
+				display: inline-block
+				font-size: 84px
+				height: 94px
+				font-family: 'Times New Roman', Georgia, serif
+				color: #333
+			h2
+				+no-margin-padding
+				display: inline-block
+				font-size: 24px
+				line-height: 32px
+				margin-top: 26px
+				width: 40%
+				color: #555
+				text-align: right
+				float: right
+				font-family: 'Times New Roman', Georgia, serif
+		ul
+			+no-margin-padding
+			// @include linear-gradient(bottom, #ded 0%, #f0fff0 10%, #fff 100%)
+			display: block
+			clear: both
+			height: 48px
+			box-sizing: content-box
+			list-style: none
+			background: rgba(255,255,255,0.4)
+			box-shadow: 0 0 1px #ccc
+			border: 1px solid #ddd
+			border-top: 1px solid #aaa
+			border-bottom: 2px solid #ccc
+			width: 100%
+			li
+				+no-margin-padding
+				+header-height(48px)
+				font-size: 18px
+				padding: 0px 10px
+				cursor: pointer
+				transition: background .3s, box-shadow .3s
+				&:not(:first-child)
+				&:hover
+					background: lighten(#ded, 5%)

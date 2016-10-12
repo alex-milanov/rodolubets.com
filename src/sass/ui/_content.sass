@@ -1,0 +1,61 @@
+#ui > #content
+	margin-top: 15px
+	.article
+		display: inline-block
+		background: rgba(255,255,255,0.4)
+		box-shadow: 0 0 1px #ccc
+		border: 1px solid #ddd
+		border-top: 1px solid #aaa
+		border-bottom: 2px solid #ccc
+		vertical-align: top
+		width: 70%
+		font-size: 18px
+		padding: 20px
+		h2
+			font-size: 32px
+			font-family: 'Times New Roman', Georgia, serif
+			margin: 0px
+		h3
+			font-size: 24px
+			font-family: 'Times New Roman', Georgia, serif
+			margin: 0px
+		img
+			margin: 0px 10px
+			padding: 10px
+			float: right
+			border: 1px solid #aaa
+	.right-column
+		display: inline-block
+		vertical-align: top
+		width: 30%
+		padding: 0px 0px 0px 20px
+		> section
+			display: inline-block
+			width: 100%
+			margin-bottom: 10px
+			background: rgba(255,255,255,0.4)
+			box-shadow: 0 0 1px #ccc
+			border: 1px solid #ddd
+			border-top: 1px solid #aaa
+			border-bottom: 2px solid #ccc
+			h3
+				font-family: 'Times New Roman', Georgia, serif
+				font-size: 24px
+				margin: 10px
+			ul
+				margin: 10px
+				padding-left: 20px
+				list-style: square
+		table
+			width: 100%
+			border-collapse: separate
+			border-spacing: 0
+			td, th
+				text-align: center
+				padding: 10px 0px
+			tr > :not(:first-child)
+				border-left: 1px solid #ccc
+			tr:not(:first-child) > *
+				border-top: 1px solid #ccc
+			thead > tr:last-child > *
+				border-bottom: 2px solid #777
