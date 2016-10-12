@@ -1,0 +1,16 @@
+@mixin no-margin-padding
+	margin: 0px
+	padding: 0px
+
+@mixin header-height($h)
+	display: inline-block
+	box-sizing: border-box
+	height: $h
+	line-height: $h
+
+@mixin rod-panel
+	display: inline-block
+	background: rgba(255,255,255,0.4)
+	box-shadow: 1px 1px 5px #ccc
+	border: 1px solid #ccc
+	border-bottom: 1px solid #bbb

@@ -1,4 +1,22 @@
 body
-	font-family: "Open Sans", Helvetica, Arial, sans-serif
-	@include linear-gradient(#ded 0%, #f0fff0 10%, #f0fff0 100%)
-	color: #333
+	font-family: $rod-text-body
+	+linear-gradient(#bdd5bb 0%, #f0fff0 30%, #f0fff0 100%)
+	color: $rod-color-text
+
+h1, h2, h3, h4, h5
+	font-family: $rod-text-heading
+	margin: 0px
+
+h1
+	font-size: 94px
+h2
+	font-size: 32px
+h3
+	font-size: 24px
+h4
+	font-size: 18px
+
+.left
+	float: left
+.right
+	float: right

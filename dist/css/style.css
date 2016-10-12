@@ -1,5 +1,6 @@
 @charset "UTF-8";
 @import url(https://fonts.googleapis.com/css?family=Open+Sans:400,700&subset=latin,cyrillic-ext,cyrillic);
+@import url(https://fonts.googleapis.com/css?family=Cormorant+Garamond:400,700&subset=latin,cyrillic-ext,cyrillic);
 /*!
  *  Font Awesome 4.6.3 by @davegandy - http://fontawesome.io - @fontawesome
  *  License - http://fontawesome.io/license (Font: SIL OFL 1.1, CSS: MIT License)
@@ -2199,13 +2200,35 @@ html {
 
 body {
   font-family: "Open Sans", Helvetica, Arial, sans-serif;
-  background-color: #ded;
-  background-image: -webkit-linear-gradient(#ded 0%, #f0fff0 10%, #f0fff0 100%);
-  background-image: linear-gradient(#ded 0%, #f0fff0 10%, #f0fff0 100%);
+  background-color: #bdd5bb;
+  background-image: -webkit-linear-gradient(#bdd5bb 0%, #f0fff0 30%, #f0fff0 100%);
+  background-image: linear-gradient(#bdd5bb 0%, #f0fff0 30%, #f0fff0 100%);
   color: #333; }
 
+h1, h2, h3, h4, h5 {
+  font-family: "Cormorant Garamond", Georgia, serif;
+  margin: 0px; }
+
+h1 {
+  font-size: 94px; }
+
+h2 {
+  font-size: 32px; }
+
+h3 {
+  font-size: 24px; }
+
+h4 {
+  font-size: 18px; }
+
+.left {
+  float: left; }
+
+.right {
+  float: right; }
+
 #ui {
-  padding: 20px 90px; }
+  padding: 45px 85px; }
   #ui header {
     width: 100%;
     margin-top: 0px;
@@ -2216,77 +2239,62 @@ body {
       display: block;
       height: 94px;
       box-sizing: content-box;
-      padding-bottom: 15px; }
+      margin-bottom: 17px; }
+      #ui header .title > * {
+        display: inline-block; }
       #ui header .title h1 {
         float: left;
-        margin: 0px;
-        padding: 0px;
-        display: inline-block;
         font-size: 84px;
-        height: 94px;
-        font-family: 'Times New Roman', Georgia, serif;
-        color: #333; }
-      #ui header .title h2 {
-        margin: 0px;
-        padding: 0px;
-        display: inline-block;
+        height: 94px; }
+      #ui header .title h3 {
         font-size: 24px;
         line-height: 32px;
         margin-top: 26px;
         width: 40%;
-        color: #555;
         text-align: right;
-        float: right;
-        font-family: 'Times New Roman', Georgia, serif; }
+        float: right; }
     #ui header ul {
       margin: 0px;
       padding: 0px;
+      display: inline-block;
+      background: rgba(255, 255, 255, 0.4);
+      box-shadow: 1px 1px 5px #ccc;
+      border: 1px solid #ccc;
+      border-bottom: 1px solid #bbb;
       display: block;
       clear: both;
-      height: 48px;
-      box-sizing: content-box;
+      height: 40px;
+      box-sizing: border-box;
       list-style: none;
-      background: rgba(255, 255, 255, 0.4);
-      box-shadow: 0 0 1px #ccc;
-      border: 1px solid #ddd;
-      border-top: 1px solid #aaa;
-      border-bottom: 2px solid #ccc;
       width: 100%; }
       #ui header ul li {
         margin: 0px;
         padding: 0px;
         display: inline-block;
         box-sizing: border-box;
-        height: 48px;
-        line-height: 48px;
-        font-size: 18px;
-        padding: 0px 10px;
+        height: 38px;
+        line-height: 38px;
+        font-size: 16px;
+        padding: 0px 15px;
         cursor: pointer;
-        transition: background .3s, box-shadow .3s; }
+        color: #555;
+        transition: background .5s, box-shadow .3s; }
         #ui header ul li:hover {
-          background: #eef7ee; }
+          color: #333;
+          background: #d9ead6; }
 
 #ui > #content {
-  margin-top: 15px; }
+  margin-top: 18px; }
   #ui > #content .article {
     display: inline-block;
     background: rgba(255, 255, 255, 0.4);
-    box-shadow: 0 0 1px #ccc;
-    border: 1px solid #ddd;
-    border-top: 1px solid #aaa;
-    border-bottom: 2px solid #ccc;
+    box-shadow: 1px 1px 5px #ccc;
+    border: 1px solid #ccc;
+    border-bottom: 1px solid #bbb;
     vertical-align: top;
     width: 70%;
-    font-size: 18px;
+    font-size: 16px;
     padding: 20px; }
-    #ui > #content .article h2 {
-      font-size: 32px;
-      font-family: 'Times New Roman', Georgia, serif;
-      margin: 0px; }
-    #ui > #content .article h3 {
-      font-size: 24px;
-      font-family: 'Times New Roman', Georgia, serif;
-      margin: 0px; }
     #ui > #content .article img {
       margin: 0px 10px;
       padding: 10px;
@@ -2299,15 +2307,13 @@ body {
     padding: 0px 0px 0px 20px; }
     #ui > #content .right-column > section {
       display: inline-block;
-      width: 100%;
-      margin-bottom: 10px;
       background: rgba(255, 255, 255, 0.4);
-      box-shadow: 0 0 1px #ccc;
-      border: 1px solid #ddd;
-      border-top: 1px solid #aaa;
-      border-bottom: 2px solid #ccc; }
+      box-shadow: 1px 1px 5px #ccc;
+      border: 1px solid #ccc;
+      border-bottom: 1px solid #bbb;
+      width: 100%;
+      margin-bottom: 10px; }
       #ui > #content .right-column > section h3 {
-        font-family: 'Times New Roman', Georgia, serif;
         font-size: 24px;
         margin: 10px; }
       #ui > #content .right-column > section ul {
@@ -2317,13 +2323,15 @@ body {
     #ui > #content .right-column table {
       width: 100%;
       border-collapse: separate;
-      border-spacing: 0; }
+      border-spacing: 0;
+      font-size: 14px; }
       #ui > #content .right-column table td, #ui > #content .right-column table th {
         text-align: center;
-        padding: 10px 0px; }
+        padding: 10px 0px;
+        width: 14.28%; }
       #ui > #content .right-column table tr > :not(:first-child) {
         border-left: 1px solid #ccc; }
       #ui > #content .right-column table tr:not(:first-child) > * {
         border-top: 1px solid #ccc; }
       #ui > #content .right-column table thead > tr:last-child > * {
-        border-bottom: 2px solid #777; }
+        border-bottom: 1px solid #aaa; }
