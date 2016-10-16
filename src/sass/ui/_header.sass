@@ -26,22 +26,37 @@
 		ul
 			+no-margin-padding
 			+rod-panel
+			+no-select
 			display: block
 			clear: both
 			height: 40px
 			box-sizing: border-box
 			list-style: none
 			width: 100%
+			vertical-align: top
 			li
 				+no-margin-padding
-				+header-height(38px)
+				display: inline-block
+				float: left
+				height: 38px
 				font-size: 16px
-				padding: 0px 15px
 				cursor: pointer
 				color: #555
-				transition: background .5s, box-shadow .7s
-				&:not(:first-child)
+				transition: background .5s, box-shadow .5s
+				a
+					+no-margin-padding
+					+header-height(38px)
+					display: inline-block
+					padding: 0px 15px
 				&:hover
 					color: #333
-					background: lighten(#cfe5cc, 3%)
-					box-shadow: inset 0px 0px 5px #ccc
+					background: $rod-color-green-2
+					box-shadow: inset 0px 0px 10px #ccc
+				&:active
+					transition: background .1s, box-shadow .1s, padding .1s
+					color: #333
+					// background: lighten(#cfe5cc, 3%)
+					// background: lighten(#bfd0be, 7%)
+					background: darken($rod-color-green-2, 3%)
+					box-shadow: inset 0px 0px 15px #c0c0c0
+					padding-top: 1px

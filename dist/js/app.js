@@ -20546,7 +20546,7 @@ module.exports = ({state, actions}) => section('#content', [
 'use strict';
 
 const {
-	section, h1, h2, h3, hr, header, i, ul, li,
+	section, h1, h2, h3, hr, header, i, ul, li, a,
 	table, thead, tbody, tr, td, th
 } = require('../../util/vdom');
 
@@ -20556,16 +20556,16 @@ module.exports = ({state, actions}) => header([
 		h3('Културно-просветно дружество за връзки с бесарабските и таврийските българи')
 	]),
 	ul('#menu', [
-		li('Начало'),
-		li('Новини'),
-		li('За Нас'),
-		li('Алманах'),
-		li('Информация'),
-		li('Изследвания'),
-		li('Връзки'),
-		li('.right', [
+		li([a('Начало')]),
+		li([a('Новини')]),
+		li([a('За Нас')]),
+		li([a('Алманах')]),
+		li([a('Информация')]),
+		li([a('Изследвания')]),
+		li([a('Връзки')]),
+		li('.right', [a([
 			i('.fa.fa-sign-in')
-		])
+		])])
 	])
 ]);
 
