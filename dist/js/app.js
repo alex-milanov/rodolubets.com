@@ -20416,14 +20416,19 @@ const init = () => request.get('http://localhost:8080/api/articles')
 			})
 		)
 	)
-	.subscribe(articles => stream.onNext(state => ({articles})));
+	.subscribe(articles => stream.onNext(state => Object.assign({}, state, {articles})));
+
+const initial = {
+	articles: []
+};
 
 module.exports = {
 	stream,
-	init
+	init,
+	initial
 };
 
-},{"../util/request":27,"marked":2,"moment":4,"moment/locale/bg":3,"rx":6}],22:[function(require,module,exports){
+},{"../util/request":34,"marked":2,"moment":4,"moment/locale/bg":3,"rx":6}],22:[function(require,module,exports){
 'use strict';
 
 // lib
@@ -20434,22 +20439,256 @@ const $ = Rx.Observable;
 const vdom = require('./util/vdom');
 
 // app
-const actions = require('./actions');
-window.actions = actions;
+let actions = require('./actions');
 const ui = require('./ui');
+
+// services
+const router = require('./services/router');
+actions = router.attach(actions);
+
+console.log(actions);
 
 // reduce actions to state
 const state$ = actions.stream
-	.scan((state, reducer) => reducer(state), {})
-	.map(state => (console.log(state), state));
+	.map(change => (console.log('ch', change), change))
+	.scan((state, reducer) => reducer(state), actions.initial)
+	.map(state => (console.log('sc', state), state));
 
 // map state to ui
 const ui$ = state$.map(state => ui({state, actions}));
+router.hook(state$);
 
 // patch stream to dom
 vdom.patchStream(ui$, '#ui');
 
-},{"./actions":21,"./ui":26,"./util/vdom":28,"rx":6}],23:[function(require,module,exports){
+window.actions = actions;
+
+},{"./actions":21,"./services/router":23,"./ui":25,"./util/vdom":35,"rx":6}],23:[function(require,module,exports){
+'use strict';
+
+const Rx = require('rx');
+const $ = Rx.Observable;
+const Subject = Rx.Subject;
+
+const stream = new Subject();
+
+const parsePageParams = str => {
+	const pageId = str.split('/')[1] || null;
+	const page = ((pageId) ? str.split('/')[0] : str) || 'home';
+	return {
+		page,
+		pageId
+	};
+};
+
+const change = page => {
+	stream.onNext(state => Object.assign({}, state, {route: parsePageParams(page)}));
+};
+
+const go = page => {
+	window.location.hash = '/' + ((page !== 'home') ? page : '');
+	change(page);
+};
+
+const router = {
+	stream,
+	initial: {route: {page: 'home'}},
+	parsePageParams,
+	change,
+	go
+};
+
+const attach = actions => Object.assign(
+	{},
+	actions,
+	{
+		router,
+		stream: $.merge(actions.stream, router.stream),
+		initial: Object.assign({}, actions.initial, router.initial)
+	}
+);
+
+const hook = state$ => {
+	state$.take(1).subscribe(() => {
+		window.setTimeout(() => change(location.hash.replace('#/', '') || 'home'));
+		window.addEventListener('hashchange',
+			() => change(location.hash.replace('#/', '') || 'home'));
+	});
+};
+
+module.exports = {
+	attach,
+	hook
+};
+
+},{"rx":6}],24:[function(require,module,exports){
+'use strict';
+
+const {
+	section, h1, h2, h3, hr, header, i, ul, li, a,
+	table, thead, tbody, tr, td, th
+} = require('../../util/vdom');
+
+module.exports = ({state, actions}) => header([
+	section('.title', [
+		h1('Родолюбец'),
+		h3('Културно-просветно дружество за връзки с бесарабските и таврийските българи')
+	]),
+	ul('#menu', [
+		li([a({attrs: {href: '#/'}}, 'Начало')]),
+		li([a({attrs: {href: '#/about'}}, 'За Нас')]),
+		li([a({attrs: {href: '#/almanac'}}, 'Алманах')]),
+		li([a({attrs: {href: '#/info'}}, 'Информация')]),
+		li([a({attrs: {href: '#/research'}}, 'Изследвания')]),
+		li([a({attrs: {href: '#/links'}}, 'Връзки')]),
+		li('.right', [a([
+			i('.fa.fa-sign-in')
+		])])
+	])
+]);
+
+},{"../../util/vdom":35}],25:[function(require,module,exports){
+'use strict';
+
+const {section} = require('../util/vdom');
+
+const header = require('./header');
+const pages = {
+	default: require('./pages/home'),
+	about: require('./pages/about'),
+	almanac: require('./pages/almanac'),
+	info: require('./pages/info'),
+	research: require('./pages/research'),
+	links: require('./pages/links')
+};
+
+const _switch = (value, cases) => (typeof cases[value] !== 'undefined')
+	&& cases[value] || cases['default'] || false;
+
+module.exports = ({state, actions}) => section('#ui', [
+	header({state, actions}),
+	_switch(state.route.page, pages)({state, actions})
+]);
+
+},{"../util/vdom":35,"./header":24,"./pages/about":26,"./pages/almanac":27,"./pages/home":28,"./pages/info":29,"./pages/links":30,"./pages/research":31}],26:[function(require,module,exports){
+'use strict';
+
+const {
+	section, h1, h2, h3, hr, header, i, ul, li, p,
+	table, thead, tbody, tr, td, th
+} = require('../../util/vdom');
+
+const rightColumn = require('../right-column');
+
+module.exports = ({state, actions}) => section('#content', [
+	section('.articles', [
+		section('.article', [
+			h1('За Нас')
+		])]
+	),
+	rightColumn({state, actions})
+]);
+
+},{"../../util/vdom":35,"../right-column":33}],27:[function(require,module,exports){
+'use strict';
+
+const {
+	section, h1, h2, h3, hr, header, i, ul, li, p,
+	table, thead, tbody, tr, td, th
+} = require('../../util/vdom');
+
+const rightColumn = require('../right-column');
+
+module.exports = ({state, actions}) => section('#content', [
+	section('.articles', [
+		section('.article', [
+			h1('Алманах Родолюбец')
+		])]
+	),
+	rightColumn({state, actions})
+]);
+
+},{"../../util/vdom":35,"../right-column":33}],28:[function(require,module,exports){
+'use strict';
+
+const {
+	section, h1, h2, h3, hr, header, i, ul, li, p,
+	table, thead, tbody, tr, td, th
+} = require('../../util/vdom');
+
+const rightColumn = require('../right-column');
+
+module.exports = ({state, actions}) => section('#content', [
+	section('.articles', state.articles.map(article =>
+		section('.article', [
+			h1(article.title),
+			p('.meta',
+				`Публикувана на ${article.createdAt} от ${article.author || 'Д-во Родолюбец'}`
+			),
+			p('.body', {props: {innerHTML: article.text}})
+		]))
+	),
+	rightColumn({state, actions})
+]);
+
+},{"../../util/vdom":35,"../right-column":33}],29:[function(require,module,exports){
+'use strict';
+
+const {
+	section, h1, h2, h3, hr, header, i, ul, li, p,
+	table, thead, tbody, tr, td, th
+} = require('../../util/vdom');
+
+const rightColumn = require('../right-column');
+
+module.exports = ({state, actions}) => section('#content', [
+	section('.articles', [
+		section('.article', [
+			h1('Информация')
+		])]
+	),
+	rightColumn({state, actions})
+]);
+
+},{"../../util/vdom":35,"../right-column":33}],30:[function(require,module,exports){
+'use strict';
+
+const {
+	section, h1, h2, h3, hr, header, i, ul, li, p,
+	table, thead, tbody, tr, td, th
+} = require('../../util/vdom');
+
+const rightColumn = require('../right-column');
+
+module.exports = ({state, actions}) => section('#content', [
+	section('.articles', [
+		section('.article', [
+			h1('Полезни Връзки')
+		])]
+	),
+	rightColumn({state, actions})
+]);
+
+},{"../../util/vdom":35,"../right-column":33}],31:[function(require,module,exports){
+'use strict';
+
+const {
+	section, h1, h2, h3, hr, header, i, ul, li, p,
+	table, thead, tbody, tr, td, th
+} = require('../../util/vdom');
+
+const rightColumn = require('../right-column');
+
+module.exports = ({state, actions}) => section('#content', [
+	section('.articles', [
+		section('.article', [
+			h1('Изследвания')
+		])]
+	),
+	rightColumn({state, actions})
+]);
+
+},{"../../util/vdom":35,"../right-column":33}],32:[function(require,module,exports){
 'use strict';
 
 const moment = require('moment');
@@ -20476,15 +20715,15 @@ const getDays = () => {
 
 const {
 	section, h1, h2, h3, hr, header, i, ul, li,
-	table, thead, tbody, tr, td, th
+	table, thead, tbody, tr, td, th, button
 } = require('../../../util/vdom');
 
 module.exports = ({state, actions}) => section('.calendar', [
 	table([
 		thead([
 			tr([
-				th([i('.fa.fa-step-backward')]),
-				th([i('.fa.fa-backward')]),
+				th([button('.fa.fa-step-backward')]),
+				th([button('.fa.fa-backward')]),
 				th({
 					attrs: {
 						colspan: 3
@@ -20493,8 +20732,8 @@ module.exports = ({state, actions}) => section('.calendar', [
 						textTransform: 'capitalize'
 					}
 				}, moment().format('MMMM Y')),
-				th([i('.fa.fa-forward')]),
-				th([i('.fa.fa-step-forward')])
+				th([button('.fa.fa-forward')]),
+				th([button('.fa.fa-step-forward')])
 			]),
 			tr(['Пон', 'Вто', 'Сря', 'Чет', 'Пет', 'Съб', 'Нед'].map(wday =>
 				th(wday)
@@ -20510,7 +20749,7 @@ module.exports = ({state, actions}) => section('.calendar', [
 	])
 ]);
 
-},{"../../../util/vdom":28,"moment":4,"moment/locale/bg":3}],24:[function(require,module,exports){
+},{"../../../util/vdom":35,"moment":4,"moment/locale/bg":3}],33:[function(require,module,exports){
 'use strict';
 
 const {
@@ -20520,69 +20759,18 @@ const {
 
 const calendar = require('./calendar');
 
-module.exports = ({state, actions}) => section('#content', [
-	section('.articles', state.articles.map(article =>
-		section('.article', [
-			h1(article.title),
-			p('.meta',
-				`Публикувана на ${article.createdAt} от ${article.author || 'Д-во Родолюбец'}`
-			),
-			p('.body', {props: {innerHTML: article.text}})
-		]))
-	),
-	section('.right-column', [
-		section([
-			h2('Предстоящи събития:'),
-			ul([
-				li('27.10 Традиционен празничен концерт, посветен на Деня на Бесарабските Българи'),
-				li('Коледно Тържество')
-			])
-		]),
-		calendar({state, actions})
-	])
-]);
-
-},{"../../util/vdom":28,"./calendar":23}],25:[function(require,module,exports){
-'use strict';
-
-const {
-	section, h1, h2, h3, hr, header, i, ul, li, a,
-	table, thead, tbody, tr, td, th
-} = require('../../util/vdom');
-
-module.exports = ({state, actions}) => header([
-	section('.title', [
-		h1('Родолюбец'),
-		h3('Културно-просветно дружество за връзки с бесарабските и таврийските българи')
+module.exports = ({state, actions}) => section('.right-column', [
+	section([
+		h2('Предстоящи събития:'),
+		ul([
+			li('27.10 18:30 Традиционен празничен концерт, посветен на Деня на Бесарабските Българи'),
+			li('Коледно Тържество')
+		])
 	]),
-	ul('#menu', [
-		li([a('Начало')]),
-		li([a('Новини')]),
-		li([a('За Нас')]),
-		li([a('Алманах')]),
-		li([a('Информация')]),
-		li([a('Изследвания')]),
-		li([a('Връзки')]),
-		li('.right', [a([
-			i('.fa.fa-sign-in')
-		])])
-	])
+	calendar({state, actions})
 ]);
 
-},{"../../util/vdom":28}],26:[function(require,module,exports){
-'use strict';
-
-const {section} = require('../util/vdom');
-
-const header = require('./header');
-const content = require('./content');
-
-module.exports = ({state, actions}) => section('#ui', [
-	header({state, actions}),
-	content({state, actions})
-]);
-
-},{"../util/vdom":28,"./content":24,"./header":25}],27:[function(require,module,exports){
+},{"../../util/vdom":35,"./calendar":32}],34:[function(require,module,exports){
 'use strict';
 
 const Rx = require('rx');
@@ -20595,7 +20783,7 @@ superagent.Request.prototype.observe = function() {
 
 module.exports = superagent;
 
-},{"rx":6,"superagent":17}],28:[function(require,module,exports){
+},{"rx":6,"superagent":17}],35:[function(require,module,exports){
 'use strict';
 
 const snabbdom = require('snabbdom');

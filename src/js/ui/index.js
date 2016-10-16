@@ -3,9 +3,19 @@
 const {section} = require('../util/vdom');
 
 const header = require('./header');
-const content = require('./content');
+const pages = {
+	default: require('./pages/home'),
+	about: require('./pages/about'),
+	almanac: require('./pages/almanac'),
+	info: require('./pages/info'),
+	research: require('./pages/research'),
+	links: require('./pages/links')
+};
+
+const _switch = (value, cases) => (typeof cases[value] !== 'undefined')
+	&& cases[value] || cases['default'] || false;
 
 module.exports = ({state, actions}) => section('#ui', [
 	header({state, actions}),
-	content({state, actions})
+	_switch(state.route.page, pages)({state, actions})
 ]);

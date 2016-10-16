@@ -8,12 +8,47 @@
 	height: $h
 	line-height: $h
 
+
+@mixin clear-form-control
+	+no-margin-padding
+	outline: none
+	border-image: none
+	box-sizing: border-box
+	&:focus,
+	&:active,
+	&::-moz-focus-inner,
+	&:-moz-focusring,
+	&::-moz-focus-outer
+		border: none
+		outline: none
+		border-radius: 0px
+		border-image: none
+
 @mixin rod-panel
 	display: inline-block
 	background: rgba(255,255,255,0.7)
-	box-shadow: 1px 1px 5px #ccc
+	box-shadow: 1px 1px 3px #bbb
 	border: 1px solid #ccc
-	border-bottom: 1px solid #bbb
+	border-bottom: 1px solid #aaa
+
+@mixin panel-button($pad)
+	+no-select
+	padding: $pad
+	cursor: pointer
+	color: #555
+	transition: background .5s, box-shadow .5s
+	&:hover
+		color: #333
+		background: $rod-color-green-2
+		box-shadow: inset 0px 0px 10px #ccc
+	&:active
+		transition: background .1s, box-shadow .1s
+		color: #333
+		// background: lighten(#cfe5cc, 3%)
+		// background: lighten(#bfd0be, 7%)
+		background: darken($rod-color-green-2, 3%)
+		box-shadow: inset 0px 0px 15px #c0c0c0
+		padding: ($pad + 1) $pad ($pad - 1) $pad
 
 @mixin no-select
 	-webkit-touch-callout: none

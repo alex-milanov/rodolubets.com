@@ -23,9 +23,14 @@ const init = () => request.get('http://localhost:8080/api/articles')
 			})
 		)
 	)
-	.subscribe(articles => stream.onNext(state => ({articles})));
+	.subscribe(articles => stream.onNext(state => Object.assign({}, state, {articles})));
+
+const initial = {
+	articles: []
+};
 
 module.exports = {
 	stream,
-	init
+	init,
+	initial
 };

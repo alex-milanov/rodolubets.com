@@ -24,15 +24,15 @@ const getDays = () => {
 
 const {
 	section, h1, h2, h3, hr, header, i, ul, li,
-	table, thead, tbody, tr, td, th
+	table, thead, tbody, tr, td, th, button
 } = require('../../../util/vdom');
 
 module.exports = ({state, actions}) => section('.calendar', [
 	table([
 		thead([
 			tr([
-				th([i('.fa.fa-step-backward')]),
-				th([i('.fa.fa-backward')]),
+				th([button('.fa.fa-step-backward')]),
+				th([button('.fa.fa-backward')]),
 				th({
 					attrs: {
 						colspan: 3
@@ -41,8 +41,8 @@ module.exports = ({state, actions}) => section('.calendar', [
 						textTransform: 'capitalize'
 					}
 				}, moment().format('MMMM Y')),
-				th([i('.fa.fa-forward')]),
-				th([i('.fa.fa-step-forward')])
+				th([button('.fa.fa-forward')]),
+				th([button('.fa.fa-step-forward')])
 			]),
 			tr(['Пон', 'Вто', 'Сря', 'Чет', 'Пет', 'Съб', 'Нед'].map(wday =>
 				th(wday)

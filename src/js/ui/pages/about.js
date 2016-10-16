@@ -8,14 +8,10 @@ const {
 const rightColumn = require('../right-column');
 
 module.exports = ({state, actions}) => section('#content', [
-	section('.articles', state.articles.map(article =>
+	section('.articles', [
 		section('.article', [
-			h1(article.title),
-			p('.meta',
-				`Публикувана на ${article.createdAt} от ${article.author || 'Д-во Родолюбец'}`
-			),
-			p('.body', {props: {innerHTML: article.text}})
-		]))
+			h1('За Нас')
+		])]
 	),
 	rightColumn({state, actions})
 ]);
