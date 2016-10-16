@@ -2200,9 +2200,9 @@ html {
 
 body {
   font-family: "Open Sans", Helvetica, Arial, sans-serif;
-  background-color: #bdd5bb;
-  background-image: -webkit-linear-gradient(#bdd5bb 0%, #f0fff0 30%, #f0fff0 100%);
-  background-image: linear-gradient(#bdd5bb 0%, #f0fff0 30%, #f0fff0 100%);
+  background-color: #adcaab;
+  background-image: -webkit-linear-gradient(#adcaab 0%, #e0efe0 30%, #f0fff0 100%);
+  background-image: linear-gradient(#adcaab 0%, #e0efe0 30%, #f0fff0 100%);
   color: #333;
   font-size: 16px; }
 
@@ -2246,7 +2246,7 @@ h1, h2, h3, h4, h5 {
       margin: 0px;
       padding: 0px;
       display: inline-block;
-      background: rgba(255, 255, 255, 0.4);
+      background: rgba(250, 250, 250, 0.8);
       box-shadow: 1px 1px 5px #ccc;
       border: 1px solid #ccc;
       border-bottom: 1px solid #bbb;
@@ -2283,7 +2283,7 @@ h1, h2, h3, h4, h5 {
     width: 70%; }
     #ui > #content .articles .article {
       display: inline-block;
-      background: rgba(255, 255, 255, 0.4);
+      background: rgba(250, 250, 250, 0.8);
       box-shadow: 1px 1px 5px #ccc;
       border: 1px solid #ccc;
       border-bottom: 1px solid #bbb;
@@ -2312,7 +2312,7 @@ h1, h2, h3, h4, h5 {
     padding: 0px 0px 0px 20px; }
     #ui > #content .right-column > section {
       display: inline-block;
-      background: rgba(255, 255, 255, 0.4);
+      background: rgba(250, 250, 250, 0.8);
       box-shadow: 1px 1px 5px #ccc;
       border: 1px solid #ccc;
       border-bottom: 1px solid #bbb;
