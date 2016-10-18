@@ -5,23 +5,21 @@ const {
 	table, thead, tbody, tr, td, th, a
 } = require('../../util/vdom');
 
+const marked = require('marked');
+
 const rightColumn = require('../right-column');
 
 module.exports = ({state, actions}) => section('#content', [
 	section('.articles', [
 		section('.article', [
 			h1('Полезни Връзки'),
-			h2('Интернет страници:'),
-			ul([
-				li([a({attrs: {href: 'http://aba.government.bg', target: '_blank'}},
-					'Държавна агенция за българите в чужбина')]),
-				li([a({attrs: {href: 'http://www.mon.bg/?go=page&amp;pageId=15&amp;subpageId=173', target: '_blank'}},
-					'Министерството на образованието и науката / За българите зад граница')
-				]),
-				li([a({attrs: {href: 'http://ndb.md/', target: '_blank'}}, 'Научно дружество на българистите в Република Молдова')]),
-				li([a({attrs: {href: 'http://slovo.bg', target: '_blank'}}, 'Българска Виртуална Библиотека')]),
-				li([a({attrs: {href: 'http://www.rodenkray.od.ua/', target: '_blank'}}, 'Вестник "Роден Край" - Одеса')])
-			])
+			p({props: {innerHTML: marked(`
+- [Държавна агенция за българите в чужбина](http://aba.government.bg)
+- [Министерството на образованието и науката / За българите зад граница](http://www.mon.bg/?go=page&amp;pageId=15&amp;subpageId=173)
+- [Научно дружество на българистите в Република Молдова](http://ndb.md/)
+- [Българска Виртуална Библиотека](http://slovo.bg)
+- [Вестник "Роден Край" - Одеса](http://www.rodenkray.od.ua/)
+			`)}})
 		])
 	]),
 	rightColumn({state, actions})

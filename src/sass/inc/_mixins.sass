@@ -36,19 +36,19 @@
 	padding: $pad
 	cursor: pointer
 	color: #555
-	transition: background .7s, box-shadow .5s, color .5s
-	&:hover
+	transition: background .7s, box-shadow .3s, color .5s, padding .1s
+	&:hover, &.active
 		color: #333
-		background: $rod-color-green-2
-		box-shadow: inset 0px 0px 10px #ccc
+		background: lighten($rod-color-green-2, 3%)
+		box-shadow: inset 0px 0px 15px #ccc
 	&:active
-		transition: background .1s, box-shadow .1s
-		color: #333
+		transition: background .3s, box-shadow .1s
 		// background: lighten(#cfe5cc, 3%)
 		// background: lighten(#bfd0be, 7%)
-		background: darken($rod-color-green-2, 2%)
-		box-shadow: inset 0px 0px 10px #c0c0c0
+		background: lighten($rod-color-green-2, 1%)
 		padding: ($pad + 1) $pad ($pad - 1) $pad
+	&:focus
+		outline: none
 
 @mixin no-select
 	-webkit-touch-callout: none
