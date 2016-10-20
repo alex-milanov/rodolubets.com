@@ -20393,69 +20393,80 @@ module.exports = request;
 },{}],21:[function(require,module,exports){
 'use strict';
 
-const Rx = require('rx');
-const $ = Rx.Observable;
-const {Subject} = Rx;
+var Rx = require('rx');
+var $ = Rx.Observable;
+var Subject = Rx.Subject;
 
-const marked = require('marked');
-const moment = require('moment');
+
+var marked = require('marked');
+var moment = require('moment');
 require('moment/locale/bg');
 
-const request = require('../util/request');
+var request = require('../util/request');
 
-const stream = new Subject();
+var stream = new Subject();
 
-const init = () => request.get('http://localhost:8080/api/articles')
-	.observe()
-	.map(res => res.body)
-	.map(articles =>
-		articles.map(article =>
-			Object.assign({}, article, {
+var init = function init() {
+	return request.get('http://localhost:8080/api/articles').observe().map(function (res) {
+		return res.body;
+	}).map(function (articles) {
+		return articles.map(function (article) {
+			return Object.assign({}, article, {
 				text: marked(article.text),
 				createdAt: moment(article.createdAt).format('DD MMMM Y')
-			})
-		)
-	)
-	.subscribe(articles => stream.onNext(state => Object.assign({}, state, {articles})));
+			});
+		});
+	}).subscribe(function (articles) {
+		return stream.onNext(function (state) {
+			return Object.assign({}, state, { articles: articles });
+		});
+	});
+};
 
-const initial = {
+var initial = {
 	articles: []
 };
 
 module.exports = {
-	stream,
-	init,
-	initial
+	stream: stream,
+	init: init,
+	initial: initial
 };
 
 },{"../util/request":34,"marked":2,"moment":4,"moment/locale/bg":3,"rx":6}],22:[function(require,module,exports){
 'use strict';
 
 // lib
-const Rx = require('rx');
-const $ = Rx.Observable;
+
+var Rx = require('rx');
+var $ = Rx.Observable;
 
 // util
-const vdom = require('./util/vdom');
+var vdom = require('./util/vdom');
 
 // app
-let actions = require('./actions');
-const ui = require('./ui');
+var actions = require('./actions');
+var ui = require('./ui');
 
 // services
-const router = require('./services/router');
+var router = require('./services/router');
 actions = router.attach(actions);
 
 console.log(actions);
 
 // reduce actions to state
-const state$ = actions.stream
-	.map(change => (console.log('ch', change), change))
-	.scan((state, reducer) => reducer(state), actions.initial)
-	.map(state => (console.log('sc', state), state));
+var state$ = actions.stream.map(function (change) {
+	return console.log('ch', change), change;
+}).scan(function (state, reducer) {
+	return reducer(state);
+}, actions.initial).map(function (state) {
+	return console.log('sc', state), state;
+});
 
 // map state to ui
-const ui$ = state$.map(state => ui({state, actions}));
+var ui$ = state$.map(function (state) {
+	return ui({ state: state, actions: actions });
+});
 router.hook(state$);
 
 // patch stream to dom
@@ -20466,94 +20477,103 @@ window.actions = actions;
 },{"./actions":21,"./services/router":23,"./ui":25,"./util/vdom":35,"rx":6}],23:[function(require,module,exports){
 'use strict';
 
-const Rx = require('rx');
-const $ = Rx.Observable;
-const Subject = Rx.Subject;
+var Rx = require('rx');
+var $ = Rx.Observable;
+var Subject = Rx.Subject;
 
-const stream = new Subject();
+var stream = new Subject();
 
-const parsePageParams = str => {
-	const pageId = str.split('/')[1] || null;
-	const page = ((pageId) ? str.split('/')[0] : str) || 'home';
+var parsePageParams = function parsePageParams(str) {
+	var pageId = str.split('/')[1] || null;
+	var page = (pageId ? str.split('/')[0] : str) || 'home';
 	return {
-		page,
-		pageId
+		page: page,
+		pageId: pageId
 	};
 };
 
-const change = page => {
-	stream.onNext(state => Object.assign({}, state, {route: parsePageParams(page)}));
+var change = function change(page) {
+	stream.onNext(function (state) {
+		return Object.assign({}, state, { route: parsePageParams(page) });
+	});
 };
 
-const go = page => {
-	window.location.hash = '/' + ((page !== 'home') ? page : '');
+var go = function go(page) {
+	window.location.hash = '/' + (page !== 'home' ? page : '');
 	change(page);
 };
 
-const router = {
-	stream,
-	initial: {route: {page: 'home'}},
-	parsePageParams,
-	change,
-	go
+var router = {
+	stream: stream,
+	initial: { route: { page: 'home' } },
+	parsePageParams: parsePageParams,
+	change: change,
+	go: go
 };
 
-const attach = actions => Object.assign(
-	{},
-	actions,
-	{
-		router,
+var attach = function attach(actions) {
+	return Object.assign({}, actions, {
+		router: router,
 		stream: $.merge(actions.stream, router.stream),
 		initial: Object.assign({}, actions.initial, router.initial)
-	}
-);
+	});
+};
 
-const hook = state$ => {
-	state$.take(1).subscribe(() => {
-		window.setTimeout(() => change(location.hash.replace('#/', '') || 'home'));
-		window.addEventListener('hashchange',
-			() => change(location.hash.replace('#/', '') || 'home'));
+var hook = function hook(state$) {
+	state$.take(1).subscribe(function () {
+		window.setTimeout(function () {
+			return change(location.hash.replace('#/', '') || 'home');
+		});
+		window.addEventListener('hashchange', function () {
+			return change(location.hash.replace('#/', '') || 'home');
+		});
 	});
 };
 
 module.exports = {
-	attach,
-	hook
+	attach: attach,
+	hook: hook
 };
 
 },{"rx":6}],24:[function(require,module,exports){
 'use strict';
 
-const {
-	section, h1, h2, h3, hr, header, i, ul, li, a,
-	table, thead, tbody, tr, td, th
-} = require('../../util/vdom');
+var _require = require('../../util/vdom');
 
-module.exports = ({state, actions}) => header([
-	section('.title', [
-		h1('Родолюбец'),
-		h3('Културно-просветно дружество за връзки с бесарабските и таврийските българи')
-	]),
-	ul('#menu', [
-		li([a({attrs: {href: '#/'}, class: {active: state.route.page === 'home'}}, 'Начало')]),
-		li([a({attrs: {href: '#/about'}, class: {active: state.route.page === 'about'}}, 'За Нас')]),
-		li([a({attrs: {href: '#/almanac'}, class: {active: state.route.page === 'almanac'}}, 'Алманах')]),
-		li([a({attrs: {href: '#/info'}, class: {active: state.route.page === 'info'}}, 'Информация')]),
-		li([a({attrs: {href: '#/research'}, class: {active: state.route.page === 'research'}}, 'Изследвания')]),
-		li([a({attrs: {href: '#/links'}, class: {active: state.route.page === 'links'}}, 'Връзки')]),
-		li('.right', [a([
-			i('.fa.fa-sign-in')
-		])])
-	])
-]);
+var section = _require.section;
+var h1 = _require.h1;
+var h2 = _require.h2;
+var h3 = _require.h3;
+var hr = _require.hr;
+var header = _require.header;
+var i = _require.i;
+var ul = _require.ul;
+var li = _require.li;
+var a = _require.a;
+var table = _require.table;
+var thead = _require.thead;
+var tbody = _require.tbody;
+var tr = _require.tr;
+var td = _require.td;
+var th = _require.th;
+
+
+module.exports = function (_ref) {
+	var state = _ref.state;
+	var actions = _ref.actions;
+	return header([section('.title', [h1('Дружество Родолюбец'), h3('Културно-просветно дружество за връзки с бесарабските и таврийските българи')]), ul('#menu', [li([a({ attrs: { href: '#/' }, class: { active: state.route.page === 'home' } }, 'Начало')]), li([a({ attrs: { href: '#/about' }, class: { active: state.route.page === 'about' } }, 'За Нас')]), li([a({ attrs: { href: '#/almanac' }, class: { active: state.route.page === 'almanac' } }, 'Алманах')]), li([a({ attrs: { href: '#/research' }, class: { active: state.route.page === 'research' } }, 'Изследвания')]), li([a({ attrs: { href: '#/links' }, class: { active: state.route.page === 'links' } }, 'Връзки')]), li('.right', [a([i('.fa.fa-sign-in')])])])]);
+};
 
 },{"../../util/vdom":35}],25:[function(require,module,exports){
 'use strict';
 
-const {section} = require('../util/vdom');
+var _require = require('../util/vdom');
 
-const header = require('./header');
-const pages = {
+var section = _require.section;
+
+
+var header = require('./header');
+var pages = {
 	default: require('./pages/home'),
 	about: require('./pages/about'),
 	almanac: require('./pages/almanac'),
@@ -20562,173 +20582,228 @@ const pages = {
 	links: require('./pages/links')
 };
 
-const _switch = (value, cases) => (typeof cases[value] !== 'undefined')
-	&& cases[value] || cases['default'] || false;
+var _switch = function _switch(value, cases) {
+	return typeof cases[value] !== 'undefined' && cases[value] || cases['default'] || false;
+};
 
-module.exports = ({state, actions}) => section('#ui', [
-	header({state, actions}),
-	_switch(state.route.page, pages)({state, actions})
-]);
+module.exports = function (_ref) {
+	var state = _ref.state;
+	var actions = _ref.actions;
+	return section('#ui', [header({ state: state, actions: actions }), _switch(state.route.page, pages)({ state: state, actions: actions })]);
+};
 
 },{"../util/vdom":35,"./header":24,"./pages/about":26,"./pages/almanac":27,"./pages/home":28,"./pages/info":29,"./pages/links":30,"./pages/research":31}],26:[function(require,module,exports){
 'use strict';
 
-const {
-	section, h1, h2, h3, hr, header, i, ul, li, p,
-	table, thead, tbody, tr, td, th
-} = require('../../util/vdom');
+var _require = require('../../util/vdom');
 
-const rightColumn = require('../right-column');
+var section = _require.section;
+var h1 = _require.h1;
+var h2 = _require.h2;
+var h3 = _require.h3;
+var hr = _require.hr;
+var header = _require.header;
+var i = _require.i;
+var ul = _require.ul;
+var li = _require.li;
+var p = _require.p;
+var table = _require.table;
+var thead = _require.thead;
+var tbody = _require.tbody;
+var tr = _require.tr;
+var td = _require.td;
+var th = _require.th;
 
-module.exports = ({state, actions}) => section('#content', [
-	section('.articles', [
-		section('.article', [
-			h1('За Нас')
-		])]
-	),
-	rightColumn({state, actions})
-]);
 
-},{"../../util/vdom":35,"../right-column":33}],27:[function(require,module,exports){
+var rightColumn = require('../right-column');
+var marked = require('marked');
+
+module.exports = function (_ref) {
+	var state = _ref.state;
+	var actions = _ref.actions;
+	return section('#content', [section('.articles', [section('.article', [h1('За Нас'), p({ props: { innerHTML: marked('\n**\u042E\u0440\u0438\u0434\u0438\u0447\u0435\u0441\u043A\u0438 \u0410\u0434\u0440\u0435\u0441:** \u0421\u043E\u0444\u0438\u044F, \u0431\u0443\u043B. \u201E\u0415\u0432\u043B\u043E\u0433\u0438 \u0413\u0435\u043E\u0440\u0433\u0438\u0435\u0432\u201C N 169, \u0435\u0442. II-\u0440\u0438 <br/>*(\u043A\u044A\u043C \u043C\u043E\u043C\u0435\u043D\u0442\u0430 \u0434\u0440\u0443\u0436\u0435\u0441\u0442\u0432\u043E\u0442\u043E \u043D\u0435 \u0440\u0430\u0437\u043F\u043E\u043B\u0430\u0433\u0430 \u0441 \u0432\u044A\u0437\u043C\u043E\u0436\u043D\u043E\u0441\u0442 \u0434\u0430 \u0440\u0435\u0430\u043B\u0438\u0437\u0438\u0440\u0430 \u0434\u0435\u0439\u043D\u043E\u0441\u0442\u0442\u0430 \u0441\u0438 \u043D\u0430 \u043F\u043E\u0441\u043E\u0447\u0435\u043D\u0438\u044F \u0430\u0434\u0440\u0435\u0441, \u043F\u043E\u0440\u0430\u0434\u0438 \u0441\u043C\u044F\u043D\u0430 \u043D\u0430 \u043D\u0430\u0435\u043C\u043E\u0434\u0430\u0442\u0435\u043B\u044F)*\n\n**Facebook \u0413\u0440\u0443\u043F\u0430:** https://www.facebook.com/groups/211277872302747\n\n**\u0415\u043B. \u0410\u0434\u0440\u0435\u0441:** rodolubets at abv dot bg <br/>*(\u0441\u043C\u0435\u043D\u0435\u0442\u0435 at \u0441 "@" \u0438 dot \u0441 ".")*\n') } })])]), rightColumn({ state: state, actions: actions })]);
+};
+
+},{"../../util/vdom":35,"../right-column":33,"marked":2}],27:[function(require,module,exports){
 'use strict';
 
-const {
-	section, h1, h2, h3, hr, header, i, ul, li, p,
-	table, thead, tbody, tr, td, th
-} = require('../../util/vdom');
+var _require = require('../../util/vdom');
 
-const marked = require('marked');
+var section = _require.section;
+var h1 = _require.h1;
+var h2 = _require.h2;
+var h3 = _require.h3;
+var hr = _require.hr;
+var header = _require.header;
+var i = _require.i;
+var ul = _require.ul;
+var li = _require.li;
+var p = _require.p;
+var table = _require.table;
+var thead = _require.thead;
+var tbody = _require.tbody;
+var tr = _require.tr;
+var td = _require.td;
+var th = _require.th;
 
-const rightColumn = require('../right-column');
 
-module.exports = ({state, actions}) => section('#content', [
-	section('.articles', [
-		section('.article', [
-			h1('Алманах "Родолюбец"'),
-			p({props: {innerHTML: marked(`
-Като печатно издание на дружество “Родолюбец” всяка четна година излиза алманахът “Родолюбец”, една истинска “христоматия по родолюбие”.
+var marked = require('marked');
 
-Като сборник от полезни, тематични четива, Алманахът има утвърдени 8 дяла, които се поддържат във всеки брой, както следва:
-- **Дял I. ДЕ Е БЪЛГАРИЯ?** - географски очерци за България или за нейни области и очерци за обекти в тях.
-- **Дял II. БЪЛГАРИЯ ПРЕЗ ВЕКОВЕТЕ** - Исторически очерци за България.
-- **Дял III. ЮБИЛЕЙНИ ГОДИШНИНИ** - Отразяват се значителни събития от българската история, явяващи се юбилейни към годината на издаването на Алманаха.
-- **Дял IV. БЪЛГАРСКИ ПАНТЕОН** - Раздел, в който са отбелязани значими личности от българската политическа и културна история.
-- **Дял V. СЪКРОВИЩНИЦА НА НАРОДНИЯ ДУХ** - Статии и очерци върху българския фолклор и образци от народни песни и приказки.
-- **Дял VI. С БЪЛГАРИЯ В СЪРЦЕТО** - Най-важният и най-обемист дял от сборника, изпълнен с изповеди, спомени, статии и очерци на бесарабски и за бесарабски българи, очерци за българите-гагаузи в Бесарабия и в България и за българите живеещи вън от границите на България.
-- **Дял VII. ТВОРЦИ ОТ БЕСАРАБИЯ** - кратки биографични бележки и творби на бесарабски поети и творци
-- **Дял VIII. РОДОЛЮБЕЦ ЗА СЕБЕ СИ** - раздел, в който дружеството отразява някои от своите дейности, публикува нормативни документи, свързани с обучението на студентите от българската диаспора извън границите на днешна България, специалисти и обнародва списъци на приети у нас студенти, на завършилите в България специалисти и на изпратените в Бесарабия учители.
-			`)}})
-		])]
-	),
-	rightColumn({state, actions})
-]);
+var rightColumn = require('../right-column');
+
+module.exports = function (_ref) {
+	var state = _ref.state;
+	var actions = _ref.actions;
+	return section('#content', [section('.articles', [section('.article', [h1('Алманах “Родолюбец“'), p({ props: { innerHTML: marked('\n\u041A\u0430\u0442\u043E \u043F\u0435\u0447\u0430\u0442\u043D\u043E \u0438\u0437\u0434\u0430\u043D\u0438\u0435 \u043D\u0430 \u0434\u0440\u0443\u0436\u0435\u0441\u0442\u0432\u043E \u201C\u0420\u043E\u0434\u043E\u043B\u044E\u0431\u0435\u0446\u201D \u0432\u0441\u044F\u043A\u0430 \u0447\u0435\u0442\u043D\u0430 \u0433\u043E\u0434\u0438\u043D\u0430 \u0438\u0437\u043B\u0438\u0437\u0430 \u0430\u043B\u043C\u0430\u043D\u0430\u0445\u044A\u0442 \u201C\u0420\u043E\u0434\u043E\u043B\u044E\u0431\u0435\u0446\u201D, \u0435\u0434\u043D\u0430 \u0438\u0441\u0442\u0438\u043D\u0441\u043A\u0430 \u201C\u0445\u0440\u0438\u0441\u0442\u043E\u043C\u0430\u0442\u0438\u044F \u043F\u043E \u0440\u043E\u0434\u043E\u043B\u044E\u0431\u0438\u0435\u201D.\n\n\u041A\u0430\u0442\u043E \u0441\u0431\u043E\u0440\u043D\u0438\u043A \u043E\u0442 \u043F\u043E\u043B\u0435\u0437\u043D\u0438, \u0442\u0435\u043C\u0430\u0442\u0438\u0447\u043D\u0438 \u0447\u0435\u0442\u0438\u0432\u0430, \u0410\u043B\u043C\u0430\u043D\u0430\u0445\u044A\u0442 \u0438\u043C\u0430 \u0443\u0442\u0432\u044A\u0440\u0434\u0435\u043D\u0438 8 \u0434\u044F\u043B\u0430, \u043A\u043E\u0438\u0442\u043E \u0441\u0435 \u043F\u043E\u0434\u0434\u044A\u0440\u0436\u0430\u0442 \u0432\u044A\u0432 \u0432\u0441\u0435\u043A\u0438 \u0431\u0440\u043E\u0439, \u043A\u0430\u043A\u0442\u043E \u0441\u043B\u0435\u0434\u0432\u0430:\n- **\u0414\u044F\u043B I. \u0414\u0415 \u0415 \u0411\u042A\u041B\u0413\u0410\u0420\u0418\u042F?** - \u0433\u0435\u043E\u0433\u0440\u0430\u0444\u0441\u043A\u0438 \u043E\u0447\u0435\u0440\u0446\u0438 \u0437\u0430 \u0411\u044A\u043B\u0433\u0430\u0440\u0438\u044F \u0438\u043B\u0438 \u0437\u0430 \u043D\u0435\u0439\u043D\u0438 \u043E\u0431\u043B\u0430\u0441\u0442\u0438 \u0438 \u043E\u0447\u0435\u0440\u0446\u0438 \u0437\u0430 \u043E\u0431\u0435\u043A\u0442\u0438 \u0432 \u0442\u044F\u0445.\n- **\u0414\u044F\u043B II. \u0411\u042A\u041B\u0413\u0410\u0420\u0418\u042F \u041F\u0420\u0415\u0417 \u0412\u0415\u041A\u041E\u0412\u0415\u0422\u0415** - \u0418\u0441\u0442\u043E\u0440\u0438\u0447\u0435\u0441\u043A\u0438 \u043E\u0447\u0435\u0440\u0446\u0438 \u0437\u0430 \u0411\u044A\u043B\u0433\u0430\u0440\u0438\u044F.\n- **\u0414\u044F\u043B III. \u042E\u0411\u0418\u041B\u0415\u0419\u041D\u0418 \u0413\u041E\u0414\u0418\u0428\u041D\u0418\u041D\u0418** - \u041E\u0442\u0440\u0430\u0437\u044F\u0432\u0430\u0442 \u0441\u0435 \u0437\u043D\u0430\u0447\u0438\u0442\u0435\u043B\u043D\u0438 \u0441\u044A\u0431\u0438\u0442\u0438\u044F \u043E\u0442 \u0431\u044A\u043B\u0433\u0430\u0440\u0441\u043A\u0430\u0442\u0430 \u0438\u0441\u0442\u043E\u0440\u0438\u044F, \u044F\u0432\u044F\u0432\u0430\u0449\u0438 \u0441\u0435 \u044E\u0431\u0438\u043B\u0435\u0439\u043D\u0438 \u043A\u044A\u043C \u0433\u043E\u0434\u0438\u043D\u0430\u0442\u0430 \u043D\u0430 \u0438\u0437\u0434\u0430\u0432\u0430\u043D\u0435\u0442\u043E \u043D\u0430 \u0410\u043B\u043C\u0430\u043D\u0430\u0445\u0430.\n- **\u0414\u044F\u043B IV. \u0411\u042A\u041B\u0413\u0410\u0420\u0421\u041A\u0418 \u041F\u0410\u041D\u0422\u0415\u041E\u041D** - \u0420\u0430\u0437\u0434\u0435\u043B, \u0432 \u043A\u043E\u0439\u0442\u043E \u0441\u0430 \u043E\u0442\u0431\u0435\u043B\u044F\u0437\u0430\u043D\u0438 \u0437\u043D\u0430\u0447\u0438\u043C\u0438 \u043B\u0438\u0447\u043D\u043E\u0441\u0442\u0438 \u043E\u0442 \u0431\u044A\u043B\u0433\u0430\u0440\u0441\u043A\u0430\u0442\u0430 \u043F\u043E\u043B\u0438\u0442\u0438\u0447\u0435\u0441\u043A\u0430 \u0438 \u043A\u0443\u043B\u0442\u0443\u0440\u043D\u0430 \u0438\u0441\u0442\u043E\u0440\u0438\u044F.\n- **\u0414\u044F\u043B V. \u0421\u042A\u041A\u0420\u041E\u0412\u0418\u0429\u041D\u0418\u0426\u0410 \u041D\u0410 \u041D\u0410\u0420\u041E\u0414\u041D\u0418\u042F \u0414\u0423\u0425** - \u0421\u0442\u0430\u0442\u0438\u0438 \u0438 \u043E\u0447\u0435\u0440\u0446\u0438 \u0432\u044A\u0440\u0445\u0443 \u0431\u044A\u043B\u0433\u0430\u0440\u0441\u043A\u0438\u044F \u0444\u043E\u043B\u043A\u043B\u043E\u0440 \u0438 \u043E\u0431\u0440\u0430\u0437\u0446\u0438 \u043E\u0442 \u043D\u0430\u0440\u043E\u0434\u043D\u0438 \u043F\u0435\u0441\u043D\u0438 \u0438 \u043F\u0440\u0438\u043A\u0430\u0437\u043A\u0438.\n- **\u0414\u044F\u043B VI. \u0421 \u0411\u042A\u041B\u0413\u0410\u0420\u0418\u042F \u0412 \u0421\u042A\u0420\u0426\u0415\u0422\u041E** - \u041D\u0430\u0439-\u0432\u0430\u0436\u043D\u0438\u044F\u0442 \u0438 \u043D\u0430\u0439-\u043E\u0431\u0435\u043C\u0438\u0441\u0442 \u0434\u044F\u043B \u043E\u0442 \u0441\u0431\u043E\u0440\u043D\u0438\u043A\u0430, \u0438\u0437\u043F\u044A\u043B\u043D\u0435\u043D \u0441 \u0438\u0437\u043F\u043E\u0432\u0435\u0434\u0438, \u0441\u043F\u043E\u043C\u0435\u043D\u0438, \u0441\u0442\u0430\u0442\u0438\u0438 \u0438 \u043E\u0447\u0435\u0440\u0446\u0438 \u043D\u0430 \u0431\u0435\u0441\u0430\u0440\u0430\u0431\u0441\u043A\u0438 \u0438 \u0437\u0430 \u0431\u0435\u0441\u0430\u0440\u0430\u0431\u0441\u043A\u0438 \u0431\u044A\u043B\u0433\u0430\u0440\u0438, \u043E\u0447\u0435\u0440\u0446\u0438 \u0437\u0430 \u0431\u044A\u043B\u0433\u0430\u0440\u0438\u0442\u0435-\u0433\u0430\u0433\u0430\u0443\u0437\u0438 \u0432 \u0411\u0435\u0441\u0430\u0440\u0430\u0431\u0438\u044F \u0438 \u0432 \u0411\u044A\u043B\u0433\u0430\u0440\u0438\u044F \u0438 \u0437\u0430 \u0431\u044A\u043B\u0433\u0430\u0440\u0438\u0442\u0435 \u0436\u0438\u0432\u0435\u0435\u0449\u0438 \u0432\u044A\u043D \u043E\u0442 \u0433\u0440\u0430\u043D\u0438\u0446\u0438\u0442\u0435 \u043D\u0430 \u0411\u044A\u043B\u0433\u0430\u0440\u0438\u044F.\n- **\u0414\u044F\u043B VII. \u0422\u0412\u041E\u0420\u0426\u0418 \u041E\u0422 \u0411\u0415\u0421\u0410\u0420\u0410\u0411\u0418\u042F** - \u043A\u0440\u0430\u0442\u043A\u0438 \u0431\u0438\u043E\u0433\u0440\u0430\u0444\u0438\u0447\u043D\u0438 \u0431\u0435\u043B\u0435\u0436\u043A\u0438 \u0438 \u0442\u0432\u043E\u0440\u0431\u0438 \u043D\u0430 \u0431\u0435\u0441\u0430\u0440\u0430\u0431\u0441\u043A\u0438 \u043F\u043E\u0435\u0442\u0438 \u0438 \u0442\u0432\u043E\u0440\u0446\u0438\n- **\u0414\u044F\u043B VIII. \u0420\u041E\u0414\u041E\u041B\u042E\u0411\u0415\u0426 \u0417\u0410 \u0421\u0415\u0411\u0415 \u0421\u0418** - \u0440\u0430\u0437\u0434\u0435\u043B, \u0432 \u043A\u043E\u0439\u0442\u043E \u0434\u0440\u0443\u0436\u0435\u0441\u0442\u0432\u043E\u0442\u043E \u043E\u0442\u0440\u0430\u0437\u044F\u0432\u0430 \u043D\u044F\u043A\u043E\u0438 \u043E\u0442 \u0441\u0432\u043E\u0438\u0442\u0435 \u0434\u0435\u0439\u043D\u043E\u0441\u0442\u0438, \u043F\u0443\u0431\u043B\u0438\u043A\u0443\u0432\u0430 \u043D\u043E\u0440\u043C\u0430\u0442\u0438\u0432\u043D\u0438 \u0434\u043E\u043A\u0443\u043C\u0435\u043D\u0442\u0438, \u0441\u0432\u044A\u0440\u0437\u0430\u043D\u0438 \u0441 \u043E\u0431\u0443\u0447\u0435\u043D\u0438\u0435\u0442\u043E \u043D\u0430 \u0441\u0442\u0443\u0434\u0435\u043D\u0442\u0438\u0442\u0435 \u043E\u0442 \u0431\u044A\u043B\u0433\u0430\u0440\u0441\u043A\u0430\u0442\u0430 \u0434\u0438\u0430\u0441\u043F\u043E\u0440\u0430 \u0438\u0437\u0432\u044A\u043D \u0433\u0440\u0430\u043D\u0438\u0446\u0438\u0442\u0435 \u043D\u0430 \u0434\u043D\u0435\u0448\u043D\u0430 \u0411\u044A\u043B\u0433\u0430\u0440\u0438\u044F, \u0441\u043F\u0435\u0446\u0438\u0430\u043B\u0438\u0441\u0442\u0438 \u0438 \u043E\u0431\u043D\u0430\u0440\u043E\u0434\u0432\u0430 \u0441\u043F\u0438\u0441\u044A\u0446\u0438 \u043D\u0430 \u043F\u0440\u0438\u0435\u0442\u0438 \u0443 \u043D\u0430\u0441 \u0441\u0442\u0443\u0434\u0435\u043D\u0442\u0438, \u043D\u0430 \u0437\u0430\u0432\u044A\u0440\u0448\u0438\u043B\u0438\u0442\u0435 \u0432 \u0411\u044A\u043B\u0433\u0430\u0440\u0438\u044F \u0441\u043F\u0435\u0446\u0438\u0430\u043B\u0438\u0441\u0442\u0438 \u0438 \u043D\u0430 \u0438\u0437\u043F\u0440\u0430\u0442\u0435\u043D\u0438\u0442\u0435 \u0432 \u0411\u0435\u0441\u0430\u0440\u0430\u0431\u0438\u044F \u0443\u0447\u0438\u0442\u0435\u043B\u0438.\n\t\t\t') } })])]), rightColumn({ state: state, actions: actions })]);
+};
 
 },{"../../util/vdom":35,"../right-column":33,"marked":2}],28:[function(require,module,exports){
 'use strict';
 
-const {
-	section, h1, h2, h3, hr, header, i, ul, li, p,
-	table, thead, tbody, tr, td, th
-} = require('../../util/vdom');
+var _require = require('../../util/vdom');
 
-const rightColumn = require('../right-column');
+var section = _require.section;
+var h1 = _require.h1;
+var h2 = _require.h2;
+var h3 = _require.h3;
+var hr = _require.hr;
+var header = _require.header;
+var i = _require.i;
+var ul = _require.ul;
+var li = _require.li;
+var p = _require.p;
+var table = _require.table;
+var thead = _require.thead;
+var tbody = _require.tbody;
+var tr = _require.tr;
+var td = _require.td;
+var th = _require.th;
+var span = _require.span;
 
-module.exports = ({state, actions}) => section('#content', [
-	section('.articles', state.articles.map(article =>
-		section('.article', [
-			h1(article.title),
-			p('.meta',
-				`Публикувана на ${article.createdAt} от ${article.author || 'Д-во Родолюбец'}`
-			),
-			p('.body', {props: {innerHTML: article.text}})
-		]))
-	),
-	rightColumn({state, actions})
-]);
+
+var rightColumn = require('../right-column');
+
+module.exports = function (_ref) {
+	var state = _ref.state;
+	var actions = _ref.actions;
+	return section('#content', [section('.articles', state.articles.map(function (article) {
+		return section('.article', [h1(article.title), p('.meta', [span('.left', article.categories && article.categories.join(', ') || ''), span('.right', '\u041F\u0443\u0431\u043B\u0438\u043A\u0443\u0432\u0430\u043D\u0430 \u043D\u0430 ' + article.createdAt + ' \u043E\u0442 ' + (article.author || 'Д-во Родолюбец'))]), p('.body', { props: { innerHTML: article.text } })]);
+	})), rightColumn({ state: state, actions: actions })]);
+};
 
 },{"../../util/vdom":35,"../right-column":33}],29:[function(require,module,exports){
 'use strict';
 
-const {
-	section, h1, h2, h3, hr, header, i, ul, li, p,
-	table, thead, tbody, tr, td, th
-} = require('../../util/vdom');
+var _require = require('../../util/vdom');
 
-const rightColumn = require('../right-column');
+var section = _require.section;
+var h1 = _require.h1;
+var h2 = _require.h2;
+var h3 = _require.h3;
+var hr = _require.hr;
+var header = _require.header;
+var i = _require.i;
+var ul = _require.ul;
+var li = _require.li;
+var p = _require.p;
+var table = _require.table;
+var thead = _require.thead;
+var tbody = _require.tbody;
+var tr = _require.tr;
+var td = _require.td;
+var th = _require.th;
 
-module.exports = ({state, actions}) => section('#content', [
-	section('.articles', [
-		section('.article', [
-			h1('Информация')
-		])]
-	),
-	rightColumn({state, actions})
-]);
+
+var rightColumn = require('../right-column');
+
+module.exports = function (_ref) {
+	var state = _ref.state;
+	var actions = _ref.actions;
+	return section('#content', [section('.articles', [section('.article', [h1('Информация')])]), rightColumn({ state: state, actions: actions })]);
+};
 
 },{"../../util/vdom":35,"../right-column":33}],30:[function(require,module,exports){
 'use strict';
 
-const {
-	section, h1, h2, h3, hr, header, i, ul, li, p,
-	table, thead, tbody, tr, td, th, a
-} = require('../../util/vdom');
+var _require = require('../../util/vdom');
 
-const marked = require('marked');
+var section = _require.section;
+var h1 = _require.h1;
+var h2 = _require.h2;
+var h3 = _require.h3;
+var hr = _require.hr;
+var header = _require.header;
+var i = _require.i;
+var ul = _require.ul;
+var li = _require.li;
+var p = _require.p;
+var table = _require.table;
+var thead = _require.thead;
+var tbody = _require.tbody;
+var tr = _require.tr;
+var td = _require.td;
+var th = _require.th;
+var a = _require.a;
 
-const rightColumn = require('../right-column');
 
-module.exports = ({state, actions}) => section('#content', [
-	section('.articles', [
-		section('.article', [
-			h1('Полезни Връзки'),
-			p({props: {innerHTML: marked(`
-- [Държавна агенция за българите в чужбина](http://aba.government.bg)
-- [Министерството на образованието и науката / За българите зад граница](http://www.mon.bg/?go=page&amp;pageId=15&amp;subpageId=173)
-- [Научно дружество на българистите в Република Молдова](http://ndb.md/)
-- [Българска Виртуална Библиотека](http://slovo.bg)
-- [Вестник "Роден Край" - Одеса](http://www.rodenkray.od.ua/)
-			`)}})
-		])
-	]),
-	rightColumn({state, actions})
-]);
+var marked = require('marked');
+
+var rightColumn = require('../right-column');
+
+module.exports = function (_ref) {
+	var state = _ref.state;
+	var actions = _ref.actions;
+	return section('#content', [section('.articles', [section('.article', [h1('Полезни Връзки'), p({ props: { innerHTML: marked('\n- [\u0414\u044A\u0440\u0436\u0430\u0432\u043D\u0430 \u0430\u0433\u0435\u043D\u0446\u0438\u044F \u0437\u0430 \u0431\u044A\u043B\u0433\u0430\u0440\u0438\u0442\u0435 \u0432 \u0447\u0443\u0436\u0431\u0438\u043D\u0430](http://aba.government.bg)\n- [\u041C\u0438\u043D\u0438\u0441\u0442\u0435\u0440\u0441\u0442\u0432\u043E\u0442\u043E \u043D\u0430 \u043E\u0431\u0440\u0430\u0437\u043E\u0432\u0430\u043D\u0438\u0435\u0442\u043E \u0438 \u043D\u0430\u0443\u043A\u0430\u0442\u0430 /\xA0\u0417\u0430 \u0431\u044A\u043B\u0433\u0430\u0440\u0438\u0442\u0435 \u0437\u0430\u0434 \u0433\u0440\u0430\u043D\u0438\u0446\u0430](http://www.mon.bg/?go=page&amp;pageId=15&amp;subpageId=173)\n- [\u041D\u0430\u0443\u0447\u043D\u043E \u0434\u0440\u0443\u0436\u0435\u0441\u0442\u0432\u043E \u043D\u0430 \u0431\u044A\u043B\u0433\u0430\u0440\u0438\u0441\u0442\u0438\u0442\u0435 \u0432 \u0420\u0435\u043F\u0443\u0431\u043B\u0438\u043A\u0430 \u041C\u043E\u043B\u0434\u043E\u0432\u0430](http://ndb.md/)\n- [\u0411\u044A\u043B\u0433\u0430\u0440\u0441\u043A\u0430 \u0412\u0438\u0440\u0442\u0443\u0430\u043B\u043D\u0430 \u0411\u0438\u0431\u043B\u0438\u043E\u0442\u0435\u043A\u0430](http://slovo.bg)\n- [\u0412\u0435\u0441\u0442\u043D\u0438\u043A "\u0420\u043E\u0434\u0435\u043D \u041A\u0440\u0430\u0439" - \u041E\u0434\u0435\u0441\u0430](http://www.rodenkray.od.ua/)\n\t\t\t') } })])]), rightColumn({ state: state, actions: actions })]);
+};
 
 },{"../../util/vdom":35,"../right-column":33,"marked":2}],31:[function(require,module,exports){
 'use strict';
 
-const {
-	section, h1, h2, h3, hr, header, i, ul, li, p,
-	table, thead, tbody, tr, td, th
-} = require('../../util/vdom');
+var _require = require('../../util/vdom');
 
-const rightColumn = require('../right-column');
+var section = _require.section;
+var h1 = _require.h1;
+var h2 = _require.h2;
+var h3 = _require.h3;
+var hr = _require.hr;
+var header = _require.header;
+var i = _require.i;
+var ul = _require.ul;
+var li = _require.li;
+var p = _require.p;
+var table = _require.table;
+var thead = _require.thead;
+var tbody = _require.tbody;
+var tr = _require.tr;
+var td = _require.td;
+var th = _require.th;
 
-module.exports = ({state, actions}) => section('#content', [
-	section('.articles', [
-		section('.article', [
-			h1('Изследвания')
-		])]
-	),
-	rightColumn({state, actions})
-]);
+
+var rightColumn = require('../right-column');
+
+module.exports = function (_ref) {
+	var state = _ref.state;
+	var actions = _ref.actions;
+	return section('#content', [section('.articles', [section('.article', [h1('Изследвания')])]), rightColumn({ state: state, actions: actions })]);
+};
 
 },{"../../util/vdom":35,"../right-column":33}],32:[function(require,module,exports){
 'use strict';
 
-const moment = require('moment');
+var moment = require('moment');
 require('moment/locale/bg');
 
-const getDays = () => {
-	const today = moment();
-	const startOfMonth = today.startOf('month');
-	const endOfMonth = today.endOf('month');
+var getDays = function getDays() {
+	var today = moment();
+	var startOfMonth = today.startOf('month');
+	var endOfMonth = today.endOf('month');
 
-	let iterator = moment().startOf('month').startOf('week');
-	let days = [];
+	var iterator = moment().startOf('month').startOf('week');
+	var days = [];
 
 	while (iterator < endOfMonth) {
-		let weekdays = [];
-		for (let i = 0; i < 7; i++) {
+		var weekdays = [];
+		for (var _i = 0; _i < 7; _i++) {
 			weekdays.push(iterator.get('date'));
 			iterator.add(1, 'day');
 		}
@@ -20737,71 +20812,85 @@ const getDays = () => {
 	return days;
 };
 
-const {
-	section, h1, h2, h3, hr, header, i, ul, li,
-	table, thead, tbody, tr, td, th, button
-} = require('../../../util/vdom');
+var _require = require('../../../util/vdom');
 
-module.exports = ({state, actions}) => section('.calendar', [
-	table([
-		thead([
-			tr([
-				th([button('.fa.fa-step-backward')]),
-				th([button('.fa.fa-backward')]),
-				th({
-					attrs: {
-						colspan: 3
-					},
-					style: {
-						textTransform: 'capitalize'
-					}
-				}, moment().format('MMMM Y')),
-				th([button('.fa.fa-forward')]),
-				th([button('.fa.fa-step-forward')])
-			]),
-			tr(['Пон', 'Вто', 'Сря', 'Чет', 'Пет', 'Съб', 'Нед'].map(wday =>
-				th(wday)
-			))
-		]),
-		tbody(getDays().map(week =>
-			tr(
-				week.map(day =>
-					td(day)
-				)
-			))
-		)
-	])
-]);
+var section = _require.section;
+var h1 = _require.h1;
+var h2 = _require.h2;
+var h3 = _require.h3;
+var hr = _require.hr;
+var header = _require.header;
+var i = _require.i;
+var ul = _require.ul;
+var li = _require.li;
+var table = _require.table;
+var thead = _require.thead;
+var tbody = _require.tbody;
+var tr = _require.tr;
+var td = _require.td;
+var th = _require.th;
+var button = _require.button;
+
+
+module.exports = function (_ref) {
+	var state = _ref.state;
+	var actions = _ref.actions;
+	return section('.calendar', [table([thead([tr([th([button('.fa.fa-step-backward')]), th([button('.fa.fa-backward')]), th({
+		attrs: {
+			colspan: 3
+		},
+		style: {
+			textTransform: 'capitalize'
+		}
+	}, moment().format('MMMM Y')), th([button('.fa.fa-forward')]), th([button('.fa.fa-step-forward')])]), tr(['Пон', 'Вто', 'Сря', 'Чет', 'Пет', 'Съб', 'Нед'].map(function (wday) {
+		return th(wday);
+	}))]), tbody(getDays().map(function (week) {
+		return tr(week.map(function (day) {
+			return td(day);
+		}));
+	}))])]);
+};
 
 },{"../../../util/vdom":35,"moment":4,"moment/locale/bg":3}],33:[function(require,module,exports){
 'use strict';
 
-const {
-	section, h1, h2, h3, hr, header, i, ul, li, p,
-	table, thead, tbody, tr, td, th
-} = require('../../util/vdom');
+var _require = require('../../util/vdom');
 
-const calendar = require('./calendar');
+var section = _require.section;
+var h1 = _require.h1;
+var h2 = _require.h2;
+var h3 = _require.h3;
+var hr = _require.hr;
+var header = _require.header;
+var i = _require.i;
+var ul = _require.ul;
+var li = _require.li;
+var p = _require.p;
+var a = _require.a;
+var table = _require.table;
+var thead = _require.thead;
+var tbody = _require.tbody;
+var tr = _require.tr;
+var td = _require.td;
+var th = _require.th;
 
-module.exports = ({state, actions}) => section('.right-column', [
-	section([
-		h2('Предстоящи събития:'),
-		ul([
-			li('27.10 18:30 Традиционен празничен концерт, посветен на Деня на Бесарабските Българи'),
-			li('Коледно Тържество')
-		])
-	]),
-	calendar({state, actions})
-]);
+
+var calendar = require('./calendar');
+
+module.exports = function (_ref) {
+	var state = _ref.state;
+	var actions = _ref.actions;
+	return section('.right-column', [section([h2('Предстоящи събития:'), ul([li([a({ attrs: { href: 'https://www.facebook.com/events/191852797922713/', target: '_blank' } }, '27.10 18:30 Традиционен празничен концерт, посветен на Деня на Бесарабските Българи')]), li('Коледно Тържество')])]), calendar({ state: state, actions: actions })]);
+};
 
 },{"../../util/vdom":35,"./calendar":32}],34:[function(require,module,exports){
 'use strict';
 
-const Rx = require('rx');
-const $ = Rx.Observable;
-const superagent = require('superagent');
+var Rx = require('rx');
+var $ = Rx.Observable;
+var superagent = require('superagent');
 
-superagent.Request.prototype.observe = function() {
+superagent.Request.prototype.observe = function () {
 	return $.fromNodeCallback(this.end, this)();
 };
 
@@ -20810,55 +20899,41 @@ module.exports = superagent;
 },{"rx":6,"superagent":17}],35:[function(require,module,exports){
 'use strict';
 
-const snabbdom = require('snabbdom');
-const h = require('snabbdom/h');
+var snabbdom = require('snabbdom');
+var h = require('snabbdom/h');
 
-const patch = snabbdom.init([ // Init patch function with choosen modules
-	require('snabbdom/modules/class'), // makes it easy to toggle classes
-	require('snabbdom/modules/props'), // for setting properties on DOM elements
-	require('snabbdom/modules/attributes'), // for setting properties on DOM elements
-	require('snabbdom/modules/style'), // handles styling on elements with support for animations
-	require('snabbdom/modules/eventlisteners') // attaches event listeners
+var patch = snabbdom.init([// Init patch function with choosen modules
+require('snabbdom/modules/class'), // makes it easy to toggle classes
+require('snabbdom/modules/props'), // for setting properties on DOM elements
+require('snabbdom/modules/attributes'), // for setting properties on DOM elements
+require('snabbdom/modules/style'), // handles styling on elements with support for animations
+require('snabbdom/modules/eventlisteners') // attaches event listeners
 ]);
 
-const patchStream = (stream, dom) => {
-	dom = (typeof dom === 'string') ? document.querySelector(dom) : dom;
-	stream.scan(
-		(vnode, newVnode) => patch(vnode, newVnode),
-		dom
-	).subscribe();
+var patchStream = function patchStream(stream, dom) {
+	dom = typeof dom === 'string' ? document.querySelector(dom) : dom;
+	stream.scan(function (vnode, newVnode) {
+		return patch(vnode, newVnode);
+	}, dom).subscribe();
 };
 
-const hyperHelpers = [
-	'h1', 'h2', 'h3', 'h4', 'section', 'header', 'article',
-	'div', 'p', 'span', 'pre', 'code', 'a', 'dd', 'dt', 'hr', 'br', 'b', 'i',
-	'table', 'thead', 'tbody', 'th', 'tr', 'td', 'ul', 'ol', 'li',
-	'form', 'fieldset', 'legend', 'input', 'label', 'button', 'select', 'option',
-	'canvas', 'video'
-].reduce(
-	(o, tag) => {
-		o[tag] = function() {
-			return [Array.prototype.slice.call(arguments)]
-				.map(
-					args => (
-						args[0] && typeof args[0] === 'string'
-						&& args[0].match(/^(\.|#)[a-zA-Z\-_0-9]+/ig))
-						? [].concat(tag + args[0], args.slice(1))
-						: [tag].concat(args))
-				.map(args => h.apply(this, args))
-				.pop();
-		};
-		return o;
-	}, {}
-);
+var hyperHelpers = ['h1', 'h2', 'h3', 'h4', 'section', 'header', 'article', 'div', 'p', 'span', 'pre', 'code', 'a', 'dd', 'dt', 'hr', 'br', 'b', 'i', 'table', 'thead', 'tbody', 'th', 'tr', 'td', 'ul', 'ol', 'li', 'form', 'fieldset', 'legend', 'input', 'label', 'button', 'select', 'option', 'canvas', 'video'].reduce(function (o, tag) {
+	o[tag] = function () {
+		var _this = this;
 
-module.exports = Object.assign(
-	{
-		h,
-		patch,
-		patchStream
-	},
-	hyperHelpers
-);
+		return [Array.prototype.slice.call(arguments)].map(function (args) {
+			return args[0] && typeof args[0] === 'string' && args[0].match(/^(\.|#)[a-zA-Z\-_0-9]+/ig) ? [].concat(tag + args[0], args.slice(1)) : [tag].concat(args);
+		}).map(function (args) {
+			return h.apply(_this, args);
+		}).pop();
+	};
+	return o;
+}, {});
+
+module.exports = Object.assign({
+	h: h,
+	patch: patch,
+	patchStream: patchStream
+}, hyperHelpers);
 
 },{"snabbdom":15,"snabbdom/h":7,"snabbdom/modules/attributes":10,"snabbdom/modules/class":11,"snabbdom/modules/eventlisteners":12,"snabbdom/modules/props":13,"snabbdom/modules/style":14}]},{},[22]);

@@ -8,6 +8,12 @@
 	height: $h
 	line-height: $h
 
+@mixin transform($transforms)
+	-moz-transform: $transforms
+	-o-transform: $transforms
+	-ms-transform: $transforms
+	-webkit-transform: $transforms
+	transform: $transforms
 
 @mixin clear-form-control
 	+no-margin-padding
@@ -39,16 +45,19 @@
 	transition: background .7s, box-shadow .3s, color .5s, padding .1s
 	&:hover, &.active
 		color: #333
-		background: lighten($rod-color-green-2, 3%)
-		box-shadow: inset 0px 0px 15px #ccc
+		background: lighten($rod-color-green-1, 18%)
+		box-shadow: inset 0px 0px 10px #ccc
 	&:active
 		transition: background .3s, box-shadow .1s
 		// background: lighten(#cfe5cc, 3%)
 		// background: lighten(#bfd0be, 7%)
-		background: lighten($rod-color-green-2, 1%)
+		background: $rod-color-green-2
 		padding: ($pad + 1) $pad ($pad - 1) $pad
 	&:focus
 		outline: none
+	a
+		text-decoration: none
+		color: inherit
 
 @mixin no-select
 	-webkit-touch-callout: none
