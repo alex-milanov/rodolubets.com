@@ -2234,17 +2234,17 @@ h1, h2, h3, h4, h5 {
   float: right !important; }
 
 #ui {
-  padding: 45px 85px; }
+  padding: 65px 85px; }
   #ui header {
     width: 100%;
-    margin-top: 10px;
+    margin-top: 30px;
     vertical-align: bottom; }
     #ui header .title {
       margin: 0px;
       padding: 0px;
       padding: 0px 5px;
       display: block;
-      height: 110px;
+      height: 87px;
       box-sizing: content-box; }
       #ui header .title > * {
         display: inline-block; }
@@ -2254,13 +2254,12 @@ h1, h2, h3, h4, h5 {
         height: 72px;
         font-family: "Izhitsa", Georgia, serif;
         font-weight: normal;
-        color: #edf1ed;
+        color: #f3f5f3;
         text-shadow: 0 0 4px #454a45; }
       #ui header .title h3 {
         font-size: 18px;
-        line-height: 28px;
-        margin-top: 16px;
-        width: 40%;
+        line-height: 26px;
+        width: 450px;
         text-align: right;
         float: right; }
     #ui header ul {
@@ -2283,7 +2282,49 @@ h1, h2, h3, h4, h5 {
         padding: 0px;
         display: inline-block;
         float: left; }
-        #ui header ul li a {
+        #ui header ul li form label, #ui header ul li form input {
+          height: 40px;
+          min-width: 40px;
+          padding: 8px;
+          line-height: 24px;
+          box-sizing: border-box;
+          display: inline-block;
+          float: left; }
+        #ui header ul li form label {
+          text-align: center;
+          display: inline-block; }
+          #ui header ul li form label i {
+            line-height: 24px; }
+        #ui header ul li form input {
+          margin: 0px;
+          padding: 0px;
+          outline: none;
+          border-image: none;
+          box-sizing: border-box;
+          border: 1px solid #dfdfdf;
+          border-width: 0px 1px 0px 1px;
+          font-size: 1em;
+          padding: 0px 8px;
+          font-family: "Open Sans", Helvetica, Arial, sans-serif;
+          font-weight: normal;
+          color: #333;
+          background: #f9faf9;
+          box-shadow: inset 0px 0px 20px #e5e5e5; }
+          #ui header ul li form input:focus, #ui header ul li form input:active, #ui header ul li form input::-moz-focus-inner, #ui header ul li form input:-moz-focusring, #ui header ul li form input::-moz-focus-outer {
+            outline: none;
+            border-radius: 0px;
+            border-image: none; }
+        #ui header ul li form button {
+          float: left;
+          font-size: 1em; }
+          #ui header ul li form button i {
+            line-height: 24px; }
+        #ui header ul li a, #ui header ul li button {
+          margin: 0px;
+          padding: 0px;
+          outline: none;
+          border-image: none;
+          box-sizing: border-box;
           -webkit-touch-callout: none;
           -webkit-user-select: none;
           -khtml-user-select: none;
@@ -2294,24 +2335,31 @@ h1, h2, h3, h4, h5 {
           cursor: pointer;
           color: #555;
           transition: background .7s, box-shadow .3s, color .5s, padding .1s;
+          border: 0px;
+          background: inherit;
           height: 40px;
+          line-height: 24px;
           min-width: 40px;
           text-align: center;
           box-sizing: border-box;
           margin: 0px;
           display: inline-block;
           text-decoration: none; }
-          #ui header ul li a:hover, #ui header ul li a.active {
+          #ui header ul li a:focus, #ui header ul li a:active, #ui header ul li a::-moz-focus-inner, #ui header ul li a:-moz-focusring, #ui header ul li a::-moz-focus-outer, #ui header ul li button:focus, #ui header ul li button:active, #ui header ul li button::-moz-focus-inner, #ui header ul li button:-moz-focusring, #ui header ul li button::-moz-focus-outer {
+            outline: none;
+            border-radius: 0px;
+            border-image: none; }
+          #ui header ul li a:hover, #ui header ul li a.active, #ui header ul li button:hover, #ui header ul li button.active {
             color: #333;
             background: #e5ede4;
             box-shadow: inset 0px 0px 10px #d5d5d5; }
-          #ui header ul li a:active {
+          #ui header ul li a:active, #ui header ul li button:active {
             transition: background .3s, box-shadow .1s;
             background: #e5eae5;
             padding: 9px 8px 7px 8px; }
-          #ui header ul li a:focus {
+          #ui header ul li a:focus, #ui header ul li button:focus {
             outline: none; }
-          #ui header ul li a a {
+          #ui header ul li a a, #ui header ul li button a {
             text-decoration: none;
             color: inherit; }
 
@@ -2334,7 +2382,8 @@ h1, h2, h3, h4, h5 {
       width: 100%; }
       #ui > #content .articles .article h1 {
         font-size: 1.8em;
-        margin: 10px 0px; }
+        line-height: 1.3em;
+        padding: 10px 0px; }
       #ui > #content .articles .article .meta {
         height: 28px;
         line-height: 28px;
@@ -2366,7 +2415,8 @@ h1, h2, h3, h4, h5 {
       margin-bottom: 20px; }
       #ui > #content .right-column > section h2 {
         margin: 15px 10px 10px 10px;
-        font-size: 1.2em; }
+        font-size: 1.2em;
+        line-height: 1.3em; }
       #ui > #content .right-column > section ul {
         margin: 0px;
         padding: 0px;
@@ -2431,7 +2481,6 @@ h1, h2, h3, h4, h5 {
           background: inherit;
           border: 0px; }
           #ui > #content .right-column table td button:focus, #ui > #content .right-column table td button:active, #ui > #content .right-column table td button::-moz-focus-inner, #ui > #content .right-column table td button:-moz-focusring, #ui > #content .right-column table td button::-moz-focus-outer, #ui > #content .right-column table th button:focus, #ui > #content .right-column table th button:active, #ui > #content .right-column table th button::-moz-focus-inner, #ui > #content .right-column table th button:-moz-focusring, #ui > #content .right-column table th button::-moz-focus-outer {
-            border: none;
             outline: none;
             border-radius: 0px;
             border-image: none; }

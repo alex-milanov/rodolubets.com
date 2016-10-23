@@ -25,12 +25,18 @@ const init = () => request.get('http://localhost:8080/api/articles')
 	)
 	.subscribe(articles => stream.onNext(state => Object.assign({}, state, {articles})));
 
+const signInToggle = () => stream.onNext(
+	state => Object.assign({}, state, {signInToggled: !state.signInToggled})
+);
+
 const initial = {
-	articles: []
+	articles: [],
+	signInToggled: false
 };
 
 module.exports = {
 	stream,
 	init,
+	signInToggle,
 	initial
 };

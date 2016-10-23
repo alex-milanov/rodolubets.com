@@ -19,6 +19,45 @@ const patchStream = (stream, dom) => {
 	).subscribe();
 };
 
+const addKeyValue = (o, k, v) => {
+	o[k] = v;
+	return o;
+};
+
+const processAttrs = args => {
+	let newArgs = args.slice();
+
+	let selector = newArgs[0] && typeof newArgs[0] === 'string' && newArgs[0] || '';
+	if (selector !== '') newArgs = newArgs.slice(1);
+
+	const attrRegExp = /\[[a-z\-0-9]+="[^"]+"\]/ig;
+
+	let attrs = selector && selector.match(attrRegExp);
+	selector = selector.replace(attrRegExp, '');
+
+	attrs = attrs && attrs.map && attrs
+			.map(c => c.replace(/[\[\]"]/g, '').split('='))
+			.reduce((o, attr) => addKeyValue(o, attr[0], attr[1]), {}) || {};
+
+	if (attrs && Object.keys(attrs).length > 0) {
+		if (!newArgs[0] || newArgs[0]
+			&& typeof newArgs[0] === 'object' && !(newArgs[0] instanceof Array)) {
+			attrs = Object.assign({}, newArgs[0] && newArgs[0].attrs || {}, attrs);
+			newArgs[0] = Object.assign({}, newArgs[0] || {}, {attrs});
+		} else {
+			newArgs = [{attrs}].concat(
+				newArgs
+			);
+		}
+	}
+
+	if (selector !== '')
+		newArgs = [selector].concat(newArgs);
+
+	// console.log(args, newArgs);
+	return newArgs;
+};
+
 const hyperHelpers = [
 	'h1', 'h2', 'h3', 'h4', 'section', 'header', 'article',
 	'div', 'p', 'span', 'pre', 'code', 'a', 'dd', 'dt', 'hr', 'br', 'b', 'i',
@@ -29,6 +68,7 @@ const hyperHelpers = [
 	(o, tag) => {
 		o[tag] = function() {
 			return [Array.prototype.slice.call(arguments)]
+				.map(processAttrs)
 				.map(
 					args => (
 						args[0] && typeof args[0] === 'string'
