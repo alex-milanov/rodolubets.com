@@ -7,7 +7,7 @@
 	"extends": "google",
 	"rules": {
 		"indent": ["error", "tab", {"SwitchCase": 1}],
-		"max-len": ["warn", 100],
+		"max-len": ["warn", 100, {"ignoreComments": true, "ignoreStrings": true}],
 		"no-nested-ternary": 0,
 		"operator-linebreak": ["error", "after", { "overrides": { "?": "before", ":": "before", "&&": "before", "||": "before" } }],
 		"no-return-assign": ["error", "except-parens"],
