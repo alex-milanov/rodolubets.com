@@ -2233,13 +2233,6 @@ h1, h2, h3, h4, h5 {
 .right {
   float: right !important; }
 
-.fa {
-  margin: 0px 7px; }
-  .fa:first-child {
-    margin: 0px 0px 0px 5px; }
-  .fa:last-child {
-    margin: 0px 5px 0px 0px; }
-
 #ui {
   padding: 65px 85px; }
   #ui header {

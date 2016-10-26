@@ -1,5 +1,6 @@
 body
 	font-family: $rod-text-body
+	// +background(linear-gradient(to bottom, rgba($rod-color-green-1, 1) 0%, rgba($rod-color-green-2, 1) 70%, rgba($rod-color-green-3, 1) 100%) fixed, url('../img/paper_fibers.png'))
 	+linear-gradient($rod-color-green-1 0%, $rod-color-green-2 70%, $rod-color-green-3 100%)
 	background-attachment: fixed
 	color: $rod-color-text
@@ -16,10 +17,3 @@ h1, h2, h3, h4, h5
 	float: left!important
 .right
 	float: right!important
-
-.fa
-	margin: 0px 7px
-	&:first-child
-		margin: 0px 0px 0px 5px
-	&:last-child
-		margin: 0px 5px 0px 0px
