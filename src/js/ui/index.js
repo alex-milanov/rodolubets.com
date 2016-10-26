@@ -7,8 +7,7 @@ const pages = {
 	default: require('./pages/home'),
 	about: require('./pages/about'),
 	almanac: require('./pages/almanac'),
-	info: require('./pages/info'),
-	research: require('./pages/research'),
+	articles: require('./pages/articles'),
 	links: require('./pages/links')
 };
 
