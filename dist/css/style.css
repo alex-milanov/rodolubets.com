@@ -2270,7 +2270,7 @@ h1, h2, h3, h4, h5 {
       display: inline-block;
       background: rgba(255, 255, 255, 0.7);
       box-shadow: 0px 0px 3px #bbb;
-      border-bottom: 1px solid #aaa;
+      border-bottom: 1px solid #bbb;
       display: block;
       clear: both;
       height: 41px;
@@ -2377,7 +2377,7 @@ h1, h2, h3, h4, h5 {
       display: inline-block;
       background: rgba(255, 255, 255, 0.7);
       box-shadow: 0px 0px 3px #bbb;
-      border-bottom: 1px solid #aaa;
+      border-bottom: 1px solid #bbb;
       position: relative;
       padding: 20px 40px;
       margin-bottom: 20px;
@@ -2477,7 +2477,7 @@ h1, h2, h3, h4, h5 {
     display: inline-block;
     background: rgba(255, 255, 255, 0.7);
     box-shadow: 0px 0px 3px #bbb;
-    border-bottom: 1px solid #aaa;
+    border-bottom: 1px solid #bbb;
     width: 100%;
     margin-bottom: 20px; }
     #ui > #content .right-column > section h2 {
