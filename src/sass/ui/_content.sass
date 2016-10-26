@@ -7,9 +7,35 @@
 		width: 70%
 		.article
 			+rod-panel
+			position: relative
 			padding: 20px 40px
 			margin-bottom: 20px
 			width: 100%
+			.menu
+				padding: 0px 20px
+				height: 100%
+				vertical-align: middle
+				position: absolute
+				top: 0px
+				right: 0px
+				list-style: none
+				ul
+					+no-margin-padding
+					margin: 27px 0px
+					display: inline-block
+					width: 100%
+					li
+						vertical-align: middle
+						margin: 5px
+						border: 1px solid #ccc
+						display: inline-block
+						height: 32px
+						box-sizing: content-box
+						a
+							+panel-button(7px)
+							display: inline-block
+							line-height: 18px
+							font-size: 14px
 			h1
 				font-size: 1.8em
 				line-height: 1.3em
@@ -29,6 +55,13 @@
 				text-align: right
 				background: rgba(190,190,190, 0.2)
 				color: #777
+			.article-item
+				padding: 10px 0px
+				.title
+					font-weight: bold
+					color: #333
+				p
+					margin: 0px
 			img
 				margin: 0px 10px
 				padding: 10px

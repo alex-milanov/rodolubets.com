@@ -7,8 +7,8 @@ const {
 
 const links = [
 	{page: 'home', href: '#/', title: 'Начало'},
-	{page: 'about', href: '#/about', title: 'За Нас'},
-	{page: 'almanac', href: '#/almanac', title: 'Алманах'},
+	{page: 'about', href: '#/about', title: 'За Дружеството'},
+	{page: 'almanac', href: '#/almanac', title: 'Алманах Родолюбец'},
 	{page: 'articles', href: '#/articles', title: 'Публикации'},
 	{page: 'links', href: '#/links', title: 'Връзки'}
 ];

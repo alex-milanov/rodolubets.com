@@ -12,7 +12,9 @@ const rightColumn = require('../right-column');
 module.exports = ({state, actions}) => section('#content', [
 	section('.articles', [
 		section('.article', [
-			h1('Алманах “Родолюбец“'),
+			h1('Алманах “Родолюбец“')
+		]),
+		section('.article', [
 			p({props: {innerHTML: marked(`
 Като печатно издание на дружество “Родолюбец” всяка четна година излиза алманахът “Родолюбец”, една истинска “христоматия по родолюбие”.
 
