@@ -20407,13 +20407,13 @@ var request = require('../util/request');
 var stream = new Subject();
 
 var init = function init() {
-	return request.get('http://localhost:8080/api/articles').observe().map(function (res) {
+	return request.get('/api/articles').observe().map(function (res) {
 		return res.body;
 	}).map(function (articles) {
 		return articles.map(function (article) {
 			return Object.assign({}, article, {
 				text: marked(article.text),
-				createdAt: moment(article.createdAt).format('DD MMMM Y')
+				createdAt: article.createdAt && moment(article.createdAt).format('DD MMMM Y') || ""
 			});
 		});
 	}).subscribe(function (articles) {
@@ -20429,15 +20429,23 @@ var signInToggle = function signInToggle() {
 	});
 };
 
+var selectCategory = function selectCategory(category) {
+	return stream.onNext(function (state) {
+		return Object.assign({}, state, { category: category });
+	});
+};
+
 var initial = {
 	articles: [],
-	signInToggled: false
+	signInToggled: false,
+	category: false
 };
 
 module.exports = {
 	stream: stream,
 	init: init,
 	signInToggle: signInToggle,
+	selectCategory: selectCategory,
 	initial: initial
 };
 
@@ -20711,23 +20719,30 @@ var a = _require.a;
 
 
 var rightColumn = require('../right-column');
-var categories = [{
-	title: "Изследвания"
-}, {
-	title: "Личности"
-}, {
-	title: "Информация"
-}];
 
 module.exports = function (_ref) {
 	var state = _ref.state;
 	var actions = _ref.actions;
-	return section('#content', [section('.articles', [section('.article', [h1('Публикации'), div('.menu', [ul([li([a('.active', 'Всички')])].concat(categories.map(function (c) {
-		return li([a(c.title)]);
+	return section('#content', [section('.articles', [section('.article', [h1('Публикации'), div('.menu', [ul([li([a({
+		class: { active: state.category === false },
+		on: { click: function click(el) {
+				return actions.selectCategory(false);
+			} }
+	}, 'Всички')])].concat(state.articles.reduce(function (cats, a) {
+		return cats.concat(a.categories.filter(function (c) {
+			return cats.indexOf(c) === -1;
+		}) || []);
+	}, []).map(function (category) {
+		return li([a({
+			class: { active: category === state.category },
+			on: { click: function click(el) {
+					return actions.selectCategory(category);
+				} }
+		}, category)]);
 	})))])]), state.route.pageId ? state.articles.filter(function (a) {
 		return a._id === state.route.pageId;
 	}).map(function (article) {
-		return section('.article', [h1(article.title), p('.meta', [span('.left', article.categories && article.categories.join(', ') || ''), span('.right', '\u041F\u0443\u0431\u043B\u0438\u043A\u0443\u0432\u0430\u043D\u0430 \u043D\u0430 ' + article.createdAt + ' \u043E\u0442 ' + (article.author || 'Д-во Родолюбец'))]), p('.body', { props: { innerHTML: article.text } })]);
+		return section('.article', [h1(article.title), p('.meta', [span('.left', article.categories && article.categories.join(', ') || ''), span('.right', (article.createdAt && '\u041F\u0443\u0431\u043B\u0438\u043A\u0443\u0432\u0430\u043D\u0430 \u043D\u0430 ' + article.createdAt + ' \u043E\u0442 ' || '') + ('' + (article.author || 'Д-во Родолюбец')))]), p('.body', { props: { innerHTML: article.text } })]);
 	}).pop() : section('.article', [div(state.articles.map(function (article) {
 		return div('.article-item', [a('.title[href="#/articles/' + article._id + '"]', article.title), p('\u041F\u0443\u0431\u043B\u0438\u043A\u0443\u0432\u0430\u043D\u0430 \u043D\u0430 ' + article.createdAt + ' \u043E\u0442 ' + (article.author || 'Д-во Родолюбец')), p('.article-categories', article.categories && article.categories.join(', ') || '')]);
 	}))])]), rightColumn({ state: state, actions: actions })]);

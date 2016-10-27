@@ -12,14 +12,14 @@ const request = require('../util/request');
 
 const stream = new Subject();
 
-const init = () => request.get('http://localhost:8080/api/articles')
+const init = () => request.get('/api/articles')
 	.observe()
 	.map(res => res.body)
 	.map(articles =>
 		articles.map(article =>
 			Object.assign({}, article, {
 				text: marked(article.text),
-				createdAt: moment(article.createdAt).format('DD MMMM Y')
+				createdAt: article.createdAt && moment(article.createdAt).format('DD MMMM Y') || ""
 			})
 		)
 	)
@@ -29,14 +29,19 @@ const signInToggle = () => stream.onNext(
 	state => Object.assign({}, state, {signInToggled: !state.signInToggled})
 );
 
+const selectCategory = category =>
+	stream.onNext(state => Object.assign({}, state, {category}));
+
 const initial = {
 	articles: [],
-	signInToggled: false
+	signInToggled: false,
+	category: false
 };
 
 module.exports = {
 	stream,
 	init,
 	signInToggle,
+	selectCategory,
 	initial
 };
