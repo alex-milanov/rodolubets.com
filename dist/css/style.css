@@ -2434,6 +2434,9 @@ h1, h2, h3, h4, h5 {
         font-size: 1.8em;
         line-height: 1.3em;
         padding: 10px 0px; }
+        #ui > #content .articles .article h1 a {
+          text-decoration: none;
+          color: inherit; }
       #ui > #content .articles .article h3 {
         font-size: 1.2em;
         line-height: 1.3em;

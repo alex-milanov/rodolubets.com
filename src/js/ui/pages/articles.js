@@ -30,17 +30,24 @@ module.exports = ({state, actions}) => section('#content', [
 				h1(article.title),
 				p('.meta', [
 					span('.left', article.categories && article.categories.join(', ') || ''),
-					span('.right', (article.createdAt && `Публикувана на ${article.createdAt} от ` || '') + `${article.author || 'Д-во Родолюбец'}`)
+					span('.right', [
+						(article.publishedIn || article.createdAt) && 'Публикувана' || '',
+						article.publishedIn && `в ${article.publishedIn} ` || '',
+						article.createdAt && `на ${article.createdAt} ` || '',
+						article.author && `Автор: ${article.author}` || ''
+					])
 				]),
 				p('.body', {props: {innerHTML: article.text}})
 			])).pop()
 		: section('.article', [
-			div(state.articles.map(article =>
-				div('.article-item', [
-					a(`.title[href="#/articles/${article._id}"]`, article.title),
-					p(`Публикувана на ${article.createdAt} от ${article.author || 'Д-во Родолюбец'}`),
-					p('.article-categories', article.categories && article.categories.join(', ') || '')
-				])
+			div(state.articles
+				.filter(a => !state.category || (a.categories.indexOf(state.category) > -1))
+				.map(article =>
+					div('.article-item', [
+						a(`.title[href="#/articles/${article._id}"]`, article.title),
+						p(`Публикувана на ${article.createdAt} от ${article.author || 'Д-во Родолюбец'}`),
+						p('.article-categories', article.categories && article.categories.join(', ') || '')
+					])
 			))
 		])
 	]),
