@@ -13,14 +13,11 @@ module.exports = ({state, actions}) => section('#content', [
 			h1([a(`[href="#/articles/${article._id}"]`, article.title)]),
 			p('.meta', [
 				span('.left', article.categories && article.categories.join(', ') || ''),
-				p('.meta', [
-					span('.left', article.categories && article.categories.join(', ') || ''),
-					span('.right', [
-						(article.publishedIn || article.createdAt) && 'Публикувана' || '',
-						article.publishedIn && `в ${article.publishedIn} ` || '',
-						article.createdAt && `на ${article.createdAt} ` || '',
-						article.author && `Автор: ${article.author}` || ''
-					])
+				span('.right', [
+					(article.publishedIn || article.createdAt) && 'Публикувана ' || '',
+					article.publishedIn && `в ${article.publishedIn} ` || '',
+					article.createdAt && `на ${article.createdAt} ` || '',
+					article.author && `Автор: ${article.author}` || ''
 				])
 			]),
 			p('.body', {props: {innerHTML: article.text}})

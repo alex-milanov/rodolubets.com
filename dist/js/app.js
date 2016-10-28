@@ -20742,7 +20742,7 @@ module.exports = function (_ref) {
 	})))])]), state.route.pageId ? state.articles.filter(function (a) {
 		return a._id === state.route.pageId;
 	}).map(function (article) {
-		return section('.article', [h1(article.title), p('.meta', [span('.left', article.categories && article.categories.join(', ') || ''), span('.right', [(article.publishedIn || article.createdAt) && 'Публикувана' || '', article.publishedIn && '\u0432 ' + article.publishedIn + ' ' || '', article.createdAt && '\u043D\u0430 ' + article.createdAt + ' ' || '', article.author && '\u0410\u0432\u0442\u043E\u0440: ' + article.author || ''])]), p('.body', { props: { innerHTML: article.text } })]);
+		return section('.article', [h1(article.title), p('.meta', [span('.left', article.categories && article.categories.join(', ') || ''), span('.right', [(article.publishedIn || article.createdAt) && 'Публикувана ' || '', article.publishedIn && '\u0432 ' + article.publishedIn + ' ' || '', article.createdAt && '\u043D\u0430 ' + article.createdAt + ' ' || '', article.author && '\u0410\u0432\u0442\u043E\u0440: ' + article.author || ''])]), p('.body', { props: { innerHTML: article.text } })]);
 	}).pop() : section('.article', [div(state.articles.filter(function (a) {
 		return !state.category || a.categories.indexOf(state.category) > -1;
 	}).map(function (article) {
@@ -20781,7 +20781,7 @@ module.exports = function (_ref) {
 	var state = _ref.state;
 	var actions = _ref.actions;
 	return section('#content', [section('.articles', state.articles.map(function (article) {
-		return section('.article', [h1([a('[href="#/articles/' + article._id + '"]', article.title)]), p('.meta', [span('.left', article.categories && article.categories.join(', ') || ''), p('.meta', [span('.left', article.categories && article.categories.join(', ') || ''), span('.right', [(article.publishedIn || article.createdAt) && 'Публикувана' || '', article.publishedIn && '\u0432 ' + article.publishedIn + ' ' || '', article.createdAt && '\u043D\u0430 ' + article.createdAt + ' ' || '', article.author && '\u0410\u0432\u0442\u043E\u0440: ' + article.author || ''])])]), p('.body', { props: { innerHTML: article.text } })]);
+		return section('.article', [h1([a('[href="#/articles/' + article._id + '"]', article.title)]), p('.meta', [span('.left', article.categories && article.categories.join(', ') || ''), span('.right', [(article.publishedIn || article.createdAt) && 'Публикувана ' || '', article.publishedIn && '\u0432 ' + article.publishedIn + ' ' || '', article.createdAt && '\u043D\u0430 ' + article.createdAt + ' ' || '', article.author && '\u0410\u0432\u0442\u043E\u0440: ' + article.author || ''])]), p('.body', { props: { innerHTML: article.text } })]);
 	})), rightColumn({ state: state, actions: actions })]);
 };
 
