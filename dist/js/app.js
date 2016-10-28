@@ -20746,7 +20746,7 @@ module.exports = function (_ref) {
 	}).pop() : section('.article', [div(state.articles.filter(function (a) {
 		return !state.category || a.categories.indexOf(state.category) > -1;
 	}).map(function (article) {
-		return div('.article-item', [a('.title[href="#/articles/' + article._id + '"]', article.title), p('\u041F\u0443\u0431\u043B\u0438\u043A\u0443\u0432\u0430\u043D\u0430 \u043D\u0430 ' + article.createdAt + ' \u043E\u0442 ' + (article.author || 'Д-во Родолюбец')), p('.article-categories', article.categories && article.categories.join(', ') || '')]);
+		return div('.article-item', [a('.title[href="#/articles/' + article._id + '"]', article.title), p('.item-meta', [span('.left', article.categories && article.categories.join(', ') || ''), span('.right', [(article.publishedIn || article.createdAt) && 'Публикувана ' || '', article.publishedIn && '\u0432 ' + article.publishedIn + ' ' || '', article.createdAt && '\u043D\u0430 ' + article.createdAt + ' ' || '', article.author && '\u0410\u0432\u0442\u043E\u0440: ' + article.author || ''])])]);
 	}))])]), rightColumn({ state: state, actions: actions })]);
 };
 

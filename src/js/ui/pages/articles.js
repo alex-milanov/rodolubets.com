@@ -45,8 +45,15 @@ module.exports = ({state, actions}) => section('#content', [
 				.map(article =>
 					div('.article-item', [
 						a(`.title[href="#/articles/${article._id}"]`, article.title),
-						p(`Публикувана на ${article.createdAt} от ${article.author || 'Д-во Родолюбец'}`),
-						p('.article-categories', article.categories && article.categories.join(', ') || '')
+						p('.item-meta', [
+							span('.left', article.categories && article.categories.join(', ') || ''),
+							span('.right', [
+								(article.publishedIn || article.createdAt) && 'Публикувана ' || '',
+								article.publishedIn && `в ${article.publishedIn} ` || '',
+								article.createdAt && `на ${article.createdAt} ` || '',
+								article.author && `Автор: ${article.author}` || ''
+							])
+						])
 					])
 			))
 		])

@@ -2453,12 +2453,43 @@ h1, h2, h3, h4, h5 {
         background: rgba(190, 190, 190, 0.2);
         color: #777; }
       #ui > #content .articles .article .article-item {
-        padding: 10px 0px; }
+        -webkit-touch-callout: none;
+        -webkit-user-select: none;
+        -khtml-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        user-select: none;
+        padding: 10px;
+        cursor: pointer;
+        color: #555;
+        transition: background .7s, box-shadow .3s, color .5s, padding .1s;
+        margin: 10px -40px;
+        clear: both; }
+        #ui > #content .articles .article .article-item:hover, #ui > #content .articles .article .article-item.active {
+          color: #333;
+          background: #e5ede4;
+          box-shadow: inset 0px 0px 10px #d5d5d5; }
+        #ui > #content .articles .article .article-item:active {
+          transition: background .3s, box-shadow .1s;
+          background: #e5eae5;
+          padding: 11px 10px 9px 10px; }
+        #ui > #content .articles .article .article-item:focus {
+          outline: none; }
+        #ui > #content .articles .article .article-item a {
+          text-decoration: none;
+          color: inherit; }
         #ui > #content .articles .article .article-item .title {
+          margin: 0px 20px;
           font-weight: bold;
-          color: #333; }
-        #ui > #content .articles .article .article-item p {
-          margin: 0px; }
+          display: inline-block;
+          color: #333;
+          text-decoration: none; }
+        #ui > #content .articles .article .article-item p.item-meta {
+          clear: both;
+          height: 24px;
+          line-height: 24px;
+          margin: 0px 20px;
+          font-size: 0.9em; }
       #ui > #content .articles .article img {
         margin: 0px 10px;
         padding: 10px;
