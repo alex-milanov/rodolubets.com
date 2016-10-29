@@ -20479,6 +20479,27 @@ var state$ = actions.stream.map(function (change) {
 	return console.log('sc', state), state;
 });
 
+// state change hooks
+state$.filter(function (state) {
+	return state.route.page === 'articles';
+}).distinctUntilChanged(function (state) {
+	return state.category;
+}).filter(function (state) {
+	return state.category !== null;
+}).subscribe(function (state) {
+	return actions.router.go('articles');
+});
+
+state$.filter(function (state) {
+	return state.route.page === 'articles';
+}).distinctUntilChanged(function (state) {
+	return state.route.pageId;
+}).filter(function (state) {
+	return state.route.pageId !== null;
+}).subscribe(function (state) {
+	return actions.selectCategory(null);
+});
+
 // map state to ui
 var ui$ = state$.map(function (state) {
 	return ui({ state: state, actions: actions });
