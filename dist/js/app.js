@@ -20934,7 +20934,7 @@ var calendar = require('./calendar');
 module.exports = function (_ref) {
 	var state = _ref.state;
 	var actions = _ref.actions;
-	return section('.right-column', [section([h2('За контакт:'), ul([li([a('[href="https://goo.gl/maps/nuw3q3d9CuK2"][target="_blank"]', [i('.fa.fa-map-marker'), 'бул. „Евлоги Георгиев“ 169, ет. II-ри'])]), li([a('[href="https://fb.com/groups/rodolubets"][target="_blank"]', [i('.fa.fa-facebook-official'), 'Facebook Група на д-во Родолюбец'])]), li([i('.fa.fa-envelope-o'), 'rodolubets at abv dot bg'])])]), section([h2('Предстоящи събития:'), ul([li([a({ attrs: { href: 'https://www.facebook.com/events/191852797922713/', target: '_blank' } }, '27.10 18:30 Традиционен празничен концерт, посветен на Деня на Бесарабските Българи')]), li('Коледно Тържество')])]), calendar({ state: state, actions: actions })]);
+	return section('.right-column', [section([h2('За контакт:'), ul([li([a('[href="https://goo.gl/maps/nuw3q3d9CuK2"][target="_blank"]', [i('.fa.fa-map-marker'), 'бул. „Евлоги Георгиев“ 169, ет. II-ри'])]), li([a('[href="https://fb.com/groups/rodolubets"][target="_blank"]', [i('.fa.fa-facebook-official'), 'Facebook Група на д-во Родолюбец'])]), li([i('.fa.fa-envelope-o'), 'rodolubets at abv dot bg'])])]), section([h2('Предстоящи събития:'), ul([li([a({ attrs: { href: 'https://www.facebook.com/events/191852797922713/', target: '_blank' } }, '27.10 18:30 Традиционен празничен концерт, посветен на Деня на Бесарабските Българи')]), li('Ноември: Отбелязването на 100-годишнината от рождението на Мишо Хаджийски'), li('Декември: Коледно Тържество')])]), calendar({ state: state, actions: actions })]);
 };
 
 },{"../../util/vdom":34,"./calendar":31}],33:[function(require,module,exports){
