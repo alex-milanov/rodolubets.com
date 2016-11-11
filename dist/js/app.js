@@ -20794,6 +20794,7 @@ var td = _require.td;
 var th = _require.th;
 var span = _require.span;
 var a = _require.a;
+var img = _require.img;
 
 
 var rightColumn = require('../right-column');
@@ -20801,9 +20802,9 @@ var rightColumn = require('../right-column');
 module.exports = function (_ref) {
 	var state = _ref.state;
 	var actions = _ref.actions;
-	return section('#content', [section('.articles', state.articles.map(function (article) {
+	return section('#content', [section('.articles', [a('[href="https://www.facebook.com/events/1781298892137645/"][target="_blank"]', [img('.article[src="/img/mh100.png"][style="padding: 0"]')])].concat(state.articles.map(function (article) {
 		return section('.article', [h1([a('[href="#/articles/' + article._id + '"]', article.title)]), p('.meta', [span('.left', article.categories && article.categories.join(', ') || ''), span('.right', [(article.publishedIn || article.createdAt) && 'Публикувана ' || '', article.publishedIn && '\u0432 ' + article.publishedIn + ' ' || '', article.createdAt && '\u043D\u0430 ' + article.createdAt + ' ' || '', article.author && '\u0410\u0432\u0442\u043E\u0440: ' + article.author || ''])]), p('.body', { props: { innerHTML: article.text } })]);
-	})), rightColumn({ state: state, actions: actions })]);
+	}))), rightColumn({ state: state, actions: actions })]);
 };
 
 },{"../../util/vdom":34,"../right-column":32}],30:[function(require,module,exports){
@@ -20934,7 +20935,7 @@ var calendar = require('./calendar');
 module.exports = function (_ref) {
 	var state = _ref.state;
 	var actions = _ref.actions;
-	return section('.right-column', [section([h2('За контакт:'), ul([li([a('[href="https://goo.gl/maps/nuw3q3d9CuK2"][target="_blank"]', [i('.fa.fa-map-marker'), 'бул. „Евлоги Георгиев“ 169, ет. II-ри'])]), li([a('[href="https://fb.com/groups/rodolubets"][target="_blank"]', [i('.fa.fa-facebook-official'), 'Facebook Група на д-во Родолюбец'])]), li([i('.fa.fa-envelope-o'), 'rodolubets at abv dot bg'])])]), section([h2('Предстоящи събития:'), ul([li([a({ attrs: { href: 'https://www.facebook.com/events/191852797922713/', target: '_blank' } }, '27.10 18:30 Традиционен празничен концерт, посветен на Деня на Бесарабските Българи')]), li('Ноември: Отбелязването на 100-годишнината от рождението на Мишо Хаджийски'), li('Декември: Коледно Тържество')])]), calendar({ state: state, actions: actions })]);
+	return section('.right-column', [section([h2('За контакт:'), ul([li([a('[href="https://goo.gl/maps/nuw3q3d9CuK2"][target="_blank"]', [i('.fa.fa-map-marker'), 'бул. „Евлоги Георгиев“ 169, ет. II-ри'])]), li([a('[href="https://fb.com/groups/rodolubets"][target="_blank"]', [i('.fa.fa-facebook-official'), 'Facebook Група на д-во Родолюбец'])]), li([i('.fa.fa-envelope-o'), 'rodolubets at abv dot bg'])])]), section([h2('Предстоящи събития:'), ul([li([a('[href="https://www.facebook.com/events/1781298892137645/"][target="_blank"]', '17-24.11 Честване на 100 годишнина от рождението на Мишо Хаджийски')]), li('Декември: Коледно Тържество')])]), section([h2('Минали събития:'), ul([li([a('[href="https://www.facebook.com/events/191852797922713/"][target="_blank"]', '27.10 18:30 Традиционен празничен концерт, посветен на Деня на Бесарабските Българи')])])]), calendar({ state: state, actions: actions })]);
 };
 
 },{"../../util/vdom":34,"./calendar":31}],33:[function(require,module,exports){
@@ -21010,7 +21011,7 @@ var processAttrs = function processAttrs(args) {
 	return newArgs;
 };
 
-var hyperHelpers = ['h1', 'h2', 'h3', 'h4', 'section', 'header', 'article', 'div', 'p', 'span', 'pre', 'code', 'a', 'dd', 'dt', 'hr', 'br', 'b', 'i', 'table', 'thead', 'tbody', 'th', 'tr', 'td', 'ul', 'ol', 'li', 'form', 'fieldset', 'legend', 'input', 'label', 'button', 'select', 'option', 'canvas', 'video'].reduce(function (o, tag) {
+var hyperHelpers = ['h1', 'h2', 'h3', 'h4', 'section', 'header', 'article', 'div', 'p', 'span', 'pre', 'code', 'a', 'dd', 'dt', 'hr', 'br', 'b', 'i', 'table', 'thead', 'tbody', 'th', 'tr', 'td', 'ul', 'ol', 'li', 'form', 'fieldset', 'legend', 'input', 'label', 'button', 'select', 'option', 'canvas', 'video', 'img'].reduce(function (o, tag) {
 	o[tag] = function () {
 		var _this = this;
 
