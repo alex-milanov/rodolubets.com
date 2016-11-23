@@ -2364,6 +2364,8 @@ h1, h2, h3, h4, h5 {
           #ui header ul li a a, #ui header ul li button a {
             text-decoration: none;
             color: inherit; }
+        #ui header ul li a.active {
+          border-bottom: 1px solid #e5eae5; }
 
 #ui > #content {
   margin-top: 18px; }
