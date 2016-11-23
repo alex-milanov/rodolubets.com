@@ -19,10 +19,10 @@ module.exports = ({state, actions}) => section('.right-column', [
 				i('.fa.fa-facebook-official'),
 				'Facebook Група на д-во Родолюбец'
 			])]),
-			li([
+			li([a('[href="mailto:rodolubets@abv.bg"]', [
 				i('.fa.fa-envelope-o'),
 				'rodolubets at abv dot bg'
-			])
+			])])
 		])
 	]),
 	section([
