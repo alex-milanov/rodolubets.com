@@ -5,7 +5,7 @@ const Rx = require('rx');
 const $ = Rx.Observable;
 
 // util
-const vdom = require('./util/vdom');
+const vdom = require('iblokz/adapters/vdom');
 
 // app
 let actions = require('./actions');

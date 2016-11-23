@@ -1,6 +1,6 @@
 'use strict';
 
-const {section} = require('../util/vdom');
+const {section} = require('iblokz/adapters/vdom');
 
 const header = require('./header');
 const pages = {

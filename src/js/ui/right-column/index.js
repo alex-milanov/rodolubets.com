@@ -3,7 +3,7 @@
 const {
 	section, h1, h2, h3, hr, header, i, ul, li, p, a,
 	table, thead, tbody, tr, td, th, br
-} = require('../../util/vdom');
+} = require('iblokz/adapters/vdom');
 
 const calendar = require('./calendar');
 

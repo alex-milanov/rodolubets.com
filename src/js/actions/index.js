@@ -8,7 +8,7 @@ const marked = require('marked');
 const moment = require('moment');
 require('moment/locale/bg');
 
-const request = require('../util/request');
+const request = require('iblokz/adapters/request');
 
 const stream = new Subject();
 

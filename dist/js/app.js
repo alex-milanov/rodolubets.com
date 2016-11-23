@@ -164,6 +164,137 @@ Emitter.prototype.hasListeners = function(event){
 };
 
 },{}],2:[function(require,module,exports){
+'use strict';
+
+const Rx = require('rx');
+const $ = Rx.Observable;
+const superagent = require('superagent');
+
+superagent.Request.prototype.observe = function() {
+	return $.fromNodeCallback(this.end, this)();
+};
+
+module.exports = superagent;
+
+},{"rx":9,"superagent":20}],3:[function(require,module,exports){
+'use strict';
+
+const snabbdom = require('snabbdom');
+const h = require('snabbdom/h');
+const obj = require('../common/obj');
+
+const patch = snabbdom.init([ // Init patch function with choosen modules
+	require('snabbdom/modules/class'), // makes it easy to toggle classes
+	require('snabbdom/modules/props'), // for setting properties on DOM elements
+	require('snabbdom/modules/attributes'), // for setting properties on DOM elements
+	require('snabbdom/modules/style'), // handles styling on elements with support for animations
+	require('snabbdom/modules/eventlisteners') // attaches event listeners
+]);
+
+const patchStream = (stream, dom) => {
+	dom = (typeof dom === 'string') ? document.querySelector(dom) : dom;
+	stream.scan(
+		(vnode, newVnode) => patch(vnode, newVnode),
+		dom
+	).subscribe();
+};
+
+const processAttrs = args => {
+	let newArgs = args.slice();
+
+	let selector = newArgs[0] && typeof newArgs[0] === 'string' && newArgs[0] || '';
+	if (selector !== '') newArgs = newArgs.slice(1);
+
+	const attrRegExp = /\[[a-z\-0-9]+="[^"]+"\]/ig;
+
+	let attrs = selector && selector.match(attrRegExp);
+	selector = selector.replace(attrRegExp, '');
+
+	attrs = attrs && attrs.map && attrs
+			.map(c => c.replace(/[\[\]"]/g, '').split('='))
+			.reduce((o, attr) => obj.patch(o, attr[0], attr[1]), {}) || {};
+
+	if (attrs && Object.keys(attrs).length > 0) {
+		if (!newArgs[0] || newArgs[0]
+			&& typeof newArgs[0] === 'object' && !(newArgs[0] instanceof Array)) {
+			attrs = Object.assign({}, newArgs[0] && newArgs[0].attrs || {}, attrs);
+			newArgs[0] = Object.assign({}, newArgs[0] || {}, {attrs});
+		} else {
+			newArgs = [{attrs}].concat(
+				newArgs
+			);
+		}
+	}
+
+	if (selector !== '')
+		newArgs = [selector].concat(newArgs);
+
+	// console.log(args, newArgs);
+	return newArgs;
+};
+
+const hyperHelpers = [
+	'h1', 'h2', 'h3', 'h4', 'section', 'header', 'article',
+	'div', 'p', 'span', 'pre', 'code', 'a', 'dd', 'dt', 'hr', 'br', 'b', 'i',
+	'table', 'thead', 'tbody', 'th', 'tr', 'td', 'ul', 'ol', 'li',
+	'form', 'fieldset', 'legend', 'input', 'textarea', 'label', 'button', 'select', 'option',
+	'canvas', 'video', 'img'
+].reduce(
+	(o, tag) => {
+		o[tag] = function() {
+			return [Array.prototype.slice.call(arguments)]
+				.map(processAttrs)
+				.map(
+					args => (
+						args[0] && typeof args[0] === 'string'
+						&& args[0].match(/^(\.|#)[a-zA-Z\-_0-9]+/ig))
+						? [].concat(tag + args[0], args.slice(1))
+						: [tag].concat(args))
+				.map(args => h.apply(this, args))
+				.pop();
+		};
+		return o;
+	}, {}
+);
+
+module.exports = Object.assign(
+	{
+		h,
+		patch,
+		patchStream
+	},
+	hyperHelpers
+);
+
+},{"../common/obj":4,"snabbdom":18,"snabbdom/h":10,"snabbdom/modules/attributes":13,"snabbdom/modules/class":14,"snabbdom/modules/eventlisteners":15,"snabbdom/modules/props":16,"snabbdom/modules/style":17}],4:[function(require,module,exports){
+'use strict';
+
+const keyValue = (k, v) => {
+	let o = {};
+	o[k] = v;
+	return o;
+};
+
+const patch = (o, k, v) => Object.assign({}, o,
+	(k instanceof Array)
+		? keyValue(k[0], (k.length > 1)
+			? patch(o[k[0]] || {}, k.slice(1), v)
+			: typeof o[k[0]] === 'object' && Object.assign({}, o[k[0]], v) || v)
+		: keyValue(k, typeof o[k] === 'object' && Object.assign({}, o[k], v) || v)
+);
+
+// console.log(patch({}, ['a', 'b', 'c'], 'boom'));
+// console.log(patch({}, 'x', 1));
+// console.log(['a', 'b', 'c'].slice(1));
+//
+// console.log(patch({a: {d: '1'}}, 'a', {g: 2}));
+
+module.exports = {
+	keyValue,
+	patch
+};
+
+},{}],5:[function(require,module,exports){
 (function (global){
 /**
  * marked - a markdown parser
@@ -1453,7 +1584,7 @@ if (typeof module !== 'undefined' && typeof exports === 'object') {
 }());
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],3:[function(require,module,exports){
+},{}],6:[function(require,module,exports){
 //! moment.js locale configuration
 //! locale : Bulgarian [bg]
 //! author : Krasen Borisov : https://github.com/kraz
@@ -1544,7 +1675,7 @@ if (typeof module !== 'undefined' && typeof exports === 'object') {
     return bg;
 
 }));
-},{"../moment":4}],4:[function(require,module,exports){
+},{"../moment":7}],7:[function(require,module,exports){
 //! moment.js
 //! version : 2.15.1
 //! authors : Tim Wood, Iskren Chernev, Moment.js contributors
@@ -5779,7 +5910,7 @@ if (typeof module !== 'undefined' && typeof exports === 'object') {
     return _moment;
 
 }));
-},{}],5:[function(require,module,exports){
+},{}],8:[function(require,module,exports){
 // shim for using process in browser
 var process = module.exports = {};
 
@@ -5961,7 +6092,7 @@ process.chdir = function (dir) {
 };
 process.umask = function() { return 0; };
 
-},{}],6:[function(require,module,exports){
+},{}],9:[function(require,module,exports){
 (function (process,global){
 // Copyright (c) Microsoft, All rights reserved. See License.txt in the project root for license information.
 
@@ -18353,7 +18484,7 @@ var ReactiveTest = Rx.ReactiveTest = {
 }.call(this));
 
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"_process":5}],7:[function(require,module,exports){
+},{"_process":8}],10:[function(require,module,exports){
 var VNode = require('./vnode');
 var is = require('./is');
 
@@ -18389,7 +18520,7 @@ module.exports = function h(sel, b, c) {
   return VNode(sel, data, children, text, undefined);
 };
 
-},{"./is":9,"./vnode":16}],8:[function(require,module,exports){
+},{"./is":12,"./vnode":19}],11:[function(require,module,exports){
 function createElement(tagName){
   return document.createElement(tagName);
 }
@@ -18445,13 +18576,13 @@ module.exports = {
   setTextContent: setTextContent
 };
 
-},{}],9:[function(require,module,exports){
+},{}],12:[function(require,module,exports){
 module.exports = {
   array: Array.isArray,
   primitive: function(s) { return typeof s === 'string' || typeof s === 'number'; },
 };
 
-},{}],10:[function(require,module,exports){
+},{}],13:[function(require,module,exports){
 var booleanAttrs = ["allowfullscreen", "async", "autofocus", "autoplay", "checked", "compact", "controls", "declare",
                 "default", "defaultchecked", "defaultmuted", "defaultselected", "defer", "disabled", "draggable",
                 "enabled", "formnovalidate", "hidden", "indeterminate", "inert", "ismap", "itemscope", "loop", "multiple",
@@ -18496,7 +18627,7 @@ function updateAttrs(oldVnode, vnode) {
 
 module.exports = {create: updateAttrs, update: updateAttrs};
 
-},{}],11:[function(require,module,exports){
+},{}],14:[function(require,module,exports){
 function updateClass(oldVnode, vnode) {
   var cur, name, elm = vnode.elm,
       oldClass = oldVnode.data.class,
@@ -18521,7 +18652,7 @@ function updateClass(oldVnode, vnode) {
 
 module.exports = {create: updateClass, update: updateClass};
 
-},{}],12:[function(require,module,exports){
+},{}],15:[function(require,module,exports){
 function invokeHandler(handler, vnode, event) {
   if (typeof handler === "function") {
     // call function handler
@@ -18624,7 +18755,7 @@ module.exports = {
   destroy: updateEventListeners
 };
 
-},{}],13:[function(require,module,exports){
+},{}],16:[function(require,module,exports){
 function updateProps(oldVnode, vnode) {
   var key, cur, old, elm = vnode.elm,
       oldProps = oldVnode.data.props, props = vnode.data.props;
@@ -18649,7 +18780,7 @@ function updateProps(oldVnode, vnode) {
 
 module.exports = {create: updateProps, update: updateProps};
 
-},{}],14:[function(require,module,exports){
+},{}],17:[function(require,module,exports){
 var raf = (typeof window !== 'undefined' && window.requestAnimationFrame) || setTimeout;
 var nextFrame = function(fn) { raf(function() { raf(fn); }); };
 
@@ -18720,7 +18851,7 @@ function applyRemoveStyle(vnode, rm) {
 
 module.exports = {create: updateStyle, update: updateStyle, destroy: applyDestroyStyle, remove: applyRemoveStyle};
 
-},{}],15:[function(require,module,exports){
+},{}],18:[function(require,module,exports){
 // jshint newcap: false
 /* global require, module, document, Node */
 'use strict';
@@ -18982,14 +19113,14 @@ function init(modules, api) {
 
 module.exports = {init: init};
 
-},{"./htmldomapi":8,"./is":9,"./vnode":16}],16:[function(require,module,exports){
+},{"./htmldomapi":11,"./is":12,"./vnode":19}],19:[function(require,module,exports){
 module.exports = function(sel, data, children, text, elm) {
   var key = data === undefined ? undefined : data.key;
   return {sel: sel, data: data, children: children,
           text: text, elm: elm, key: key};
 };
 
-},{}],17:[function(require,module,exports){
+},{}],20:[function(require,module,exports){
 /**
  * Root reference for iframes.
  */
@@ -19967,7 +20098,7 @@ request.put = function(url, data, fn){
   return req;
 };
 
-},{"./is-object":18,"./request":20,"./request-base":19,"emitter":1}],18:[function(require,module,exports){
+},{"./is-object":21,"./request":23,"./request-base":22,"emitter":1}],21:[function(require,module,exports){
 /**
  * Check if `obj` is an object.
  *
@@ -19982,7 +20113,7 @@ function isObject(obj) {
 
 module.exports = isObject;
 
-},{}],19:[function(require,module,exports){
+},{}],22:[function(require,module,exports){
 /**
  * Module of mixed-in functions shared between node and client code
  */
@@ -20356,7 +20487,7 @@ exports.send = function(data){
   return this;
 };
 
-},{"./is-object":18}],20:[function(require,module,exports){
+},{"./is-object":21}],23:[function(require,module,exports){
 // The node and browser modules expose versions of this with the
 // appropriate constructor function bound as first argument
 /**
@@ -20390,7 +20521,7 @@ function request(RequestConstructor, method, url) {
 
 module.exports = request;
 
-},{}],21:[function(require,module,exports){
+},{}],24:[function(require,module,exports){
 'use strict';
 
 var Rx = require('rx');
@@ -20402,7 +20533,7 @@ var marked = require('marked');
 var moment = require('moment');
 require('moment/locale/bg');
 
-var request = require('../util/request');
+var request = require('iblokz/adapters/request');
 
 var stream = new Subject();
 
@@ -20449,7 +20580,7 @@ module.exports = {
 	initial: initial
 };
 
-},{"../util/request":33,"marked":2,"moment":4,"moment/locale/bg":3,"rx":6}],22:[function(require,module,exports){
+},{"iblokz/adapters/request":2,"marked":5,"moment":7,"moment/locale/bg":6,"rx":9}],25:[function(require,module,exports){
 'use strict';
 
 // lib
@@ -20458,7 +20589,7 @@ var Rx = require('rx');
 var $ = Rx.Observable;
 
 // util
-var vdom = require('./util/vdom');
+var vdom = require('iblokz/adapters/vdom');
 
 // app
 var actions = require('./actions');
@@ -20511,7 +20642,7 @@ vdom.patchStream(ui$, '#ui');
 
 window.actions = actions;
 
-},{"./actions":21,"./services/router":23,"./ui":25,"./util/vdom":34,"rx":6}],23:[function(require,module,exports){
+},{"./actions":24,"./services/router":26,"./ui":28,"iblokz/adapters/vdom":3,"rx":9}],26:[function(require,module,exports){
 'use strict';
 
 var Rx = require('rx');
@@ -20572,10 +20703,10 @@ module.exports = {
 	hook: hook
 };
 
-},{"rx":6}],24:[function(require,module,exports){
+},{"rx":9}],27:[function(require,module,exports){
 'use strict';
 
-var _require = require('../../util/vdom');
+var _require = require('iblokz/adapters/vdom');
 
 var section = _require.section;
 var h1 = _require.h1;
@@ -20617,10 +20748,10 @@ module.exports = function (_ref) {
 			} } }, [i('.fa.fa-pencil-square-o')])])]))]);
 };
 
-},{"../../util/vdom":34}],25:[function(require,module,exports){
+},{"iblokz/adapters/vdom":3}],28:[function(require,module,exports){
 'use strict';
 
-var _require = require('../util/vdom');
+var _require = require('iblokz/adapters/vdom');
 
 var section = _require.section;
 
@@ -20644,10 +20775,10 @@ module.exports = function (_ref) {
 	return section('#ui', [header({ state: state, actions: actions }), _switch(state.route.page, pages)({ state: state, actions: actions })]);
 };
 
-},{"../util/vdom":34,"./header":24,"./pages/about":26,"./pages/almanac":27,"./pages/articles":28,"./pages/home":29,"./pages/links":30}],26:[function(require,module,exports){
+},{"./header":27,"./pages/about":29,"./pages/almanac":30,"./pages/articles":31,"./pages/home":32,"./pages/links":33,"iblokz/adapters/vdom":3}],29:[function(require,module,exports){
 'use strict';
 
-var _require = require('../../util/vdom');
+var _require = require('iblokz/adapters/vdom');
 
 var section = _require.section;
 var h1 = _require.h1;
@@ -20680,10 +20811,10 @@ module.exports = function (_ref) {
 	return section('#content', [section('.articles', [section('.article', [h1('За Дружеството')]), section('.article', [p({ props: { innerHTML: marked('\n\u0414\u0440\u0443\u0436\u0435\u0441\u0442\u0432\u043E\u0442\u043E \u0437\u0430 \u043F\u0440\u0438\u044F\u0442\u0435\u043B\u0441\u0442\u0432\u043E \u0438 \u043A\u0443\u043B\u0442\u0443\u0440\u043D\u0438 \u0432\u0440\u044A\u0437\u043A\u0438 \u0441 \u0431\u0435\u0441\u0430\u0440\u0430\u0431\u0441\u043A\u0438\u0442\u0435 \u0438 \u0442\u0430\u0432\u0440\u0438\u0439\u0441\u043A\u0438\u0442\u0435 \u0431\u044A\u043B\u0433\u0430\u0440\u0438 \u201E\u0420\u043E\u0434\u043E\u043B\u044E\u0431\u0435\u0446\u201D \u0435 \u043E\u0441\u043D\u043E\u0432\u0430\u043D\u043E \u0432 \u043D\u0430\u0447\u0430\u043B\u043E\u0442\u043E \u043D\u0430 1990 \u0433.\n\n\u041D\u0430 15 \u044F\u043D\u0443\u0430\u0440\u0438 \u0432 \u0421\u043E\u0444\u0438\u044F \u0443\u0447\u0440\u0435\u0434\u0438\u0442\u0435\u043B\u043D\u043E\u0442\u043E \u0441\u044A\u0431\u0440\u0430\u043D\u0438\u0435 \u043F\u0440\u0438\u0435\u043C\u0430 \u0423\u0441\u0442\u0430\u0432\u0430 \u043D\u0430 \u0434\u0440\u0443\u0436\u0435\u0441\u0442\u0432\u043E\u0442\u043E, \u0430 \u0440\u0435\u0448\u0435\u043D\u0438\u0435\u0442\u043E \u0437\u0430 \u0440\u0435\u0433\u0438\u0441\u0442\u0440\u0430\u0446\u0438\u044F \u043D\u0430 \u0421\u043E\u0444\u0438\u0439\u0441\u043A\u0438\u044F \u0433\u0440\u0430\u0434\u0441\u043A\u0438 \u0441\u044A\u0434 \u0435 \u043E\u0442 28.06.1990 \u0433.\n\n\u041F\u0440\u0435\u0437 \u0442\u0435\u0437\u0438 \u043F\u043E\u0432\u0435\u0447\u0435 \u043E\u0442 25 \u0433\u043E\u0434\u0438\u043D\u0438 \u0434\u0440\u0443\u0436\u0435\u0441\u0442\u0432\u043E \u201E\u0420\u043E\u0434\u043E\u043B\u044E\u0431\u0435\u0446\u201D \u043F\u043E\u0435 \u043E\u0442\u0433\u0432\u043E\u0440\u043D\u043E\u0441\u0442\u0430 \u0438 \u043E\u0433\u0440\u043E\u043C\u043D\u0430\u0442\u0430 \u0437\u0430\u0434\u0430\u0447\u0430 \u0434\u0430 \u0437\u0430\u043F\u043E\u0437\u043D\u0430\u0435 \u0431\u044A\u043B\u0433\u0430\u0440\u0438\u0442\u0435 \u0432 \u0411\u044A\u043B\u0433\u0430\u0440\u0438\u044F \u0441\u044A\u0441 \u0441\u044A\u0449\u0435\u0441\u0442\u0432\u0443\u0432\u0430\u043D\u0435\u0442\u043E \u043D\u0430 \u043D\u0430\u0448\u0438 \u0441\u044A\u043D\u0430\u0440\u043E\u0434\u043D\u0438\u0446\u0438 \u0432 \u041C\u043E\u043B\u0434\u043E\u0432\u0430, \u0423\u043A\u0440\u0430\u0439\u043D\u0430, \u041A\u0430\u0437\u0430\u0445\u0441\u0442\u0430\u043D, \u0421\u0438\u0431\u0438\u0440... \u0414\u0440\u0443\u0436\u0435\u0441\u0442\u0432\u043E\u0442\u043E \u0438\u043C\u0430 \u0437\u0430\u0441\u043B\u0443\u0433\u0430 \u0438 \u0437\u0430 \u043F\u043E\u044F\u0432\u0430\u0442\u0430 \u043D\u0430 103 \u043F\u043E\u0441\u0442\u0430\u043D\u043E\u0432\u043B\u0435\u043D\u0438\u0435 \u043D\u0430 \u041C\u0438\u043D\u0438\u0441\u0442\u0435\u0440\u0441\u043A\u0438\u044F \u0441\u044A\u0432\u0435\u0442 \u043D\u0430 \u0420\u0435\u043F\u0443\u0431\u043B\u0438\u043A\u0430 \u0411\u044A\u043B\u0433\u0430\u0440\u0438\u044F \u0437\u0430 \u043F\u0440\u0438\u0435\u043C\u0430\u043D\u0435 \u043D\u0430 \u043D\u0430\u0448\u0438 \u0441\u044A\u043D\u0430\u0440\u043E\u0434\u043D\u0438\u0446\u0438 \u043E\u0442 \u0431\u0438\u0432\u0448\u0438\u0442\u0435 \u0441\u044A\u0432\u0435\u0442\u0441\u043A\u0438 \u0440\u0435\u043F\u0443\u0431\u043B\u0438\u043A\u0438 \u0437\u0430 \u0441\u0442\u0443\u0434\u0435\u043D\u0442\u0438 \u0443 \u043D\u0430\u0441.\n\n\u0418\u0437\u0434\u0430\u0432\u0430\u043D\u0435\u0442\u043E \u043D\u0430 \u0430\u043B\u043C\u0430\u043D\u0430\u0445\u0430 \u201E\u0420\u043E\u0434\u043E\u043B\u044E\u0431\u0435\u0446\u201D \u0441\u0442\u0430\u043D\u0430 \u043D\u0435\u043E\u0431\u0445\u043E\u0434\u0438\u043C\u043E \u043F\u043E\u043C\u0430\u0433\u0430\u043B\u043E \u043D\u0430 \u0443\u0447\u0438\u0442\u0435\u043B\u0438\u0442\u0435, \u043A\u043E\u0438\u0442\u043E \u0442\u0440\u044A\u0433\u0432\u0430\u0442 \u043A\u044A\u043C \u043D\u0430\u0448\u0438\u0442\u0435 \u0437\u0430\u0431\u0440\u0430\u0432\u0435\u043D\u0438 \u0441\u044A\u043D\u0430\u0440\u043E\u0434\u043D\u0438\u0446\u0438. \u0412 1998 \u0433. \u0434\u0440\u0443\u0436\u0435\u0441\u0442\u0432\u043E\u0442\u043E \u0432\u044A\u0437\u0441\u0442\u0430\u043D\u043E\u0432\u0438 \u043E\u0442\u0431\u0435\u043B\u044F\u0437\u0432\u0430\u043D\u0435\u0442\u043E \u0414\u0435\u043D\u044F \u043D\u0430 \u0431\u0435\u0441\u0430\u0440\u0430\u0431\u0441\u043A\u0438\u0442\u0435 \u0431\u044A\u043B\u0433\u0430\u0440\u0438. \u0420\u0430\u0434\u043E\u0441\u0442\u043D\u043E \u0435, \u0447\u0435 \u0438 \u0432 \u0441\u0435\u043B\u0438\u0449\u0430\u0442\u0430 \u043D\u0430 \u043D\u0430\u0448\u0438\u0442\u0435 \u0441\u044A\u043D\u0430\u0440\u043E\u0434\u043D\u0438\u0446\u0438 \u0432 \u043D\u044F\u043A\u043E\u0433\u0430\u0448\u043D\u0438\u0442\u0435 \u0411\u0435\u0441\u0430\u0440\u0430\u0431\u0438\u044F \u0438 \u0422\u0430\u0432\u0440\u0438\u044F \u0442\u043E\u0437\u0438 \u0414\u0435\u043D \u0432\u0435\u0447\u0435 \u043D\u0430\u043C\u0438\u0440\u0430 \u043C\u044F\u0441\u0442\u043E \u0432 \u043F\u0440\u0430\u0437\u043D\u0438\u0447\u043D\u0438\u044F \u0438\u043C \u043A\u0430\u043B\u0435\u043D\u0434\u0430\u0440.\n\n\u0427\u043B\u0435\u043D\u043E\u0432\u0435 \u043D\u0430 \u043D\u0430\u0448\u0435\u0442\u043E \u0434\u0440\u0443\u0436\u0435\u0441\u0442\u0432\u043E \u0438\u0437\u043D\u0430\u0441\u044F\u0442 \u0432 \u0441\u0435\u043B\u0438\u0449\u0430 \u0441 \u043A\u043E\u043C\u043F\u0430\u043A\u0442\u043D\u043E \u0431\u044A\u043B\u0433\u0430\u0440\u0441\u043A\u043E \u043D\u0430\u0441\u0435\u043B\u0435\u043D\u0438\u0435 \u043A\u043E\u043D\u0446\u0435\u0440\u0442\u0438 \u2013 \u0442\u043E\u043F\u043B\u0430 \u0438 \u0441\u044A\u0440\u0434\u0435\u0447\u043D\u0430 \u0432\u0440\u044A\u0437\u043A\u0430 \u0441\u044A\u0441 \u0441\u0442\u0430\u0440\u0430\u0442\u0430 \u0440\u043E\u0434\u0438\u043D\u0430. \u0421\u0442\u0443\u0434\u0435\u043D\u0442\u0438\u0442\u0435 \u0438 \u0437\u0430\u0432\u0440\u044A\u0449\u0430\u0449\u0438\u0442\u0435 \u0441\u0435 \u0437\u0430\u0432\u0438\u043D\u0430\u0433\u0438 \u0432 \u0411\u044A\u043B\u0433\u0430\u0440\u0438\u044F \u0431\u0435\u0441\u0430\u0440\u0430\u0431\u0441\u043A\u0438 \u0438 \u0442\u0430\u0432\u0440\u0438\u0439\u0441\u043A\u0438 \u0431\u044A\u043B\u0433\u0430\u0440\u0438 \u043C\u043E\u0433\u0430\u0442 \u0434\u0430 \u0440\u0430\u0437\u0447\u0438\u0442\u0430\u0442 \u043D\u0430 \u043F\u0440\u0438\u044F\u0442\u0435\u043B\u0441\u043A\u0430 \u043F\u043E\u0434\u043A\u0440\u0435\u043F\u0430 \u043E\u0442 \u0434\u0440\u0443\u0436\u0435\u0441\u0442\u0432\u043E \u201E\u0420\u043E\u0434\u043E\u043B\u044E\u0431\u0435\u0446\u201D.\n\n') } })])]), rightColumn({ state: state, actions: actions })]);
 };
 
-},{"../../util/vdom":34,"../right-column":32,"marked":2}],27:[function(require,module,exports){
+},{"../right-column":35,"iblokz/adapters/vdom":3,"marked":5}],30:[function(require,module,exports){
 'use strict';
 
-var _require = require('../../util/vdom');
+var _require = require('iblokz/adapters/vdom');
 
 var section = _require.section;
 var h1 = _require.h1;
@@ -20713,10 +20844,10 @@ module.exports = function (_ref) {
 	return section('#content', [section('.articles', [section('.article', [h1('Алманах “Родолюбец“')]), section('.article', [p({ props: { innerHTML: marked('\n\u041A\u0430\u0442\u043E \u043F\u0435\u0447\u0430\u0442\u043D\u043E \u0438\u0437\u0434\u0430\u043D\u0438\u0435 \u043D\u0430 \u0434\u0440\u0443\u0436\u0435\u0441\u0442\u0432\u043E \u201C\u0420\u043E\u0434\u043E\u043B\u044E\u0431\u0435\u0446\u201D \u0432\u0441\u044F\u043A\u0430 \u0447\u0435\u0442\u043D\u0430 \u0433\u043E\u0434\u0438\u043D\u0430 \u0438\u0437\u043B\u0438\u0437\u0430 \u0430\u043B\u043C\u0430\u043D\u0430\u0445\u044A\u0442 \u201C\u0420\u043E\u0434\u043E\u043B\u044E\u0431\u0435\u0446\u201D, \u0435\u0434\u043D\u0430 \u0438\u0441\u0442\u0438\u043D\u0441\u043A\u0430 \u201C\u0445\u0440\u0438\u0441\u0442\u043E\u043C\u0430\u0442\u0438\u044F \u043F\u043E \u0440\u043E\u0434\u043E\u043B\u044E\u0431\u0438\u0435\u201D.\n\n\u041A\u0430\u0442\u043E \u0441\u0431\u043E\u0440\u043D\u0438\u043A \u043E\u0442 \u043F\u043E\u043B\u0435\u0437\u043D\u0438, \u0442\u0435\u043C\u0430\u0442\u0438\u0447\u043D\u0438 \u0447\u0435\u0442\u0438\u0432\u0430, \u0410\u043B\u043C\u0430\u043D\u0430\u0445\u044A\u0442 \u0438\u043C\u0430 \u0443\u0442\u0432\u044A\u0440\u0434\u0435\u043D\u0438 8 \u0434\u044F\u043B\u0430, \u043A\u043E\u0438\u0442\u043E \u0441\u0435 \u043F\u043E\u0434\u0434\u044A\u0440\u0436\u0430\u0442 \u0432\u044A\u0432 \u0432\u0441\u0435\u043A\u0438 \u0431\u0440\u043E\u0439, \u043A\u0430\u043A\u0442\u043E \u0441\u043B\u0435\u0434\u0432\u0430:\n- **\u0414\u044F\u043B I. \u0414\u0415 \u0415 \u0411\u042A\u041B\u0413\u0410\u0420\u0418\u042F?** - \u0433\u0435\u043E\u0433\u0440\u0430\u0444\u0441\u043A\u0438 \u043E\u0447\u0435\u0440\u0446\u0438 \u0437\u0430 \u0411\u044A\u043B\u0433\u0430\u0440\u0438\u044F \u0438\u043B\u0438 \u0437\u0430 \u043D\u0435\u0439\u043D\u0438 \u043E\u0431\u043B\u0430\u0441\u0442\u0438 \u0438 \u043E\u0447\u0435\u0440\u0446\u0438 \u0437\u0430 \u043E\u0431\u0435\u043A\u0442\u0438 \u0432 \u0442\u044F\u0445.\n- **\u0414\u044F\u043B II. \u0411\u042A\u041B\u0413\u0410\u0420\u0418\u042F \u041F\u0420\u0415\u0417 \u0412\u0415\u041A\u041E\u0412\u0415\u0422\u0415** - \u0418\u0441\u0442\u043E\u0440\u0438\u0447\u0435\u0441\u043A\u0438 \u043E\u0447\u0435\u0440\u0446\u0438 \u0437\u0430 \u0411\u044A\u043B\u0433\u0430\u0440\u0438\u044F.\n- **\u0414\u044F\u043B III. \u042E\u0411\u0418\u041B\u0415\u0419\u041D\u0418 \u0413\u041E\u0414\u0418\u0428\u041D\u0418\u041D\u0418** - \u041E\u0442\u0440\u0430\u0437\u044F\u0432\u0430\u0442 \u0441\u0435 \u0437\u043D\u0430\u0447\u0438\u0442\u0435\u043B\u043D\u0438 \u0441\u044A\u0431\u0438\u0442\u0438\u044F \u043E\u0442 \u0431\u044A\u043B\u0433\u0430\u0440\u0441\u043A\u0430\u0442\u0430 \u0438\u0441\u0442\u043E\u0440\u0438\u044F, \u044F\u0432\u044F\u0432\u0430\u0449\u0438 \u0441\u0435 \u044E\u0431\u0438\u043B\u0435\u0439\u043D\u0438 \u043A\u044A\u043C \u0433\u043E\u0434\u0438\u043D\u0430\u0442\u0430 \u043D\u0430 \u0438\u0437\u0434\u0430\u0432\u0430\u043D\u0435\u0442\u043E \u043D\u0430 \u0410\u043B\u043C\u0430\u043D\u0430\u0445\u0430.\n- **\u0414\u044F\u043B IV. \u0411\u042A\u041B\u0413\u0410\u0420\u0421\u041A\u0418 \u041F\u0410\u041D\u0422\u0415\u041E\u041D** - \u0420\u0430\u0437\u0434\u0435\u043B, \u0432 \u043A\u043E\u0439\u0442\u043E \u0441\u0430 \u043E\u0442\u0431\u0435\u043B\u044F\u0437\u0430\u043D\u0438 \u0437\u043D\u0430\u0447\u0438\u043C\u0438 \u043B\u0438\u0447\u043D\u043E\u0441\u0442\u0438 \u043E\u0442 \u0431\u044A\u043B\u0433\u0430\u0440\u0441\u043A\u0430\u0442\u0430 \u043F\u043E\u043B\u0438\u0442\u0438\u0447\u0435\u0441\u043A\u0430 \u0438 \u043A\u0443\u043B\u0442\u0443\u0440\u043D\u0430 \u0438\u0441\u0442\u043E\u0440\u0438\u044F.\n- **\u0414\u044F\u043B V. \u0421\u042A\u041A\u0420\u041E\u0412\u0418\u0429\u041D\u0418\u0426\u0410 \u041D\u0410 \u041D\u0410\u0420\u041E\u0414\u041D\u0418\u042F \u0414\u0423\u0425** - \u0421\u0442\u0430\u0442\u0438\u0438 \u0438 \u043E\u0447\u0435\u0440\u0446\u0438 \u0432\u044A\u0440\u0445\u0443 \u0431\u044A\u043B\u0433\u0430\u0440\u0441\u043A\u0438\u044F \u0444\u043E\u043B\u043A\u043B\u043E\u0440 \u0438 \u043E\u0431\u0440\u0430\u0437\u0446\u0438 \u043E\u0442 \u043D\u0430\u0440\u043E\u0434\u043D\u0438 \u043F\u0435\u0441\u043D\u0438 \u0438 \u043F\u0440\u0438\u043A\u0430\u0437\u043A\u0438.\n- **\u0414\u044F\u043B VI. \u0421 \u0411\u042A\u041B\u0413\u0410\u0420\u0418\u042F \u0412 \u0421\u042A\u0420\u0426\u0415\u0422\u041E** - \u041D\u0430\u0439-\u0432\u0430\u0436\u043D\u0438\u044F\u0442 \u0438 \u043D\u0430\u0439-\u043E\u0431\u0435\u043C\u0438\u0441\u0442 \u0434\u044F\u043B \u043E\u0442 \u0441\u0431\u043E\u0440\u043D\u0438\u043A\u0430, \u0438\u0437\u043F\u044A\u043B\u043D\u0435\u043D \u0441 \u0438\u0437\u043F\u043E\u0432\u0435\u0434\u0438, \u0441\u043F\u043E\u043C\u0435\u043D\u0438, \u0441\u0442\u0430\u0442\u0438\u0438 \u0438 \u043E\u0447\u0435\u0440\u0446\u0438 \u043D\u0430 \u0431\u0435\u0441\u0430\u0440\u0430\u0431\u0441\u043A\u0438 \u0438 \u0437\u0430 \u0431\u0435\u0441\u0430\u0440\u0430\u0431\u0441\u043A\u0438 \u0431\u044A\u043B\u0433\u0430\u0440\u0438, \u043E\u0447\u0435\u0440\u0446\u0438 \u0437\u0430 \u0431\u044A\u043B\u0433\u0430\u0440\u0438\u0442\u0435-\u0433\u0430\u0433\u0430\u0443\u0437\u0438 \u0432 \u0411\u0435\u0441\u0430\u0440\u0430\u0431\u0438\u044F \u0438 \u0432 \u0411\u044A\u043B\u0433\u0430\u0440\u0438\u044F \u0438 \u0437\u0430 \u0431\u044A\u043B\u0433\u0430\u0440\u0438\u0442\u0435 \u0436\u0438\u0432\u0435\u0435\u0449\u0438 \u0432\u044A\u043D \u043E\u0442 \u0433\u0440\u0430\u043D\u0438\u0446\u0438\u0442\u0435 \u043D\u0430 \u0411\u044A\u043B\u0433\u0430\u0440\u0438\u044F.\n- **\u0414\u044F\u043B VII. \u0422\u0412\u041E\u0420\u0426\u0418 \u041E\u0422 \u0411\u0415\u0421\u0410\u0420\u0410\u0411\u0418\u042F** - \u043A\u0440\u0430\u0442\u043A\u0438 \u0431\u0438\u043E\u0433\u0440\u0430\u0444\u0438\u0447\u043D\u0438 \u0431\u0435\u043B\u0435\u0436\u043A\u0438 \u0438 \u0442\u0432\u043E\u0440\u0431\u0438 \u043D\u0430 \u0431\u0435\u0441\u0430\u0440\u0430\u0431\u0441\u043A\u0438 \u043F\u043E\u0435\u0442\u0438 \u0438 \u0442\u0432\u043E\u0440\u0446\u0438\n- **\u0414\u044F\u043B VIII. \u0420\u041E\u0414\u041E\u041B\u042E\u0411\u0415\u0426 \u0417\u0410 \u0421\u0415\u0411\u0415 \u0421\u0418** - \u0440\u0430\u0437\u0434\u0435\u043B, \u0432 \u043A\u043E\u0439\u0442\u043E \u0434\u0440\u0443\u0436\u0435\u0441\u0442\u0432\u043E\u0442\u043E \u043E\u0442\u0440\u0430\u0437\u044F\u0432\u0430 \u043D\u044F\u043A\u043E\u0438 \u043E\u0442 \u0441\u0432\u043E\u0438\u0442\u0435 \u0434\u0435\u0439\u043D\u043E\u0441\u0442\u0438, \u043F\u0443\u0431\u043B\u0438\u043A\u0443\u0432\u0430 \u043D\u043E\u0440\u043C\u0430\u0442\u0438\u0432\u043D\u0438 \u0434\u043E\u043A\u0443\u043C\u0435\u043D\u0442\u0438, \u0441\u0432\u044A\u0440\u0437\u0430\u043D\u0438 \u0441 \u043E\u0431\u0443\u0447\u0435\u043D\u0438\u0435\u0442\u043E \u043D\u0430 \u0441\u0442\u0443\u0434\u0435\u043D\u0442\u0438\u0442\u0435 \u043E\u0442 \u0431\u044A\u043B\u0433\u0430\u0440\u0441\u043A\u0430\u0442\u0430 \u0434\u0438\u0430\u0441\u043F\u043E\u0440\u0430 \u0438\u0437\u0432\u044A\u043D \u0433\u0440\u0430\u043D\u0438\u0446\u0438\u0442\u0435 \u043D\u0430 \u0434\u043D\u0435\u0448\u043D\u0430 \u0411\u044A\u043B\u0433\u0430\u0440\u0438\u044F, \u0441\u043F\u0435\u0446\u0438\u0430\u043B\u0438\u0441\u0442\u0438 \u0438 \u043E\u0431\u043D\u0430\u0440\u043E\u0434\u0432\u0430 \u0441\u043F\u0438\u0441\u044A\u0446\u0438 \u043D\u0430 \u043F\u0440\u0438\u0435\u0442\u0438 \u0443 \u043D\u0430\u0441 \u0441\u0442\u0443\u0434\u0435\u043D\u0442\u0438, \u043D\u0430 \u0437\u0430\u0432\u044A\u0440\u0448\u0438\u043B\u0438\u0442\u0435 \u0432 \u0411\u044A\u043B\u0433\u0430\u0440\u0438\u044F \u0441\u043F\u0435\u0446\u0438\u0430\u043B\u0438\u0441\u0442\u0438 \u0438 \u043D\u0430 \u0438\u0437\u043F\u0440\u0430\u0442\u0435\u043D\u0438\u0442\u0435 \u0432 \u0411\u0435\u0441\u0430\u0440\u0430\u0431\u0438\u044F \u0443\u0447\u0438\u0442\u0435\u043B\u0438.\n\t\t\t') } })])]), rightColumn({ state: state, actions: actions })]);
 };
 
-},{"../../util/vdom":34,"../right-column":32,"marked":2}],28:[function(require,module,exports){
+},{"../right-column":35,"iblokz/adapters/vdom":3,"marked":5}],31:[function(require,module,exports){
 'use strict';
 
-var _require = require('../../util/vdom');
+var _require = require('iblokz/adapters/vdom');
 
 var section = _require.section;
 var h1 = _require.h1;
@@ -20771,10 +20902,10 @@ module.exports = function (_ref) {
 	}))])]), rightColumn({ state: state, actions: actions })]);
 };
 
-},{"../../util/vdom":34,"../right-column":32}],29:[function(require,module,exports){
+},{"../right-column":35,"iblokz/adapters/vdom":3}],32:[function(require,module,exports){
 'use strict';
 
-var _require = require('../../util/vdom');
+var _require = require('iblokz/adapters/vdom');
 
 var section = _require.section;
 var h1 = _require.h1;
@@ -20813,10 +20944,10 @@ module.exports = function (_ref) {
 	}))), rightColumn({ state: state, actions: actions })]);
 };
 
-},{"../../util/vdom":34,"../right-column":32}],30:[function(require,module,exports){
+},{"../right-column":35,"iblokz/adapters/vdom":3}],33:[function(require,module,exports){
 'use strict';
 
-var _require = require('../../util/vdom');
+var _require = require('iblokz/adapters/vdom');
 
 var section = _require.section;
 var h1 = _require.h1;
@@ -20847,7 +20978,7 @@ module.exports = function (_ref) {
 	return section('#content', [section('.articles', [section('.article', [h1('Връзки')]), section('.article', [p({ props: { innerHTML: marked('\n- [\u0414\u044A\u0440\u0436\u0430\u0432\u043D\u0430 \u0430\u0433\u0435\u043D\u0446\u0438\u044F \u0437\u0430 \u0431\u044A\u043B\u0433\u0430\u0440\u0438\u0442\u0435 \u0432 \u0447\u0443\u0436\u0431\u0438\u043D\u0430](http://aba.government.bg)\n- [\u041C\u0438\u043D\u0438\u0441\u0442\u0435\u0440\u0441\u0442\u0432\u043E\u0442\u043E \u043D\u0430 \u043E\u0431\u0440\u0430\u0437\u043E\u0432\u0430\u043D\u0438\u0435\u0442\u043E \u0438 \u043D\u0430\u0443\u043A\u0430\u0442\u0430 /\xA0\u0417\u0430 \u0431\u044A\u043B\u0433\u0430\u0440\u0438\u0442\u0435 \u0437\u0430\u0434 \u0433\u0440\u0430\u043D\u0438\u0446\u0430](http://www.mon.bg/?go=page&amp;pageId=15&amp;subpageId=173)\n- [\u041D\u0430\u0443\u0447\u043D\u043E \u0434\u0440\u0443\u0436\u0435\u0441\u0442\u0432\u043E \u043D\u0430 \u0431\u044A\u043B\u0433\u0430\u0440\u0438\u0441\u0442\u0438\u0442\u0435 \u0432 \u0420\u0435\u043F\u0443\u0431\u043B\u0438\u043A\u0430 \u041C\u043E\u043B\u0434\u043E\u0432\u0430](http://ndb.md/)\n- [\u0411\u044A\u043B\u0433\u0430\u0440\u0441\u043A\u0430 \u0412\u0438\u0440\u0442\u0443\u0430\u043B\u043D\u0430 \u0411\u0438\u0431\u043B\u0438\u043E\u0442\u0435\u043A\u0430](http://slovo.bg)\n- [\u0412\u0435\u0441\u0442\u043D\u0438\u043A "\u0420\u043E\u0434\u0435\u043D \u041A\u0440\u0430\u0439" - \u041E\u0434\u0435\u0441\u0430](http://www.rodenkray.od.ua/)\n\t\t\t') } })])]), rightColumn({ state: state, actions: actions })]);
 };
 
-},{"../../util/vdom":34,"../right-column":32,"marked":2}],31:[function(require,module,exports){
+},{"../right-column":35,"iblokz/adapters/vdom":3,"marked":5}],34:[function(require,module,exports){
 'use strict';
 
 var moment = require('moment');
@@ -20872,7 +21003,7 @@ var getDays = function getDays() {
 	return days;
 };
 
-var _require = require('../../../util/vdom');
+var _require = require('iblokz/adapters/vdom');
 
 var section = _require.section;
 var h1 = _require.h1;
@@ -20911,10 +21042,10 @@ module.exports = function (_ref) {
 	}))])]);
 };
 
-},{"../../../util/vdom":34,"moment":4,"moment/locale/bg":3}],32:[function(require,module,exports){
+},{"iblokz/adapters/vdom":3,"moment":7,"moment/locale/bg":6}],35:[function(require,module,exports){
 'use strict';
 
-var _require = require('../../util/vdom');
+var _require = require('iblokz/adapters/vdom');
 
 var section = _require.section;
 var h1 = _require.h1;
@@ -20944,96 +21075,4 @@ module.exports = function (_ref) {
 	return section('.right-column', [section([h2('За контакт:'), ul([li([a('[href="https://goo.gl/maps/nuw3q3d9CuK2"][target="_blank"]', [i('.fa.fa-map-marker'), 'бул. „Евлоги Георгиев“ 169, ет. II-ри'])]), li([a('[href="https://fb.com/groups/rodolubets"][target="_blank"]', [i('.fa.fa-facebook-official'), 'Facebook Група на д-во Родолюбец'])]), li([a('[href="mailto:rodolubets@abv.bg"]', [i('.fa.fa-envelope-o'), 'rodolubets at abv dot bg'])])])]), section([h2('Предстоящи събития:'), ul([li([a('[href="https://www.facebook.com/events/1781298892137645/"][target="_blank"]', '17-24.11 Честване на 100 годишнина от рождението на Мишо Хаджийски')]), li('Декември: Коледно Тържество')])]), section([h2('Минали събития:'), ul([li([a('[href="https://www.facebook.com/events/191852797922713/"][target="_blank"]', '27.10 18:30 Традиционен празничен концерт, посветен на Деня на Бесарабските Българи')])])]), calendar({ state: state, actions: actions })]);
 };
 
-},{"../../util/vdom":34,"./calendar":31}],33:[function(require,module,exports){
-'use strict';
-
-var Rx = require('rx');
-var $ = Rx.Observable;
-var superagent = require('superagent');
-
-superagent.Request.prototype.observe = function () {
-	return $.fromNodeCallback(this.end, this)();
-};
-
-module.exports = superagent;
-
-},{"rx":6,"superagent":17}],34:[function(require,module,exports){
-'use strict';
-
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
-
-var snabbdom = require('snabbdom');
-var h = require('snabbdom/h');
-
-var patch = snabbdom.init([// Init patch function with choosen modules
-require('snabbdom/modules/class'), // makes it easy to toggle classes
-require('snabbdom/modules/props'), // for setting properties on DOM elements
-require('snabbdom/modules/attributes'), // for setting properties on DOM elements
-require('snabbdom/modules/style'), // handles styling on elements with support for animations
-require('snabbdom/modules/eventlisteners') // attaches event listeners
-]);
-
-var patchStream = function patchStream(stream, dom) {
-	dom = typeof dom === 'string' ? document.querySelector(dom) : dom;
-	stream.scan(function (vnode, newVnode) {
-		return patch(vnode, newVnode);
-	}, dom).subscribe();
-};
-
-var addKeyValue = function addKeyValue(o, k, v) {
-	o[k] = v;
-	return o;
-};
-
-var processAttrs = function processAttrs(args) {
-	var newArgs = args.slice();
-
-	var selector = newArgs[0] && typeof newArgs[0] === 'string' && newArgs[0] || '';
-	if (selector !== '') newArgs = newArgs.slice(1);
-
-	var attrRegExp = /\[[a-z\-0-9]+="[^"]+"\]/ig;
-
-	var attrs = selector && selector.match(attrRegExp);
-	selector = selector.replace(attrRegExp, '');
-
-	attrs = attrs && attrs.map && attrs.map(function (c) {
-		return c.replace(/[\[\]"]/g, '').split('=');
-	}).reduce(function (o, attr) {
-		return addKeyValue(o, attr[0], attr[1]);
-	}, {}) || {};
-
-	if (attrs && Object.keys(attrs).length > 0) {
-		if (!newArgs[0] || newArgs[0] && _typeof(newArgs[0]) === 'object' && !(newArgs[0] instanceof Array)) {
-			attrs = Object.assign({}, newArgs[0] && newArgs[0].attrs || {}, attrs);
-			newArgs[0] = Object.assign({}, newArgs[0] || {}, { attrs: attrs });
-		} else {
-			newArgs = [{ attrs: attrs }].concat(newArgs);
-		}
-	}
-
-	if (selector !== '') newArgs = [selector].concat(newArgs);
-
-	// console.log(args, newArgs);
-	return newArgs;
-};
-
-var hyperHelpers = ['h1', 'h2', 'h3', 'h4', 'section', 'header', 'article', 'div', 'p', 'span', 'pre', 'code', 'a', 'dd', 'dt', 'hr', 'br', 'b', 'i', 'table', 'thead', 'tbody', 'th', 'tr', 'td', 'ul', 'ol', 'li', 'form', 'fieldset', 'legend', 'input', 'label', 'button', 'select', 'option', 'canvas', 'video', 'img'].reduce(function (o, tag) {
-	o[tag] = function () {
-		var _this = this;
-
-		return [Array.prototype.slice.call(arguments)].map(processAttrs).map(function (args) {
-			return args[0] && typeof args[0] === 'string' && args[0].match(/^(\.|#)[a-zA-Z\-_0-9]+/ig) ? [].concat(tag + args[0], args.slice(1)) : [tag].concat(args);
-		}).map(function (args) {
-			return h.apply(_this, args);
-		}).pop();
-	};
-	return o;
-}, {});
-
-module.exports = Object.assign({
-	h: h,
-	patch: patch,
-	patchStream: patchStream
-}, hyperHelpers);
-
-},{"snabbdom":15,"snabbdom/h":7,"snabbdom/modules/attributes":10,"snabbdom/modules/class":11,"snabbdom/modules/eventlisteners":12,"snabbdom/modules/props":13,"snabbdom/modules/style":14}]},{},[22]);
+},{"./calendar":34,"iblokz/adapters/vdom":3}]},{},[25]);

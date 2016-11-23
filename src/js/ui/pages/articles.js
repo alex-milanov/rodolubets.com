@@ -3,7 +3,7 @@
 const {
 	section, h1, h2, h3, hr, header, i, ul, li, p,
 	table, thead, tbody, tr, td, th, span, div, a
-} = require('../../util/vdom');
+} = require('iblokz/adapters/vdom');
 
 const rightColumn = require('../right-column');
 

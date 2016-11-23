@@ -3,7 +3,7 @@
 const {
 	section, h1, h2, h3, hr, header, i, ul, li, a,
 	table, thead, tbody, tr, td, th, form, input, button, label
-} = require('../../util/vdom');
+} = require('iblokz/adapters/vdom');
 
 const links = [
 	{page: 'home', href: '#/', title: 'Начало'},
