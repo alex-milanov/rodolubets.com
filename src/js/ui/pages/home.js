@@ -12,9 +12,11 @@ const pinnedFirst = articles => articles
 
 module.exports = ({state, actions}) => section('#content', [
 	section('.articles', [
+		/*
 		a('[href="https://www.facebook.com/events/1781298892137645/"][target="_blank"]', [
 			img('.article[src="/img/mh100.png"][style="padding: 0"]')
 		])
+		*/
 	].concat(pinnedFirst(state.articles).map(article =>
 		section('.article', [
 			h1([a(`[href="#/articles/${article._id}"]`, article.title)]),

@@ -20939,7 +20939,13 @@ var pinnedFirst = function pinnedFirst(articles) {
 module.exports = function (_ref) {
 	var state = _ref.state;
 	var actions = _ref.actions;
-	return section('#content', [section('.articles', [a('[href="https://www.facebook.com/events/1781298892137645/"][target="_blank"]', [img('.article[src="/img/mh100.png"][style="padding: 0"]')])].concat(pinnedFirst(state.articles).map(function (article) {
+	return section('#content', [section('.articles', [
+		/*
+  a('[href="https://www.facebook.com/events/1781298892137645/"][target="_blank"]', [
+  	img('.article[src="/img/mh100.png"][style="padding: 0"]')
+  ])
+  */
+	].concat(pinnedFirst(state.articles).map(function (article) {
 		return section('.article', [h1([a('[href="#/articles/' + article._id + '"]', article.title)]), p('.meta', [span('.left', article.categories && article.categories.join(', ') || ''), span('.right', [(article.publishedIn || article.createdAt) && 'Публикувана ' || '', article.publishedIn && '\u0432 ' + article.publishedIn + ' ' || '', article.createdAt && '\u043D\u0430 ' + article.createdAt + ' ' || '', article.author && '\u0410\u0432\u0442\u043E\u0440: ' + article.author || ''])]), p('.body', { props: { innerHTML: article.text } })]);
 	}))), rightColumn({ state: state, actions: actions })]);
 };
@@ -21072,7 +21078,7 @@ var calendar = require('./calendar');
 module.exports = function (_ref) {
 	var state = _ref.state;
 	var actions = _ref.actions;
-	return section('.right-column', [section([h2('За контакт:'), ul([li([a('[href="https://goo.gl/maps/nuw3q3d9CuK2"][target="_blank"]', [i('.fa.fa-map-marker'), 'бул. „Евлоги Георгиев“ 169, ет. II-ри'])]), li([a('[href="https://fb.com/groups/rodolubets"][target="_blank"]', [i('.fa.fa-facebook-official'), 'Facebook Група на д-во Родолюбец'])]), li([a('[href="mailto:rodolubets@abv.bg"]', [i('.fa.fa-envelope-o'), 'rodolubets at abv dot bg'])])])]), section([h2('Предстоящи събития:'), ul([li([a('[href="https://www.facebook.com/events/1781298892137645/"][target="_blank"]', '17-24.11 Честване на 100 годишнина от рождението на Мишо Хаджийски')]), li('Декември: Коледно Тържество')])]), section([h2('Минали събития:'), ul([li([a('[href="https://www.facebook.com/events/191852797922713/"][target="_blank"]', '27.10 18:30 Традиционен празничен концерт, посветен на Деня на Бесарабските Българи')])])]), calendar({ state: state, actions: actions })]);
+	return section('.right-column', [section([h2('За контакт:'), ul([li([a('[href="https://goo.gl/maps/nuw3q3d9CuK2"][target="_blank"]', [i('.fa.fa-map-marker'), 'бул. „Евлоги Георгиев“ 169, ет. II-ри'])]), li([a('[href="https://fb.com/groups/rodolubets"][target="_blank"]', [i('.fa.fa-facebook-official'), 'Facebook Група на д-во Родолюбец'])]), li([a('[href="mailto:rodolubets@abv.bg"]', [i('.fa.fa-envelope-o'), 'rodolubets at abv dot bg'])])])]), section([h2('Предстоящи събития:'), ul([li('15.12 Коледно Тържество, 18:00-22:00ч. читалище Славянска Беседа')])]), section([h2('Минали събития:'), ul([li([a('[href="https://www.facebook.com/events/1781298892137645/"][target="_blank"]', '17-24.11 Честване на 100 годишнина от рождението на Мишо Хаджийски')]), li([a('[href="https://www.facebook.com/events/191852797922713/"][target="_blank"]', '27.10 18:30 Традиционен празничен концерт, посветен на Деня на Бесарабските Българи')])])]), calendar({ state: state, actions: actions })]);
 };
 
 },{"./calendar":34,"iblokz/adapters/vdom":3}]},{},[25]);
