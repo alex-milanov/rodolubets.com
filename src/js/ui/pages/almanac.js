@@ -9,12 +9,12 @@ const marked = require('marked');
 
 const rightColumn = require('../right-column');
 
-module.exports = ({state, actions}) => section('#content', [
-	section('.articles', [
-		section('.article', [
+module.exports = ({state, actions}) => [
+	section('.content', [
+		section('.post', [
 			h1('Алманах “Родолюбец“')
 		]),
-		section('.article', [
+		section('.post', [
 			p({props: {innerHTML: marked(`
 Като печатно издание на дружество “Родолюбец” всяка четна година излиза алманахът “Родолюбец”, една истинска “христоматия по родолюбие”.
 
@@ -31,4 +31,4 @@ module.exports = ({state, actions}) => section('#content', [
 		])]
 	),
 	rightColumn({state, actions})
-]);
+];

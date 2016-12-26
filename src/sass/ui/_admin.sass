@@ -1,0 +1,67 @@
+#ui > #admin
+	.content
+		+no-margin-padding
+		margin-top: 18px
+		display: inline-block
+		vertical-align: top
+		width: 100%
+		ul.breadcrumb
+			+rod-panel
+			width: 100%
+			padding: 10px 10px
+			margin: 0px
+			margin-bottom: 20px
+			list-style: none
+			li
+				display: inline-block
+				&:not(:first-child)::before
+					content: '>'
+					margin: 0px 10px
+					display: inline-block
+		.post
+			+rod-panel
+			position: relative
+			margin-bottom: 20px
+			width: 100%
+			button
+				+clear-form-control
+				+panel-button(10px)
+				display: inline-block
+				text-align: center
+				font-size: 14px
+				line-height: 14px
+				height: 40px
+				background: none
+				border: 0px
+				i
+					margin-right: 10px
+		.crud
+			+rod-panel
+			display: table
+			width: 100%
+			border-collapse: separate
+			border-spacing: 0
+			font-size: 14px
+			td, th
+				height: 40px
+				box-sizing: border-box
+				&:not(:last-child)
+					padding: 0px 5px
+				button
+					+clear-form-control
+					+panel-button(10px)
+					float: left
+					display: inline-block
+					text-align: center
+					font-size: 14px
+					line-height: 14px
+					height: 40px
+					width: 39px
+					background: inherit
+					border: 0px
+			tr > :not(:first-child)
+				border-left: 1px solid #ccc
+			tr:not(:first-child) > *
+				border-top: 1px solid #ccc
+			thead > tr:last-child > *
+				border-bottom: 1px solid #aaa

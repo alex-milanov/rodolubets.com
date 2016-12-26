@@ -5,12 +5,13 @@
   "main": "index.js",
   "scripts": {
     "prebuild": "node bin/move-assets.js",
-		"prebuild:js": "npm i iblokz",
-    "build": "npm run build:js && npm run build:sass",
+    "build": "npm run build:lib && npm run build:js && npm run build:sass",
+    "build:lib": "npm i iblokz",
     "build:js": "browserify src/js/index.js -o dist/js/app.js -t [ babelify --presets [ es2015 ] ]",
     "build:sass": "node-sass --include-path=$(node bin/sass-paths.js) src/sass/style.sass dist/css/style.css",
-    "watch": "npm run watch:js & npm run watch:sass & npm run livereload",
-    "watch:js": "nodemon --watch 'src/js' --watch 'lib' --exec 'npm run build:js'",
+    "watch": "npm run watch:lib & npm run watch:js & npm run watch:sass & npm run livereload",
+    "watch:lib": "nodemon --watch 'lib' --exec 'npm run build:lib && npm run build:js'",
+    "watch:js": "nodemon --watch 'src/js' --exec 'npm run build:js'",
     "watch:sass": "npm run build:sass -- --watch src/sass/**/*",
     "livereload": "livereload dist",
     "start": "npm run build && nodemon server & npm run watch"

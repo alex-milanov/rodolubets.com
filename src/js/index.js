@@ -7,6 +7,14 @@ const $ = Rx.Observable;
 // util
 const vdom = require('iblokz/adapters/vdom');
 
+// config
+const config = {
+	routes: [
+		'admin/:page/:pageId',
+		':page/:pageId'
+	]
+};
+
 // app
 let actions = require('./actions');
 const ui = require('./ui');

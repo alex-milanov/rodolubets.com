@@ -7,9 +7,9 @@ const {
 
 const rightColumn = require('../right-column');
 
-module.exports = ({state, actions}) => section('#content', [
-	section('.articles', [
-		section('.article', [
+module.exports = ({state, actions}) => [
+	section('.content', [
+		section('.post', [
 			h1('Публикации'),
 			div('.menu', [
 				ul([
@@ -26,7 +26,7 @@ module.exports = ({state, actions}) => section('#content', [
 			])
 		]),
 		(state.route.pageId) ? state.articles.filter(a => a._id === state.route.pageId).map(article =>
-			section('.article', [
+			section('.post', [
 				h1(article.title),
 				p('.meta', [
 					span('.left', article.categories && article.categories.join(', ') || ''),
@@ -39,7 +39,7 @@ module.exports = ({state, actions}) => section('#content', [
 				]),
 				p('.body', {props: {innerHTML: article.text}})
 			])).pop()
-		: section('.article', [
+		: section('.post', [
 			div(state.articles
 				.filter(a => !state.category || (a.categories.indexOf(state.category) > -1))
 				.map(article =>
@@ -59,4 +59,4 @@ module.exports = ({state, actions}) => section('#content', [
 		])
 	]),
 	rightColumn({state, actions})
-]);
+];

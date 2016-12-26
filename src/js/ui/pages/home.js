@@ -10,15 +10,15 @@ const rightColumn = require('../right-column');
 const pinnedFirst = articles => articles
 	.reduce((list, a) => a.pinned ? [a].concat(list) : list.concat(a), []);
 
-module.exports = ({state, actions}) => section('#content', [
-	section('.articles', [
+module.exports = ({state, actions}) => [
+	section('.content', [
 		/*
 		a('[href="https://www.facebook.com/events/1781298892137645/"][target="_blank"]', [
 			img('.article[src="/img/mh100.png"][style="padding: 0"]')
 		])
 		*/
 	].concat(pinnedFirst(state.articles).map(article =>
-		section('.article', [
+		section('.post', [
 			h1([a(`[href="#/articles/${article._id}"]`, article.title)]),
 			p('.meta', [
 				span('.left', article.categories && article.categories.join(', ') || ''),
@@ -33,4 +33,4 @@ module.exports = ({state, actions}) => section('#content', [
 		]))
 	)),
 	rightColumn({state, actions})
-]);
+];

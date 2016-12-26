@@ -12,12 +12,12 @@ marked.setOptions({
 	tables: true
 });
 
-module.exports = ({state, actions}) => section('#content', [
-	section('.articles', [
-		section('.article', [
+module.exports = ({state, actions}) => [
+	section('.content', [
+		section('.post', [
 			h1('За Дружеството')
 		]),
-		section('.article', [
+		section('.post', [
 			p({props: {innerHTML: marked(`
 Дружеството за приятелство и културни връзки с бесарабските и таврийските българи „Родолюбец” е основано в началото на 1990 г.
 
@@ -33,4 +33,4 @@ module.exports = ({state, actions}) => section('#content', [
 		])]
 	),
 	rightColumn({state, actions})
-]);
+];

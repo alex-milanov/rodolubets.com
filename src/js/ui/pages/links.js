@@ -9,12 +9,12 @@ const marked = require('marked');
 
 const rightColumn = require('../right-column');
 
-module.exports = ({state, actions}) => section('#content', [
-	section('.articles', [
-		section('.article', [
+module.exports = ({state, actions}) => [
+	section('.content', [
+		section('.post', [
 			h1('Връзки')
 		]),
-		section('.article', [
+		section('.post', [
 			p({props: {innerHTML: marked(`
 - [Държавна агенция за българите в чужбина](http://aba.government.bg)
 - [Министерството на образованието и науката / За българите зад граница](http://www.mon.bg/?go=page&amp;pageId=15&amp;subpageId=173)
@@ -25,4 +25,4 @@ module.exports = ({state, actions}) => section('#content', [
 		])
 	]),
 	rightColumn({state, actions})
-]);
+];

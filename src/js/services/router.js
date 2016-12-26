@@ -7,9 +7,13 @@ const Subject = Rx.Subject;
 const stream = new Subject();
 
 const parsePageParams = str => {
-	const pageId = str.split('/')[1] || null;
-	const page = ((pageId) ? str.split('/')[0] : str) || 'home';
+	const path = str.split('/');
+	const admin = path[0] === 'admin';
+	const pageId = path[admin ? 2 : 1] || null;
+	const page = (admin ? 'admin.' : '') + ((pageId) ? path[path.length - 2] : path[path.length - 1]) || 'home';
 	return {
+		path,
+		admin,
 		page,
 		pageId
 	};
@@ -26,7 +30,7 @@ const go = page => {
 
 const router = {
 	stream,
-	initial: {route: {page: 'home'}},
+	initial: {route: {page: 'home', path: ['home'], admin: false}},
 	parsePageParams,
 	change,
 	go
