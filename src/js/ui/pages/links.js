@@ -17,10 +17,12 @@ module.exports = ({state, actions}) => [
 		section('.post', [
 			p({props: {innerHTML: marked(`
 - [Държавна агенция за българите в чужбина](http://aba.government.bg)
-- [Министерството на образованието и науката / За българите зад граница](http://www.mon.bg/?go=page&amp;pageId=15&amp;subpageId=173)
+- [Министерството на образованието и науката > За българите зад граница](http://www.mon.bg/?go=page&amp;pageId=15&amp;subpageId=173)
 - [Научно дружество на българистите в Република Молдова](http://ndb.md/)
 - [Българска Виртуална Библиотека](http://slovo.bg)
 - [Вестник "Роден Край" - Одеса](http://www.rodenkray.od.ua/)
+- [Архивни материали за Родолюбец (omda.bg)](http://prehod.omda.bg/page.php?IDMenu=642&IDLang=1)
+- [Архивни материали по въпросите на българите зад граница (omda.bg)](http://prehod.omda.bg/page.php/?IDMenu=604)
 			`)}})
 		])
 	]),
