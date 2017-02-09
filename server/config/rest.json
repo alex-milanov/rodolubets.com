@@ -1,0 +1,40 @@
+{
+	"collections": {
+		"users": {
+			"model": "User"
+		},
+		"articles": {
+			"model": "Article",
+			"schema": {
+				"title" : { "type": "String", "required": true, "minLength": 1, "maxLength": 30, "unique": true },
+				"text" : "String",
+				"author": "String",
+				"publishedIn": "String",
+				"publishedOn": "Date",
+				"categories": ["String"],
+				"pinned": "Boolean",
+				"createdBy" : { "type": "ObjectId", "ref":"User", "required": false},
+				"createdOn": { "type": "Date", "default": "Date.now" }
+			}
+		},
+		"events": {
+			"model": "Event",
+			"schema": {
+				"name": "String",
+				"start": "Date",
+				"url": "String"
+			}
+		}
+	},
+	"routes": {
+		"api" : {
+			"_meta": {
+				"virtual": true,
+				"crud": true,
+				"contentType": "json"
+			},
+			"users": {},
+			"articles": {}
+		}
+	}
+}

@@ -16,6 +16,7 @@ const links = {
 	admin: [
 		{page: 'admin.home', href: '#/admin', title: 'Табло'},
 		{page: 'admin.articles', href: '#/admin/articles', title: 'Публикации'},
+		{page: 'admin.events', href: '#/admin/events', title: 'Събития'},
 		{page: 'admin.pages', href: '#/admin/pages', title: 'Страници'}
 	]
 };

@@ -9,7 +9,7 @@ const marked = require('marked');
 
 module.exports = ({state, actions}) => [
 	section('.content', [
-		ul('.breadcrumb', ['Администрация', 'Табло'].map(item =>
+		ul('.breadcrumb', [[i('.fa.fa-tasks'), ' Администрация'], 'Табло'].map(item =>
 			li(item)
 		)),
 		section('.post', [

@@ -275,34 +275,40 @@ const keyValue = (k, v) => {
 	return o;
 };
 
-const patch = (o, k, v) => Object.assign({}, o,
-	(k instanceof Array)
-		? keyValue(k[0], (k.length > 1)
-			? patch(o[k[0]] || {}, k.slice(1), v)
-			: typeof o[k[0]] === 'object' && Object.assign({}, o[k[0]], v) || v)
-		: keyValue(k, typeof o[k] === 'object' && Object.assign({}, o[k], v) || v)
-);
+const clone = o => Object.assign(Object.create(Object.getPrototypeOf(o) || {}), o);
 
 const sub = (o, p) => (p instanceof Array)
 	&& o[p[0]] && sub(o[p[0]], p.slice(1))
 	|| o[p] || false;
 
-// console.log(patch({}, ['a', 'b', 'c'], 'boom'));
-// console.log(patch({}, 'x', 1));
-// console.log(['a', 'b', 'c'].slice(1));
-//
-// console.log(patch({a: {d: '1'}}, 'a', {g: 2}));
+const patch = (o, k, v) => Object.assign(clone(o),
+	(k instanceof Array)
+		? keyValue(k[0], (k.length > 1)
+			? patch(o[k[0]] || {}, k.slice(1), v)
+			: typeof o[k[0]] === 'object' && Object.assign(clone(o[k[0]]), v) || v)
+		: keyValue(k, typeof o[k] === 'object' && Object.assign(clone(o[k]), v) || v)
+);
 
-// let o = {
-// 	a: {b: {c: 123}}
-// };
-//
-// console.log(sub(o, ['a', 'b', 3]));
+const map = (o, cb) => Object.keys(o)
+	.reduce(
+		(o2, k, i) =>
+			((o2[k] = cb(o[k], k, i)), o2),
+		{});
+
+const chainCall = (o, chain) => chain.reduce(
+	(o, link) => (typeof link[1] === 'undefined')
+		? o[link[0]]()
+		: o[link[0]](link[1]),
+	o
+);
 
 module.exports = {
 	keyValue,
+	clone,
+	sub,
 	patch,
-	sub
+	map,
+	chainCall
 };
 
 },{}],5:[function(require,module,exports){
@@ -20552,7 +20558,7 @@ var init = function init() {
 	return request.get('/api/articles').observe().map(function (res) {
 		return res.body;
 	}).map(function (articles) {
-		return articles.map(function (article) {
+		return articles.list.map(function (article) {
 			return Object.assign({}, article, {
 				text: marked(article.text),
 				createdAt: article.createdAt && moment(article.createdAt).format('DD MMMM Y') || ""
@@ -20618,16 +20624,16 @@ actions = router.attach(actions);
 console.log(actions);
 
 // reduce actions to state
-var state$ = actions.stream.map(function (change) {
-	return console.log('ch', change), change;
-}).scan(function (state, reducer) {
+var state$ = actions.stream
+// .map(change => (console.log('ch', change), change))
+.scan(function (state, reducer) {
 	return reducer(state);
 }, actions.initial).map(function (state) {
 	return console.log('sc', state), state;
-});
+}).share();
 
 // state change hooks
-state$.filter(function (state) {
+state$.skip(2).filter(function (state) {
 	return state.route.page === 'articles';
 }).distinctUntilChanged(function (state) {
 	return state.category;
@@ -20637,7 +20643,7 @@ state$.filter(function (state) {
 	return actions.router.go('articles');
 });
 
-state$.filter(function (state) {
+state$.skip(2).filter(function (state) {
 	return state.route.page === 'articles';
 }).distinctUntilChanged(function (state) {
 	return state.route.pageId;
@@ -20752,7 +20758,7 @@ var label = _require.label;
 
 var links = {
 	front: [{ page: 'home', href: '#/', title: 'Начало' }, { page: 'about', href: '#/about', title: 'За Дружеството' }, { page: 'almanac', href: '#/almanac', title: 'Алманах Родолюбец' }, { page: 'articles', href: '#/articles', title: 'Публикации' }, { page: 'links', href: '#/links', title: 'Връзки' }],
-	admin: [{ page: 'admin.home', href: '#/admin', title: 'Табло' }, { page: 'admin.articles', href: '#/admin/articles', title: 'Публикации' }, { page: 'admin.pages', href: '#/admin/pages', title: 'Страници' }]
+	admin: [{ page: 'admin.home', href: '#/admin', title: 'Табло' }, { page: 'admin.articles', href: '#/admin/articles', title: 'Публикации' }, { page: 'admin.events', href: '#/admin/events', title: 'Събития' }, { page: 'admin.pages', href: '#/admin/pages', title: 'Страници' }]
 };
 
 module.exports = function (_ref) {
@@ -20926,7 +20932,7 @@ var marked = require('marked');
 module.exports = function (_ref) {
 	var state = _ref.state;
 	var actions = _ref.actions;
-	return [section('.content', [ul('.breadcrumb', ['Администрация', 'Табло'].map(function (item) {
+	return [section('.content', [ul('.breadcrumb', [[i('.fa.fa-tasks'), ' Администрация'], 'Табло'].map(function (item) {
 		return li(item);
 	})), section('.post', [p({ props: { innerHTML: marked('\n\t\t\t\t\u0414\u043E\u0431\u0440\u0435 \u0414\u043E\u0448\u043B\u0438!\n\t\t\t') } })])])];
 };
@@ -21232,7 +21238,7 @@ var calendar = require('./calendar');
 module.exports = function (_ref) {
 	var state = _ref.state;
 	var actions = _ref.actions;
-	return section('.right-column', [section([h2('За контакт:'), ul([li([a('[href="https://goo.gl/maps/nuw3q3d9CuK2"][target="_blank"]', [i('.fa.fa-map-marker'), 'бул. „Евлоги Георгиев“ 169, ет. II-ри'])]), li([a('[href="https://fb.com/groups/rodolubets"][target="_blank"]', [i('.fa.fa-facebook-official'), 'Facebook Група на д-во Родолюбец'])]), li([a('[href="mailto:rodolubets@abv.bg"]', [i('.fa.fa-envelope-o'), 'rodolubets at abv dot bg'])])])]), section([h2('Предстоящи събития:'), ul([li([a('[href="https://www.facebook.com/events/224414394672363/"][target="_blank"]', '13.01 Отбелязване 90-годишнината от рождението на Петър Недов 17:30ч.')])])]), section([h2('Минали събития:'), ul([li([a('[href="https://www.facebook.com/events/391007054575193/"][target="_blank"]', '15.12 Коледно-новогодишна среща на д-во Родолюбец 18:00-22:00ч. читалище Славянска Беседа')]), li([a('[href="https://www.facebook.com/events/1781298892137645/"][target="_blank"]', '17-24.11 Честване на 100 годишнина от рождението на Мишо Хаджийски')]), li([a('[href="https://www.facebook.com/events/191852797922713/"][target="_blank"]', '27.10 18:30 Традиционен празничен концерт, посветен на Деня на Бесарабските Българи')])])]), calendar({ state: state, actions: actions })]);
+	return section('.right-column', [section([h2('За контакт:'), ul([li([a('[href="https://goo.gl/maps/nuw3q3d9CuK2"][target="_blank"]', [i('.fa.fa-map-marker'), 'бул. „Евлоги Георгиев“ 169, ет. II-ри'])]), li([a('[href="https://fb.com/groups/rodolubets"][target="_blank"]', [i('.fa.fa-facebook-official'), 'Facebook Група на д-во Родолюбец'])]), li([a('[href="mailto:rodolubets@abv.bg"]', [i('.fa.fa-envelope-o'), 'rodolubets at abv dot bg'])])])]), section([h2('Предстоящи събития:'), ul([li([a('[href="https://www.facebook.com/events/237310966716062/"][target="_blank"]', '24.02 Представяне на Алманах Родолюбец, брой 8-ми 2016г.')])])]), section([h2('Минали събития:'), ul([li([a('[href="https://www.facebook.com/events/224414394672363/"][target="_blank"]', '13.01 Отбелязване 90-годишнината от рождението на Петър Недов 17:30ч.')]), li([a('[href="https://www.facebook.com/events/391007054575193/"][target="_blank"]', '15.12 Коледно-новогодишна среща на д-во Родолюбец 18:00-22:00ч. читалище Славянска Беседа')]), li([a('[href="https://www.facebook.com/events/1781298892137645/"][target="_blank"]', '17-24.11 Честване на 100 годишнина от рождението на Мишо Хаджийски')]), li([a('[href="https://www.facebook.com/events/191852797922713/"][target="_blank"]', '27.10 18:30 Традиционен празничен концерт, посветен на Деня на Бесарабските Българи')])])]), calendar({ state: state, actions: actions })]);
 };
 
 },{"./calendar":37,"iblokz/adapters/vdom":3}]},{},[25]);

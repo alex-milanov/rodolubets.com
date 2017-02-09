@@ -9,20 +9,33 @@ const path = require('path');
 const express = require('express');
 const bodyParser = require('body-parser');
 const methodOverride = require('method-override');
+// db
+const mongoose = require('mongoose');
+// rest api
+const restApi = require('iblokz-rest-api');
+const restMap = require('./config/rest.json');
 
+// init
 const app = express();
+const db = mongoose.connect('mongodb://localhost:27017/rod');
 
-// express init
+// express prefs
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(bodyParser.json());
 app.use(methodOverride());
 app.use(express.static(path.resolve(__dirname, '../dist')));
 
-const mongoClient = require('mongodb').MongoClient;
-mongoClient.connect('mongodb://localhost:27017/rod').then(db => {
-	require('./api')(app, db);
+// loads the models from json schema
+restApi.loadModel(restMap, db);
 
-	app.listen(8080);
+// load additional models
+require('./models/user');
 
-	console.log('Express app started on port ' + 8080);
-});
+// initis rest endpoints
+restApi.initRoutes(app, restMap, {}, db);
+
+// Start the app by listening on <port>
+app.listen('8080');
+
+// Logging initialization
+console.log('Express app started on port 8080');

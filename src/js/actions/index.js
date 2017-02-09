@@ -16,7 +16,7 @@ const init = () => request.get('/api/articles')
 	.observe()
 	.map(res => res.body)
 	.map(articles =>
-		articles.map(article =>
+		articles.list.map(article =>
 			Object.assign({}, article, {
 				text: marked(article.text),
 				createdAt: article.createdAt && moment(article.createdAt).format('DD MMMM Y') || ""

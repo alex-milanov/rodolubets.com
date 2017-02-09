@@ -27,18 +27,21 @@ console.log(actions);
 
 // reduce actions to state
 const state$ = actions.stream
-	.map(change => (console.log('ch', change), change))
+	// .map(change => (console.log('ch', change), change))
 	.scan((state, reducer) => reducer(state), actions.initial)
-	.map(state => (console.log('sc', state), state));
+	.map(state => (console.log('sc', state), state))
+	.share();
 
 // state change hooks
 state$
+	.skip(2)
 	.filter(state => state.route.page === 'articles')
 	.distinctUntilChanged(state => state.category)
 	.filter(state => state.category !== null)
 	.subscribe(state => actions.router.go('articles'));
 
 state$
+	.skip(2)
 	.filter(state => state.route.page === 'articles')
 	.distinctUntilChanged(state => state.route.pageId)
 	.filter(state => state.route.pageId !== null)

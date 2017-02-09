@@ -29,14 +29,18 @@ module.exports = ({state, actions}) => section('.right-column', [
 		h2('Предстоящи събития:'),
 		ul([
 			li([a(
-				'[href="https://www.facebook.com/events/224414394672363/"][target="_blank"]',
-				'13.01 Отбелязване 90-годишнината от рождението на Петър Недов 17:30ч.'
+				'[href="https://www.facebook.com/events/237310966716062/"][target="_blank"]',
+				'24.02 Представяне на Алманах Родолюбец, брой 8-ми 2016г.'
 			)])
 		])
 	]),
 	section([
 		h2('Минали събития:'),
 		ul([
+			li([a(
+				'[href="https://www.facebook.com/events/224414394672363/"][target="_blank"]',
+				'13.01 Отбелязване 90-годишнината от рождението на Петър Недов 17:30ч.'
+			)]),
 			li([a(
 				'[href="https://www.facebook.com/events/391007054575193/"][target="_blank"]',
 				'15.12 Коледно-новогодишна среща на д-во Родолюбец 18:00-22:00ч. читалище Славянска Беседа'
