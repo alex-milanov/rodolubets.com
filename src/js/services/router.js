@@ -2,9 +2,6 @@
 
 const Rx = require('rx');
 const $ = Rx.Observable;
-const Subject = Rx.Subject;
-
-const stream = new Subject();
 
 const parsePageParams = str => {
 	const path = str.split('/');
@@ -19,42 +16,28 @@ const parsePageParams = str => {
 	};
 };
 
-const change = page => {
-	stream.onNext(state => Object.assign({}, state, {route: parsePageParams(page)}));
-};
+const change = page => state => Object.assign({}, state, {router: parsePageParams(page)});
 
 const go = page => {
-	window.location.hash = '/' + ((page !== 'home') ? page : '');
-	change(page);
+	window.location.hash = '/' + ((page !== 'home') ? page.split('.').join('/') : '');
+	return change(page);
 };
 
-const router = {
-	stream,
-	initial: {route: {page: 'home', path: ['home'], admin: false}},
-	parsePageParams,
+const actions = {
+	initial: {page: 'home', path: ['home'], admin: false, pageId: null},
 	change,
 	go
 };
 
-const attach = actions => Object.assign(
-	{},
-	actions,
-	{
-		router,
-		stream: $.merge(actions.stream, router.stream),
-		initial: Object.assign({}, actions.initial, router.initial)
-	}
-);
-
-const hook = state$ => {
+const hook = ({state$, actions}) => {
 	state$.take(1).subscribe(() => {
-		window.setTimeout(() => change(location.hash.replace('#/', '') || 'home'));
+		window.setTimeout(() => actions.router.change(location.hash.replace('#/', '') || 'home'));
 		window.addEventListener('hashchange',
-			() => change(location.hash.replace('#/', '') || 'home'));
+			() => actions.router.change(location.hash.replace('#/', '') || 'home'));
 	});
 };
 
 module.exports = {
-	attach,
+	actions,
 	hook
 };

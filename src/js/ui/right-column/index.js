@@ -3,7 +3,7 @@
 const {
 	section, h1, h2, h3, hr, header, i, ul, li, p, a,
 	table, thead, tbody, tr, td, th, br
-} = require('iblokz/adapters/vdom');
+} = require('iblokz-snabbdom-helpers');
 
 const calendar = require('./calendar');
 
@@ -29,14 +29,18 @@ module.exports = ({state, actions}) => section('.right-column', [
 		h2('Предстоящи събития:'),
 		ul([
 			li([a(
-				'[href="https://www.facebook.com/events/237310966716062/"][target="_blank"]',
-				'24.02 Представяне на Алманах Родолюбец, брой 8-ми 2016г.'
+				'[href="https://www.facebook.com/events/1878729519040663/"][target="_blank"]',
+				'24.03 Нико Стоянов на 70 години, 18:00'
 			)])
 		])
 	]),
 	section([
 		h2('Минали събития:'),
 		ul([
+			li([a(
+				'[href="https://www.facebook.com/events/237310966716062/"][target="_blank"]',
+				'24.02 Представяне на Алманах Родолюбец, брой 8-ми 2016г.'
+			)]),
 			li([a(
 				'[href="https://www.facebook.com/events/224414394672363/"][target="_blank"]',
 				'13.01 Отбелязване 90-годишнината от рождението на Петър Недов 17:30ч.'

@@ -3,7 +3,7 @@
 const {
 	section, h1, h2, h3, hr, header, i, ul, li, p,
 	table, thead, tbody, tr, td, th
-} = require('iblokz/adapters/vdom');
+} = require('iblokz-snabbdom-helpers');
 
 const rightColumn = require('../right-column');
 const marked = require('marked');

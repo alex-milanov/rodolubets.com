@@ -1,7 +1,7 @@
 'use strict';
 
-const {section} = require('iblokz/adapters/vdom');
-const obj = require('iblokz/common/obj');
+const {section} = require('iblokz-snabbdom-helpers');
+const {obj} = require('iblokz-data');
 
 const _switch = (value, cases) =>
 	obj.sub(cases, value) && obj.sub(cases, value)['default'] || obj.sub(cases, value)
@@ -24,8 +24,8 @@ const pages = {
 };
 
 module.exports = ({state, actions}) => section('#ui', [
-	section((state.route.admin ? '#admin' : '#front'), [].concat(
+	section((state.router.admin ? '#admin' : '#front'), [].concat(
 		[header({state, actions})],
-		_switch(state.route.path, pages)({state, actions})
+		_switch(state.router.path, pages)({state, actions})
 	))
 ]);

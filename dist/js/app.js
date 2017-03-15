@@ -164,31 +164,156 @@ Emitter.prototype.hasListeners = function(event){
 };
 
 },{}],2:[function(require,module,exports){
-'use strict';
-
-const Rx = require('rx');
-const $ = Rx.Observable;
-const superagent = require('superagent');
-
-superagent.Request.prototype.observe = function() {
-	return $.fromNodeCallback(this.end, this)();
+module.exports = {
+	obj: require('./lib/obj'),
+	arr: require('./lib/arr'),
+	str: require('./lib/str'),
+	fn: require('./lib/fn')
 };
 
-module.exports = superagent;
+},{"./lib/arr":3,"./lib/fn":4,"./lib/obj":5,"./lib/str":6}],3:[function(require,module,exports){
+'use strict';
 
-},{"rx":9,"superagent":20}],3:[function(require,module,exports){
+const add = (arr, item) => [].concat(arr, [item]);
+
+const remove = (arr, item) => arr.indexOf(item) > -1 ? [].concat(
+	arr.slice(0, arr.indexOf(item)),
+	arr.slice(arr.indexOf(item) + 1)
+) : arr;
+
+const toggle = (arr, item) => arr.indexOf(item) > -1
+	? remove(arr, item)
+	: add(arr, item);
+
+module.exports = {
+	add,
+	remove,
+	toggle
+};
+
+},{}],4:[function(require,module,exports){
+'use strict';
+
+const compose = (...fList) => (...args) => fList.reduce(
+	(r, f) => (r instanceof Array) && f.apply(null, r) || f(r), args
+);
+
+const _switch = (value, cases) => (typeof cases[value] !== 'undefined')
+	&& cases[value] || cases['default'] || false;
+
+module.exports = {
+	compose,
+	switch: _switch
+};
+
+},{}],5:[function(require,module,exports){
+'use strict';
+
+const keyValue = (k, v) => {
+	let o = {};
+	o[k] = v;
+	return o;
+};
+
+const clone = o => Object.assign(Object.create(Object.getPrototypeOf(o) || {}), o);
+
+const sub = (o, p) => (p instanceof Array)
+	&& o[p[0]] && sub(o[p[0]], p.slice(1))
+	|| o[p] || false;
+
+const patch = (o, k, v) => Object.assign(clone(o),
+	(k instanceof Array)
+		? keyValue(k[0], (k.length > 1)
+			? patch(o[k[0]] || {}, k.slice(1), v)
+			: typeof o[k[0]] === 'object' && o[k[0]].constructor === Object && Object.assign(clone(o[k[0]]), v) || v)
+		: keyValue(k, typeof o[k] === 'object' && o[k].constructor === Object && Object.assign(clone(o[k]), v) || v)
+);
+
+const map = (o, cb) => Object.keys(o)
+	.reduce(
+		(o2, k, i) =>
+			((o2[k] = cb(o[k], k, i)), o2),
+		{});
+
+const traverse = (tree, fn) => Object.keys(tree).reduce((o, k) =>
+	patch(o, k,
+		(typeof tree[k] === 'object' && tree[k].constructor === Object)
+			? traverse(tree[k], fn)
+			: fn(tree[k], k)
+	), {}
+);
+
+const chainCall = (o, chain) => chain.reduce(
+	(o, link) => (typeof link[1] === 'undefined')
+		? o[link[0]]()
+		: o[link[0]](link[1]),
+	o
+);
+
+module.exports = {
+	keyValue,
+	clone,
+	sub,
+	patch,
+	map,
+	traverse,
+	chainCall
+};
+
+},{}],6:[function(require,module,exports){
+'use strict';
+
+const toCamelCase = (str, glue) =>
+	str.split(glue || '_')
+		.map((chunk, i) => (i === 0)
+			? chunk
+			: chunk.charAt(0).toUpperCase() + chunk.slice(1))
+		.join('');
+
+const fromCamelCase = (str, glue) =>
+	str.replace(/([A-Z])/g, ' $1')
+		.split(' ')
+		.map(chunk => chunk.toLowerCase())
+		.join(glue || '_');
+
+const singularToPlural = str =>
+	str.replace(/y$/, 'ie').concat('s');
+
+const pluralToSingular = str =>
+	str.replace(/ies$/, 'y').replace(/s$/, '');
+
+const toDocumentId = str => ':'.concat(pluralToSingular(toCamelCase(str, '-')), 'Id');
+
+module.exports = {
+	toCamelCase,
+	fromCamelCase,
+	singularToPlural,
+	pluralToSingular,
+	toDocumentId
+};
+
+},{}],7:[function(require,module,exports){
 'use strict';
 
 const snabbdom = require('snabbdom');
-const h = require('snabbdom/h');
-const obj = require('../common/obj');
+const h = require('snabbdom/h').default;
+const {obj} = require('iblokz-data');
+
+const supportedTags = [
+	'h1', 'h2', 'h3', 'h4', 'section', 'header', 'article',
+	'div', 'p', 'span', 'pre', 'code', 'a', 'dd', 'dt', 'hr', 'br', 'b', 'i',
+	'table', 'thead', 'tbody', 'th', 'tr', 'td', 'ul', 'ol', 'li',
+	// form related
+	'form', 'fieldset', 'legend', 'input', 'textarea', 'label', 'button', 'select', 'option',
+	'canvas', 'video', 'img'
+];
 
 const patch = snabbdom.init([ // Init patch function with choosen modules
-	require('snabbdom/modules/class'), // makes it easy to toggle classes
-	require('snabbdom/modules/props'), // for setting properties on DOM elements
-	require('snabbdom/modules/attributes'), // for setting properties on DOM elements
-	require('snabbdom/modules/style'), // handles styling on elements with support for animations
-	require('snabbdom/modules/eventlisteners') // attaches event listeners
+	require('snabbdom/modules/class').default, // makes it easy to toggle classes
+	require('snabbdom/modules/props').default, // for setting properties on DOM elements
+	require('snabbdom/modules/attributes').default, // for setting properties on DOM elements
+	require('snabbdom/modules/style').default, // handles styling on elements with support for animations
+	require('snabbdom/modules/eventlisteners').default // attaches event listeners
 ]);
 
 const patchStream = (stream, dom) => {
@@ -211,8 +336,8 @@ const processAttrs = args => {
 	selector = selector.replace(attrRegExp, '');
 
 	attrs = attrs && attrs.map && attrs
-			.map(c => c.replace(/[\[\]"]/g, '').split('='))
-			.reduce((o, attr) => obj.patch(o, attr[0], attr[1]), {}) || {};
+		.map(c => c.replace(/[[\]"]/g, '').split('='))
+		.reduce((o, attr) => obj.patch(o, attr[0], attr[1]), {}) || {};
 
 	if (attrs && Object.keys(attrs).length > 0) {
 		if (!newArgs[0] || newArgs[0]
@@ -220,34 +345,24 @@ const processAttrs = args => {
 			attrs = Object.assign({}, newArgs[0] && newArgs[0].attrs || {}, attrs);
 			newArgs[0] = Object.assign({}, newArgs[0] || {}, {attrs});
 		} else {
-			newArgs = [{attrs}].concat(
-				newArgs
-			);
+			newArgs = [{attrs}].concat(newArgs);
 		}
 	}
 
-	if (selector !== '')
-		newArgs = [selector].concat(newArgs);
+	if (selector !== '') newArgs = [selector].concat(newArgs);
 
 	// console.log(args, newArgs);
 	return newArgs;
 };
 
-const hyperHelpers = [
-	'h1', 'h2', 'h3', 'h4', 'section', 'header', 'article',
-	'div', 'p', 'span', 'pre', 'code', 'a', 'dd', 'dt', 'hr', 'br', 'b', 'i',
-	'table', 'thead', 'tbody', 'th', 'tr', 'td', 'ul', 'ol', 'li',
-	'form', 'fieldset', 'legend', 'input', 'textarea', 'label', 'button', 'select', 'option',
-	'canvas', 'video', 'img'
-].reduce(
+const hyperHelpers = supportedTags.reduce(
 	(o, tag) => {
 		o[tag] = function() {
-			return [Array.prototype.slice.call(arguments)]
+			return [Array.from(arguments)]
 				.map(processAttrs)
-				.map(
-					args => (
-						args[0] && typeof args[0] === 'string'
-						&& args[0].match(/^(\.|#)[a-zA-Z\-_0-9]+/ig))
+				.map(args => (
+					// is the first argument a selector
+					args[0] && typeof args[0] === 'string' && args[0].match(/^(\.|#)[a-zA-Z\-_0-9]+/ig))
 						? [].concat(tag + args[0], args.slice(1))
 						: [tag].concat(args))
 				.map(args => h.apply(this, args))
@@ -266,52 +381,803 @@ module.exports = Object.assign(
 	hyperHelpers
 );
 
-},{"../common/obj":4,"snabbdom":18,"snabbdom/h":10,"snabbdom/modules/attributes":13,"snabbdom/modules/class":14,"snabbdom/modules/eventlisteners":15,"snabbdom/modules/props":16,"snabbdom/modules/style":17}],4:[function(require,module,exports){
-'use strict';
+},{"iblokz-data":2,"snabbdom":16,"snabbdom/h":8,"snabbdom/modules/attributes":11,"snabbdom/modules/class":12,"snabbdom/modules/eventlisteners":13,"snabbdom/modules/props":14,"snabbdom/modules/style":15}],8:[function(require,module,exports){
+"use strict";
+var vnode_1 = require("./vnode");
+var is = require("./is");
+function addNS(data, children, sel) {
+    data.ns = 'http://www.w3.org/2000/svg';
+    if (sel !== 'foreignObject' && children !== undefined) {
+        for (var i = 0; i < children.length; ++i) {
+            var childData = children[i].data;
+            if (childData !== undefined) {
+                addNS(childData, children[i].children, children[i].sel);
+            }
+        }
+    }
+}
+function h(sel, b, c) {
+    var data = {}, children, text, i;
+    if (c !== undefined) {
+        data = b;
+        if (is.array(c)) {
+            children = c;
+        }
+        else if (is.primitive(c)) {
+            text = c;
+        }
+        else if (c && c.sel) {
+            children = [c];
+        }
+    }
+    else if (b !== undefined) {
+        if (is.array(b)) {
+            children = b;
+        }
+        else if (is.primitive(b)) {
+            text = b;
+        }
+        else if (b && b.sel) {
+            children = [b];
+        }
+        else {
+            data = b;
+        }
+    }
+    if (is.array(children)) {
+        for (i = 0; i < children.length; ++i) {
+            if (is.primitive(children[i]))
+                children[i] = vnode_1.vnode(undefined, undefined, undefined, children[i]);
+        }
+    }
+    if (sel[0] === 's' && sel[1] === 'v' && sel[2] === 'g' &&
+        (sel.length === 3 || sel[3] === '.' || sel[3] === '#')) {
+        addNS(data, children, sel);
+    }
+    return vnode_1.vnode(sel, data, children, text, undefined);
+}
+exports.h = h;
+;
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.default = h;
 
-const keyValue = (k, v) => {
-	let o = {};
-	o[k] = v;
-	return o;
+},{"./is":10,"./vnode":18}],9:[function(require,module,exports){
+"use strict";
+function createElement(tagName) {
+    return document.createElement(tagName);
+}
+function createElementNS(namespaceURI, qualifiedName) {
+    return document.createElementNS(namespaceURI, qualifiedName);
+}
+function createTextNode(text) {
+    return document.createTextNode(text);
+}
+function createComment(text) {
+    return document.createComment(text);
+}
+function insertBefore(parentNode, newNode, referenceNode) {
+    parentNode.insertBefore(newNode, referenceNode);
+}
+function removeChild(node, child) {
+    node.removeChild(child);
+}
+function appendChild(node, child) {
+    node.appendChild(child);
+}
+function parentNode(node) {
+    return node.parentNode;
+}
+function nextSibling(node) {
+    return node.nextSibling;
+}
+function tagName(elm) {
+    return elm.tagName;
+}
+function setTextContent(node, text) {
+    node.textContent = text;
+}
+function getTextContent(node) {
+    return node.textContent;
+}
+function isElement(node) {
+    return node.nodeType === 1;
+}
+function isText(node) {
+    return node.nodeType === 3;
+}
+function isComment(node) {
+    return node.nodeType === 8;
+}
+exports.htmlDomApi = {
+    createElement: createElement,
+    createElementNS: createElementNS,
+    createTextNode: createTextNode,
+    createComment: createComment,
+    insertBefore: insertBefore,
+    removeChild: removeChild,
+    appendChild: appendChild,
+    parentNode: parentNode,
+    nextSibling: nextSibling,
+    tagName: tagName,
+    setTextContent: setTextContent,
+    getTextContent: getTextContent,
+    isElement: isElement,
+    isText: isText,
+    isComment: isComment,
 };
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.default = exports.htmlDomApi;
 
-const clone = o => Object.assign(Object.create(Object.getPrototypeOf(o) || {}), o);
+},{}],10:[function(require,module,exports){
+"use strict";
+exports.array = Array.isArray;
+function primitive(s) {
+    return typeof s === 'string' || typeof s === 'number';
+}
+exports.primitive = primitive;
 
-const sub = (o, p) => (p instanceof Array)
-	&& o[p[0]] && sub(o[p[0]], p.slice(1))
-	|| o[p] || false;
-
-const patch = (o, k, v) => Object.assign(clone(o),
-	(k instanceof Array)
-		? keyValue(k[0], (k.length > 1)
-			? patch(o[k[0]] || {}, k.slice(1), v)
-			: typeof o[k[0]] === 'object' && Object.assign(clone(o[k[0]]), v) || v)
-		: keyValue(k, typeof o[k] === 'object' && Object.assign(clone(o[k]), v) || v)
-);
-
-const map = (o, cb) => Object.keys(o)
-	.reduce(
-		(o2, k, i) =>
-			((o2[k] = cb(o[k], k, i)), o2),
-		{});
-
-const chainCall = (o, chain) => chain.reduce(
-	(o, link) => (typeof link[1] === 'undefined')
-		? o[link[0]]()
-		: o[link[0]](link[1]),
-	o
-);
-
-module.exports = {
-	keyValue,
-	clone,
-	sub,
-	patch,
-	map,
-	chainCall
+},{}],11:[function(require,module,exports){
+"use strict";
+var NamespaceURIs = {
+    "xlink": "http://www.w3.org/1999/xlink"
 };
+var booleanAttrs = ["allowfullscreen", "async", "autofocus", "autoplay", "checked", "compact", "controls", "declare",
+    "default", "defaultchecked", "defaultmuted", "defaultselected", "defer", "disabled", "draggable",
+    "enabled", "formnovalidate", "hidden", "indeterminate", "inert", "ismap", "itemscope", "loop", "multiple",
+    "muted", "nohref", "noresize", "noshade", "novalidate", "nowrap", "open", "pauseonexit", "readonly",
+    "required", "reversed", "scoped", "seamless", "selected", "sortable", "spellcheck", "translate",
+    "truespeed", "typemustmatch", "visible"];
+var booleanAttrsDict = Object.create(null);
+for (var i = 0, len = booleanAttrs.length; i < len; i++) {
+    booleanAttrsDict[booleanAttrs[i]] = true;
+}
+function updateAttrs(oldVnode, vnode) {
+    var key, elm = vnode.elm, oldAttrs = oldVnode.data.attrs, attrs = vnode.data.attrs, namespaceSplit;
+    if (!oldAttrs && !attrs)
+        return;
+    if (oldAttrs === attrs)
+        return;
+    oldAttrs = oldAttrs || {};
+    attrs = attrs || {};
+    // update modified attributes, add new attributes
+    for (key in attrs) {
+        var cur = attrs[key];
+        var old = oldAttrs[key];
+        if (old !== cur) {
+            if (booleanAttrsDict[key]) {
+                if (cur) {
+                    elm.setAttribute(key, "");
+                }
+                else {
+                    elm.removeAttribute(key);
+                }
+            }
+            else {
+                namespaceSplit = key.split(":");
+                if (namespaceSplit.length > 1 && NamespaceURIs.hasOwnProperty(namespaceSplit[0])) {
+                    elm.setAttributeNS(NamespaceURIs[namespaceSplit[0]], key, cur);
+                }
+                else {
+                    elm.setAttribute(key, cur);
+                }
+            }
+        }
+    }
+    // remove removed attributes
+    // use `in` operator since the previous `for` iteration uses it (.i.e. add even attributes with undefined value)
+    // the other option is to remove all attributes with value == undefined
+    for (key in oldAttrs) {
+        if (!(key in attrs)) {
+            elm.removeAttribute(key);
+        }
+    }
+}
+exports.attributesModule = { create: updateAttrs, update: updateAttrs };
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.default = exports.attributesModule;
 
-},{}],5:[function(require,module,exports){
+},{}],12:[function(require,module,exports){
+"use strict";
+function updateClass(oldVnode, vnode) {
+    var cur, name, elm = vnode.elm, oldClass = oldVnode.data.class, klass = vnode.data.class;
+    if (!oldClass && !klass)
+        return;
+    if (oldClass === klass)
+        return;
+    oldClass = oldClass || {};
+    klass = klass || {};
+    for (name in oldClass) {
+        if (!klass[name]) {
+            elm.classList.remove(name);
+        }
+    }
+    for (name in klass) {
+        cur = klass[name];
+        if (cur !== oldClass[name]) {
+            elm.classList[cur ? 'add' : 'remove'](name);
+        }
+    }
+}
+exports.classModule = { create: updateClass, update: updateClass };
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.default = exports.classModule;
+
+},{}],13:[function(require,module,exports){
+"use strict";
+function invokeHandler(handler, vnode, event) {
+    if (typeof handler === "function") {
+        // call function handler
+        handler.call(vnode, event, vnode);
+    }
+    else if (typeof handler === "object") {
+        // call handler with arguments
+        if (typeof handler[0] === "function") {
+            // special case for single argument for performance
+            if (handler.length === 2) {
+                handler[0].call(vnode, handler[1], event, vnode);
+            }
+            else {
+                var args = handler.slice(1);
+                args.push(event);
+                args.push(vnode);
+                handler[0].apply(vnode, args);
+            }
+        }
+        else {
+            // call multiple handlers
+            for (var i = 0; i < handler.length; i++) {
+                invokeHandler(handler[i]);
+            }
+        }
+    }
+}
+function handleEvent(event, vnode) {
+    var name = event.type, on = vnode.data.on;
+    // call event handler(s) if exists
+    if (on && on[name]) {
+        invokeHandler(on[name], vnode, event);
+    }
+}
+function createListener() {
+    return function handler(event) {
+        handleEvent(event, handler.vnode);
+    };
+}
+function updateEventListeners(oldVnode, vnode) {
+    var oldOn = oldVnode.data.on, oldListener = oldVnode.listener, oldElm = oldVnode.elm, on = vnode && vnode.data.on, elm = (vnode && vnode.elm), name;
+    // optimization for reused immutable handlers
+    if (oldOn === on) {
+        return;
+    }
+    // remove existing listeners which no longer used
+    if (oldOn && oldListener) {
+        // if element changed or deleted we remove all existing listeners unconditionally
+        if (!on) {
+            for (name in oldOn) {
+                // remove listener if element was changed or existing listeners removed
+                oldElm.removeEventListener(name, oldListener, false);
+            }
+        }
+        else {
+            for (name in oldOn) {
+                // remove listener if existing listener removed
+                if (!on[name]) {
+                    oldElm.removeEventListener(name, oldListener, false);
+                }
+            }
+        }
+    }
+    // add new listeners which has not already attached
+    if (on) {
+        // reuse existing listener or create new
+        var listener = vnode.listener = oldVnode.listener || createListener();
+        // update vnode for listener
+        listener.vnode = vnode;
+        // if element changed or added we add all needed listeners unconditionally
+        if (!oldOn) {
+            for (name in on) {
+                // add listener if element was changed or new listeners added
+                elm.addEventListener(name, listener, false);
+            }
+        }
+        else {
+            for (name in on) {
+                // add listener if new listener added
+                if (!oldOn[name]) {
+                    elm.addEventListener(name, listener, false);
+                }
+            }
+        }
+    }
+}
+exports.eventListenersModule = {
+    create: updateEventListeners,
+    update: updateEventListeners,
+    destroy: updateEventListeners
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.default = exports.eventListenersModule;
+
+},{}],14:[function(require,module,exports){
+"use strict";
+function updateProps(oldVnode, vnode) {
+    var key, cur, old, elm = vnode.elm, oldProps = oldVnode.data.props, props = vnode.data.props;
+    if (!oldProps && !props)
+        return;
+    if (oldProps === props)
+        return;
+    oldProps = oldProps || {};
+    props = props || {};
+    for (key in oldProps) {
+        if (!props[key]) {
+            delete elm[key];
+        }
+    }
+    for (key in props) {
+        cur = props[key];
+        old = oldProps[key];
+        if (old !== cur && (key !== 'value' || elm[key] !== cur)) {
+            elm[key] = cur;
+        }
+    }
+}
+exports.propsModule = { create: updateProps, update: updateProps };
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.default = exports.propsModule;
+
+},{}],15:[function(require,module,exports){
+"use strict";
+var raf = (typeof window !== 'undefined' && window.requestAnimationFrame) || setTimeout;
+var nextFrame = function (fn) { raf(function () { raf(fn); }); };
+function setNextFrame(obj, prop, val) {
+    nextFrame(function () { obj[prop] = val; });
+}
+function updateStyle(oldVnode, vnode) {
+    var cur, name, elm = vnode.elm, oldStyle = oldVnode.data.style, style = vnode.data.style;
+    if (!oldStyle && !style)
+        return;
+    if (oldStyle === style)
+        return;
+    oldStyle = oldStyle || {};
+    style = style || {};
+    var oldHasDel = 'delayed' in oldStyle;
+    for (name in oldStyle) {
+        if (!style[name]) {
+            if (name[0] === '-' && name[1] === '-') {
+                elm.style.removeProperty(name);
+            }
+            else {
+                elm.style[name] = '';
+            }
+        }
+    }
+    for (name in style) {
+        cur = style[name];
+        if (name === 'delayed') {
+            for (name in style.delayed) {
+                cur = style.delayed[name];
+                if (!oldHasDel || cur !== oldStyle.delayed[name]) {
+                    setNextFrame(elm.style, name, cur);
+                }
+            }
+        }
+        else if (name !== 'remove' && cur !== oldStyle[name]) {
+            if (name[0] === '-' && name[1] === '-') {
+                elm.style.setProperty(name, cur);
+            }
+            else {
+                elm.style[name] = cur;
+            }
+        }
+    }
+}
+function applyDestroyStyle(vnode) {
+    var style, name, elm = vnode.elm, s = vnode.data.style;
+    if (!s || !(style = s.destroy))
+        return;
+    for (name in style) {
+        elm.style[name] = style[name];
+    }
+}
+function applyRemoveStyle(vnode, rm) {
+    var s = vnode.data.style;
+    if (!s || !s.remove) {
+        rm();
+        return;
+    }
+    var name, elm = vnode.elm, i = 0, compStyle, style = s.remove, amount = 0, applied = [];
+    for (name in style) {
+        applied.push(name);
+        elm.style[name] = style[name];
+    }
+    compStyle = getComputedStyle(elm);
+    var props = compStyle['transition-property'].split(', ');
+    for (; i < props.length; ++i) {
+        if (applied.indexOf(props[i]) !== -1)
+            amount++;
+    }
+    elm.addEventListener('transitionend', function (ev) {
+        if (ev.target === elm)
+            --amount;
+        if (amount === 0)
+            rm();
+    });
+}
+exports.styleModule = {
+    create: updateStyle,
+    update: updateStyle,
+    destroy: applyDestroyStyle,
+    remove: applyRemoveStyle
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.default = exports.styleModule;
+
+},{}],16:[function(require,module,exports){
+"use strict";
+var vnode_1 = require("./vnode");
+var is = require("./is");
+var htmldomapi_1 = require("./htmldomapi");
+function isUndef(s) { return s === undefined; }
+function isDef(s) { return s !== undefined; }
+var emptyNode = vnode_1.default('', {}, [], undefined, undefined);
+function sameVnode(vnode1, vnode2) {
+    return vnode1.key === vnode2.key && vnode1.sel === vnode2.sel;
+}
+function isVnode(vnode) {
+    return vnode.sel !== undefined;
+}
+function createKeyToOldIdx(children, beginIdx, endIdx) {
+    var i, map = {}, key, ch;
+    for (i = beginIdx; i <= endIdx; ++i) {
+        ch = children[i];
+        if (ch != null) {
+            key = ch.key;
+            if (key !== undefined)
+                map[key] = i;
+        }
+    }
+    return map;
+}
+var hooks = ['create', 'update', 'remove', 'destroy', 'pre', 'post'];
+var h_1 = require("./h");
+exports.h = h_1.h;
+var thunk_1 = require("./thunk");
+exports.thunk = thunk_1.thunk;
+function init(modules, domApi) {
+    var i, j, cbs = {};
+    var api = domApi !== undefined ? domApi : htmldomapi_1.default;
+    for (i = 0; i < hooks.length; ++i) {
+        cbs[hooks[i]] = [];
+        for (j = 0; j < modules.length; ++j) {
+            var hook = modules[j][hooks[i]];
+            if (hook !== undefined) {
+                cbs[hooks[i]].push(hook);
+            }
+        }
+    }
+    function emptyNodeAt(elm) {
+        var id = elm.id ? '#' + elm.id : '';
+        var c = elm.className ? '.' + elm.className.split(' ').join('.') : '';
+        return vnode_1.default(api.tagName(elm).toLowerCase() + id + c, {}, [], undefined, elm);
+    }
+    function createRmCb(childElm, listeners) {
+        return function rmCb() {
+            if (--listeners === 0) {
+                var parent_1 = api.parentNode(childElm);
+                api.removeChild(parent_1, childElm);
+            }
+        };
+    }
+    function createElm(vnode, insertedVnodeQueue) {
+        var i, data = vnode.data;
+        if (data !== undefined) {
+            if (isDef(i = data.hook) && isDef(i = i.init)) {
+                i(vnode);
+                data = vnode.data;
+            }
+        }
+        var children = vnode.children, sel = vnode.sel;
+        if (sel === '!') {
+            if (isUndef(vnode.text)) {
+                vnode.text = '';
+            }
+            vnode.elm = api.createComment(vnode.text);
+        }
+        else if (sel !== undefined) {
+            // Parse selector
+            var hashIdx = sel.indexOf('#');
+            var dotIdx = sel.indexOf('.', hashIdx);
+            var hash = hashIdx > 0 ? hashIdx : sel.length;
+            var dot = dotIdx > 0 ? dotIdx : sel.length;
+            var tag = hashIdx !== -1 || dotIdx !== -1 ? sel.slice(0, Math.min(hash, dot)) : sel;
+            var elm = vnode.elm = isDef(data) && isDef(i = data.ns) ? api.createElementNS(i, tag)
+                : api.createElement(tag);
+            if (hash < dot)
+                elm.id = sel.slice(hash + 1, dot);
+            if (dotIdx > 0)
+                elm.className = sel.slice(dot + 1).replace(/\./g, ' ');
+            for (i = 0; i < cbs.create.length; ++i)
+                cbs.create[i](emptyNode, vnode);
+            if (is.array(children)) {
+                for (i = 0; i < children.length; ++i) {
+                    var ch = children[i];
+                    if (ch != null) {
+                        api.appendChild(elm, createElm(ch, insertedVnodeQueue));
+                    }
+                }
+            }
+            else if (is.primitive(vnode.text)) {
+                api.appendChild(elm, api.createTextNode(vnode.text));
+            }
+            i = vnode.data.hook; // Reuse variable
+            if (isDef(i)) {
+                if (i.create)
+                    i.create(emptyNode, vnode);
+                if (i.insert)
+                    insertedVnodeQueue.push(vnode);
+            }
+        }
+        else {
+            vnode.elm = api.createTextNode(vnode.text);
+        }
+        return vnode.elm;
+    }
+    function addVnodes(parentElm, before, vnodes, startIdx, endIdx, insertedVnodeQueue) {
+        for (; startIdx <= endIdx; ++startIdx) {
+            var ch = vnodes[startIdx];
+            if (ch != null) {
+                api.insertBefore(parentElm, createElm(ch, insertedVnodeQueue), before);
+            }
+        }
+    }
+    function invokeDestroyHook(vnode) {
+        var i, j, data = vnode.data;
+        if (data !== undefined) {
+            if (isDef(i = data.hook) && isDef(i = i.destroy))
+                i(vnode);
+            for (i = 0; i < cbs.destroy.length; ++i)
+                cbs.destroy[i](vnode);
+            if (vnode.children !== undefined) {
+                for (j = 0; j < vnode.children.length; ++j) {
+                    i = vnode.children[j];
+                    if (i != null && typeof i !== "string") {
+                        invokeDestroyHook(i);
+                    }
+                }
+            }
+        }
+    }
+    function removeVnodes(parentElm, vnodes, startIdx, endIdx) {
+        for (; startIdx <= endIdx; ++startIdx) {
+            var i_1 = void 0, listeners = void 0, rm = void 0, ch = vnodes[startIdx];
+            if (ch != null) {
+                if (isDef(ch.sel)) {
+                    invokeDestroyHook(ch);
+                    listeners = cbs.remove.length + 1;
+                    rm = createRmCb(ch.elm, listeners);
+                    for (i_1 = 0; i_1 < cbs.remove.length; ++i_1)
+                        cbs.remove[i_1](ch, rm);
+                    if (isDef(i_1 = ch.data) && isDef(i_1 = i_1.hook) && isDef(i_1 = i_1.remove)) {
+                        i_1(ch, rm);
+                    }
+                    else {
+                        rm();
+                    }
+                }
+                else {
+                    api.removeChild(parentElm, ch.elm);
+                }
+            }
+        }
+    }
+    function updateChildren(parentElm, oldCh, newCh, insertedVnodeQueue) {
+        var oldStartIdx = 0, newStartIdx = 0;
+        var oldEndIdx = oldCh.length - 1;
+        var oldStartVnode = oldCh[0];
+        var oldEndVnode = oldCh[oldEndIdx];
+        var newEndIdx = newCh.length - 1;
+        var newStartVnode = newCh[0];
+        var newEndVnode = newCh[newEndIdx];
+        var oldKeyToIdx;
+        var idxInOld;
+        var elmToMove;
+        var before;
+        while (oldStartIdx <= oldEndIdx && newStartIdx <= newEndIdx) {
+            if (oldStartVnode == null) {
+                oldStartVnode = oldCh[++oldStartIdx]; // Vnode might have been moved left
+            }
+            else if (oldEndVnode == null) {
+                oldEndVnode = oldCh[--oldEndIdx];
+            }
+            else if (newStartVnode == null) {
+                newStartVnode = newCh[++newStartIdx];
+            }
+            else if (newEndVnode == null) {
+                newEndVnode = newCh[--newEndIdx];
+            }
+            else if (sameVnode(oldStartVnode, newStartVnode)) {
+                patchVnode(oldStartVnode, newStartVnode, insertedVnodeQueue);
+                oldStartVnode = oldCh[++oldStartIdx];
+                newStartVnode = newCh[++newStartIdx];
+            }
+            else if (sameVnode(oldEndVnode, newEndVnode)) {
+                patchVnode(oldEndVnode, newEndVnode, insertedVnodeQueue);
+                oldEndVnode = oldCh[--oldEndIdx];
+                newEndVnode = newCh[--newEndIdx];
+            }
+            else if (sameVnode(oldStartVnode, newEndVnode)) {
+                patchVnode(oldStartVnode, newEndVnode, insertedVnodeQueue);
+                api.insertBefore(parentElm, oldStartVnode.elm, api.nextSibling(oldEndVnode.elm));
+                oldStartVnode = oldCh[++oldStartIdx];
+                newEndVnode = newCh[--newEndIdx];
+            }
+            else if (sameVnode(oldEndVnode, newStartVnode)) {
+                patchVnode(oldEndVnode, newStartVnode, insertedVnodeQueue);
+                api.insertBefore(parentElm, oldEndVnode.elm, oldStartVnode.elm);
+                oldEndVnode = oldCh[--oldEndIdx];
+                newStartVnode = newCh[++newStartIdx];
+            }
+            else {
+                if (oldKeyToIdx === undefined) {
+                    oldKeyToIdx = createKeyToOldIdx(oldCh, oldStartIdx, oldEndIdx);
+                }
+                idxInOld = oldKeyToIdx[newStartVnode.key];
+                if (isUndef(idxInOld)) {
+                    api.insertBefore(parentElm, createElm(newStartVnode, insertedVnodeQueue), oldStartVnode.elm);
+                    newStartVnode = newCh[++newStartIdx];
+                }
+                else {
+                    elmToMove = oldCh[idxInOld];
+                    if (elmToMove.sel !== newStartVnode.sel) {
+                        api.insertBefore(parentElm, createElm(newStartVnode, insertedVnodeQueue), oldStartVnode.elm);
+                    }
+                    else {
+                        patchVnode(elmToMove, newStartVnode, insertedVnodeQueue);
+                        oldCh[idxInOld] = undefined;
+                        api.insertBefore(parentElm, elmToMove.elm, oldStartVnode.elm);
+                    }
+                    newStartVnode = newCh[++newStartIdx];
+                }
+            }
+        }
+        if (oldStartIdx > oldEndIdx) {
+            before = newCh[newEndIdx + 1] == null ? null : newCh[newEndIdx + 1].elm;
+            addVnodes(parentElm, before, newCh, newStartIdx, newEndIdx, insertedVnodeQueue);
+        }
+        else if (newStartIdx > newEndIdx) {
+            removeVnodes(parentElm, oldCh, oldStartIdx, oldEndIdx);
+        }
+    }
+    function patchVnode(oldVnode, vnode, insertedVnodeQueue) {
+        var i, hook;
+        if (isDef(i = vnode.data) && isDef(hook = i.hook) && isDef(i = hook.prepatch)) {
+            i(oldVnode, vnode);
+        }
+        var elm = vnode.elm = oldVnode.elm;
+        var oldCh = oldVnode.children;
+        var ch = vnode.children;
+        if (oldVnode === vnode)
+            return;
+        if (vnode.data !== undefined) {
+            for (i = 0; i < cbs.update.length; ++i)
+                cbs.update[i](oldVnode, vnode);
+            i = vnode.data.hook;
+            if (isDef(i) && isDef(i = i.update))
+                i(oldVnode, vnode);
+        }
+        if (isUndef(vnode.text)) {
+            if (isDef(oldCh) && isDef(ch)) {
+                if (oldCh !== ch)
+                    updateChildren(elm, oldCh, ch, insertedVnodeQueue);
+            }
+            else if (isDef(ch)) {
+                if (isDef(oldVnode.text))
+                    api.setTextContent(elm, '');
+                addVnodes(elm, null, ch, 0, ch.length - 1, insertedVnodeQueue);
+            }
+            else if (isDef(oldCh)) {
+                removeVnodes(elm, oldCh, 0, oldCh.length - 1);
+            }
+            else if (isDef(oldVnode.text)) {
+                api.setTextContent(elm, '');
+            }
+        }
+        else if (oldVnode.text !== vnode.text) {
+            api.setTextContent(elm, vnode.text);
+        }
+        if (isDef(hook) && isDef(i = hook.postpatch)) {
+            i(oldVnode, vnode);
+        }
+    }
+    return function patch(oldVnode, vnode) {
+        var i, elm, parent;
+        var insertedVnodeQueue = [];
+        for (i = 0; i < cbs.pre.length; ++i)
+            cbs.pre[i]();
+        if (!isVnode(oldVnode)) {
+            oldVnode = emptyNodeAt(oldVnode);
+        }
+        if (sameVnode(oldVnode, vnode)) {
+            patchVnode(oldVnode, vnode, insertedVnodeQueue);
+        }
+        else {
+            elm = oldVnode.elm;
+            parent = api.parentNode(elm);
+            createElm(vnode, insertedVnodeQueue);
+            if (parent !== null) {
+                api.insertBefore(parent, vnode.elm, api.nextSibling(elm));
+                removeVnodes(parent, [oldVnode], 0, 0);
+            }
+        }
+        for (i = 0; i < insertedVnodeQueue.length; ++i) {
+            insertedVnodeQueue[i].data.hook.insert(insertedVnodeQueue[i]);
+        }
+        for (i = 0; i < cbs.post.length; ++i)
+            cbs.post[i]();
+        return vnode;
+    };
+}
+exports.init = init;
+
+},{"./h":8,"./htmldomapi":9,"./is":10,"./thunk":17,"./vnode":18}],17:[function(require,module,exports){
+"use strict";
+var h_1 = require("./h");
+function copyToThunk(vnode, thunk) {
+    thunk.elm = vnode.elm;
+    vnode.data.fn = thunk.data.fn;
+    vnode.data.args = thunk.data.args;
+    thunk.data = vnode.data;
+    thunk.children = vnode.children;
+    thunk.text = vnode.text;
+    thunk.elm = vnode.elm;
+}
+function init(thunk) {
+    var cur = thunk.data;
+    var vnode = cur.fn.apply(undefined, cur.args);
+    copyToThunk(vnode, thunk);
+}
+function prepatch(oldVnode, thunk) {
+    var i, old = oldVnode.data, cur = thunk.data;
+    var oldArgs = old.args, args = cur.args;
+    if (old.fn !== cur.fn || oldArgs.length !== args.length) {
+        copyToThunk(cur.fn.apply(undefined, args), thunk);
+    }
+    for (i = 0; i < args.length; ++i) {
+        if (oldArgs[i] !== args[i]) {
+            copyToThunk(cur.fn.apply(undefined, args), thunk);
+            return;
+        }
+    }
+    copyToThunk(oldVnode, thunk);
+}
+exports.thunk = function thunk(sel, key, fn, args) {
+    if (args === undefined) {
+        args = fn;
+        fn = key;
+        key = undefined;
+    }
+    return h_1.h(sel, {
+        key: key,
+        hook: { init: init, prepatch: prepatch },
+        fn: fn,
+        args: args
+    });
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.default = exports.thunk;
+
+},{"./h":8}],18:[function(require,module,exports){
+"use strict";
+function vnode(sel, data, children, text, elm) {
+    var key = data === undefined ? undefined : data.key;
+    return { sel: sel, data: data, children: children,
+        text: text, elm: elm, key: key };
+}
+exports.vnode = vnode;
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.default = vnode;
+
+},{}],19:[function(require,module,exports){
 (function (global){
 /**
  * marked - a markdown parser
@@ -1601,7 +2467,7 @@ if (typeof module !== 'undefined' && typeof exports === 'object') {
 }());
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],6:[function(require,module,exports){
+},{}],20:[function(require,module,exports){
 //! moment.js locale configuration
 //! locale : Bulgarian [bg]
 //! author : Krasen Borisov : https://github.com/kraz
@@ -1692,7 +2558,7 @@ if (typeof module !== 'undefined' && typeof exports === 'object') {
     return bg;
 
 }));
-},{"../moment":7}],7:[function(require,module,exports){
+},{"../moment":21}],21:[function(require,module,exports){
 //! moment.js
 //! version : 2.15.1
 //! authors : Tim Wood, Iskren Chernev, Moment.js contributors
@@ -5927,7 +6793,7 @@ if (typeof module !== 'undefined' && typeof exports === 'object') {
     return _moment;
 
 }));
-},{}],8:[function(require,module,exports){
+},{}],22:[function(require,module,exports){
 // shim for using process in browser
 var process = module.exports = {};
 
@@ -6109,7 +6975,7 @@ process.chdir = function (dir) {
 };
 process.umask = function() { return 0; };
 
-},{}],9:[function(require,module,exports){
+},{}],23:[function(require,module,exports){
 (function (process,global){
 // Copyright (c) Microsoft, All rights reserved. See License.txt in the project root for license information.
 
@@ -18501,643 +19367,7 @@ var ReactiveTest = Rx.ReactiveTest = {
 }.call(this));
 
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"_process":8}],10:[function(require,module,exports){
-var VNode = require('./vnode');
-var is = require('./is');
-
-function addNS(data, children, sel) {
-  data.ns = 'http://www.w3.org/2000/svg';
-
-  if (sel !== 'foreignObject' && children !== undefined) {
-    for (var i = 0; i < children.length; ++i) {
-      addNS(children[i].data, children[i].children, children[i].sel);
-    }
-  }
-}
-
-module.exports = function h(sel, b, c) {
-  var data = {}, children, text, i;
-  if (c !== undefined) {
-    data = b;
-    if (is.array(c)) { children = c; }
-    else if (is.primitive(c)) { text = c; }
-  } else if (b !== undefined) {
-    if (is.array(b)) { children = b; }
-    else if (is.primitive(b)) { text = b; }
-    else { data = b; }
-  }
-  if (is.array(children)) {
-    for (i = 0; i < children.length; ++i) {
-      if (is.primitive(children[i])) children[i] = VNode(undefined, undefined, undefined, children[i]);
-    }
-  }
-  if (sel[0] === 's' && sel[1] === 'v' && sel[2] === 'g') {
-    addNS(data, children, sel);
-  }
-  return VNode(sel, data, children, text, undefined);
-};
-
-},{"./is":12,"./vnode":19}],11:[function(require,module,exports){
-function createElement(tagName){
-  return document.createElement(tagName);
-}
-
-function createElementNS(namespaceURI, qualifiedName){
-  return document.createElementNS(namespaceURI, qualifiedName);
-}
-
-function createTextNode(text){
-  return document.createTextNode(text);
-}
-
-
-function insertBefore(parentNode, newNode, referenceNode){
-  parentNode.insertBefore(newNode, referenceNode);
-}
-
-
-function removeChild(node, child){
-  node.removeChild(child);
-}
-
-function appendChild(node, child){
-  node.appendChild(child);
-}
-
-function parentNode(node){
-  return node.parentElement;
-}
-
-function nextSibling(node){
-  return node.nextSibling;
-}
-
-function tagName(node){
-  return node.tagName;
-}
-
-function setTextContent(node, text){
-  node.textContent = text;
-}
-
-module.exports = {
-  createElement: createElement,
-  createElementNS: createElementNS,
-  createTextNode: createTextNode,
-  appendChild: appendChild,
-  removeChild: removeChild,
-  insertBefore: insertBefore,
-  parentNode: parentNode,
-  nextSibling: nextSibling,
-  tagName: tagName,
-  setTextContent: setTextContent
-};
-
-},{}],12:[function(require,module,exports){
-module.exports = {
-  array: Array.isArray,
-  primitive: function(s) { return typeof s === 'string' || typeof s === 'number'; },
-};
-
-},{}],13:[function(require,module,exports){
-var booleanAttrs = ["allowfullscreen", "async", "autofocus", "autoplay", "checked", "compact", "controls", "declare",
-                "default", "defaultchecked", "defaultmuted", "defaultselected", "defer", "disabled", "draggable",
-                "enabled", "formnovalidate", "hidden", "indeterminate", "inert", "ismap", "itemscope", "loop", "multiple",
-                "muted", "nohref", "noresize", "noshade", "novalidate", "nowrap", "open", "pauseonexit", "readonly",
-                "required", "reversed", "scoped", "seamless", "selected", "sortable", "spellcheck", "translate",
-                "truespeed", "typemustmatch", "visible"];
-
-var booleanAttrsDict = {};
-for(var i=0, len = booleanAttrs.length; i < len; i++) {
-  booleanAttrsDict[booleanAttrs[i]] = true;
-}
-
-function updateAttrs(oldVnode, vnode) {
-  var key, cur, old, elm = vnode.elm,
-      oldAttrs = oldVnode.data.attrs, attrs = vnode.data.attrs;
-
-  if (!oldAttrs && !attrs) return;
-  oldAttrs = oldAttrs || {};
-  attrs = attrs || {};
-
-  // update modified attributes, add new attributes
-  for (key in attrs) {
-    cur = attrs[key];
-    old = oldAttrs[key];
-    if (old !== cur) {
-      // TODO: add support to namespaced attributes (setAttributeNS)
-      if(!cur && booleanAttrsDict[key])
-        elm.removeAttribute(key);
-      else
-        elm.setAttribute(key, cur);
-    }
-  }
-  //remove removed attributes
-  // use `in` operator since the previous `for` iteration uses it (.i.e. add even attributes with undefined value)
-  // the other option is to remove all attributes with value == undefined
-  for (key in oldAttrs) {
-    if (!(key in attrs)) {
-      elm.removeAttribute(key);
-    }
-  }
-}
-
-module.exports = {create: updateAttrs, update: updateAttrs};
-
-},{}],14:[function(require,module,exports){
-function updateClass(oldVnode, vnode) {
-  var cur, name, elm = vnode.elm,
-      oldClass = oldVnode.data.class,
-      klass = vnode.data.class;
-
-  if (!oldClass && !klass) return;
-  oldClass = oldClass || {};
-  klass = klass || {};
-
-  for (name in oldClass) {
-    if (!klass[name]) {
-      elm.classList.remove(name);
-    }
-  }
-  for (name in klass) {
-    cur = klass[name];
-    if (cur !== oldClass[name]) {
-      elm.classList[cur ? 'add' : 'remove'](name);
-    }
-  }
-}
-
-module.exports = {create: updateClass, update: updateClass};
-
-},{}],15:[function(require,module,exports){
-function invokeHandler(handler, vnode, event) {
-  if (typeof handler === "function") {
-    // call function handler
-    handler.call(vnode, event, vnode);
-  } else if (typeof handler === "object") {
-    // call handler with arguments
-    if (typeof handler[0] === "function") {
-      // special case for single argument for performance
-      if (handler.length === 2) {
-        handler[0].call(vnode, handler[1], event, vnode);
-      } else {
-        var args = handler.slice(1);
-        args.push(event);
-        args.push(vnode);
-        handler[0].apply(vnode, args);
-      }
-    } else {
-      // call multiple handlers
-      for (var i = 0; i < handler.length; i++) {
-        invokeHandler(handler[i]);
-      }
-    }
-  }
-}
-
-function handleEvent(event, vnode) {
-  var name = event.type,
-      on = vnode.data.on;
-
-  // call event handler(s) if exists
-  if (on && on[name]) {
-    invokeHandler(on[name], vnode, event);
-  }
-}
-
-function createListener() {
-  return function handler(event) {
-    handleEvent(event, handler.vnode);
-  }
-}
-
-function updateEventListeners(oldVnode, vnode) {
-  var oldOn = oldVnode.data.on,
-      oldListener = oldVnode.listener,
-      oldElm = oldVnode.elm,
-      on = vnode && vnode.data.on,
-      elm = vnode && vnode.elm,
-      name;
-
-  // optimization for reused immutable handlers
-  if (oldOn === on) {
-    return;
-  }
-
-  // remove existing listeners which no longer used
-  if (oldOn && oldListener) {
-    // if element changed or deleted we remove all existing listeners unconditionally
-    if (!on) {
-      for (name in oldOn) {
-        // remove listener if element was changed or existing listeners removed
-        oldElm.removeEventListener(name, oldListener, false);
-      }
-    } else {
-      for (name in oldOn) {
-        // remove listener if existing listener removed
-        if (!on[name]) {
-          oldElm.removeEventListener(name, oldListener, false);
-        }
-      }
-    }
-  }
-
-  // add new listeners which has not already attached
-  if (on) {
-    // reuse existing listener or create new
-    var listener = vnode.listener = oldVnode.listener || createListener();
-    // update vnode for listener
-    listener.vnode = vnode;
-
-    // if element changed or added we add all needed listeners unconditionally
-    if (!oldOn) {
-      for (name in on) {
-        // add listener if element was changed or new listeners added
-        elm.addEventListener(name, listener, false);
-      }
-    } else {
-      for (name in on) {
-        // add listener if new listener added
-        if (!oldOn[name]) {
-          elm.addEventListener(name, listener, false);
-        }
-      }
-    }
-  }
-}
-
-module.exports = {
-  create: updateEventListeners,
-  update: updateEventListeners,
-  destroy: updateEventListeners
-};
-
-},{}],16:[function(require,module,exports){
-function updateProps(oldVnode, vnode) {
-  var key, cur, old, elm = vnode.elm,
-      oldProps = oldVnode.data.props, props = vnode.data.props;
-
-  if (!oldProps && !props) return;
-  oldProps = oldProps || {};
-  props = props || {};
-
-  for (key in oldProps) {
-    if (!props[key]) {
-      delete elm[key];
-    }
-  }
-  for (key in props) {
-    cur = props[key];
-    old = oldProps[key];
-    if (old !== cur && (key !== 'value' || elm[key] !== cur)) {
-      elm[key] = cur;
-    }
-  }
-}
-
-module.exports = {create: updateProps, update: updateProps};
-
-},{}],17:[function(require,module,exports){
-var raf = (typeof window !== 'undefined' && window.requestAnimationFrame) || setTimeout;
-var nextFrame = function(fn) { raf(function() { raf(fn); }); };
-
-function setNextFrame(obj, prop, val) {
-  nextFrame(function() { obj[prop] = val; });
-}
-
-function updateStyle(oldVnode, vnode) {
-  var cur, name, elm = vnode.elm,
-      oldStyle = oldVnode.data.style,
-      style = vnode.data.style;
-
-  if (!oldStyle && !style) return;
-  oldStyle = oldStyle || {};
-  style = style || {};
-  var oldHasDel = 'delayed' in oldStyle;
-
-  for (name in oldStyle) {
-    if (!style[name]) {
-      elm.style[name] = '';
-    }
-  }
-  for (name in style) {
-    cur = style[name];
-    if (name === 'delayed') {
-      for (name in style.delayed) {
-        cur = style.delayed[name];
-        if (!oldHasDel || cur !== oldStyle.delayed[name]) {
-          setNextFrame(elm.style, name, cur);
-        }
-      }
-    } else if (name !== 'remove' && cur !== oldStyle[name]) {
-      elm.style[name] = cur;
-    }
-  }
-}
-
-function applyDestroyStyle(vnode) {
-  var style, name, elm = vnode.elm, s = vnode.data.style;
-  if (!s || !(style = s.destroy)) return;
-  for (name in style) {
-    elm.style[name] = style[name];
-  }
-}
-
-function applyRemoveStyle(vnode, rm) {
-  var s = vnode.data.style;
-  if (!s || !s.remove) {
-    rm();
-    return;
-  }
-  var name, elm = vnode.elm, idx, i = 0, maxDur = 0,
-      compStyle, style = s.remove, amount = 0, applied = [];
-  for (name in style) {
-    applied.push(name);
-    elm.style[name] = style[name];
-  }
-  compStyle = getComputedStyle(elm);
-  var props = compStyle['transition-property'].split(', ');
-  for (; i < props.length; ++i) {
-    if(applied.indexOf(props[i]) !== -1) amount++;
-  }
-  elm.addEventListener('transitionend', function(ev) {
-    if (ev.target === elm) --amount;
-    if (amount === 0) rm();
-  });
-}
-
-module.exports = {create: updateStyle, update: updateStyle, destroy: applyDestroyStyle, remove: applyRemoveStyle};
-
-},{}],18:[function(require,module,exports){
-// jshint newcap: false
-/* global require, module, document, Node */
-'use strict';
-
-var VNode = require('./vnode');
-var is = require('./is');
-var domApi = require('./htmldomapi');
-
-function isUndef(s) { return s === undefined; }
-function isDef(s) { return s !== undefined; }
-
-var emptyNode = VNode('', {}, [], undefined, undefined);
-
-function sameVnode(vnode1, vnode2) {
-  return vnode1.key === vnode2.key && vnode1.sel === vnode2.sel;
-}
-
-function createKeyToOldIdx(children, beginIdx, endIdx) {
-  var i, map = {}, key;
-  for (i = beginIdx; i <= endIdx; ++i) {
-    key = children[i].key;
-    if (isDef(key)) map[key] = i;
-  }
-  return map;
-}
-
-var hooks = ['create', 'update', 'remove', 'destroy', 'pre', 'post'];
-
-function init(modules, api) {
-  var i, j, cbs = {};
-
-  if (isUndef(api)) api = domApi;
-
-  for (i = 0; i < hooks.length; ++i) {
-    cbs[hooks[i]] = [];
-    for (j = 0; j < modules.length; ++j) {
-      if (modules[j][hooks[i]] !== undefined) cbs[hooks[i]].push(modules[j][hooks[i]]);
-    }
-  }
-
-  function emptyNodeAt(elm) {
-    var id = elm.id ? '#' + elm.id : '';
-    var c = elm.className ? '.' + elm.className.split(' ').join('.') : '';
-    return VNode(api.tagName(elm).toLowerCase() + id + c, {}, [], undefined, elm);
-  }
-
-  function createRmCb(childElm, listeners) {
-    return function() {
-      if (--listeners === 0) {
-        var parent = api.parentNode(childElm);
-        api.removeChild(parent, childElm);
-      }
-    };
-  }
-
-  function createElm(vnode, insertedVnodeQueue) {
-    var i, data = vnode.data;
-    if (isDef(data)) {
-      if (isDef(i = data.hook) && isDef(i = i.init)) {
-        i(vnode);
-        data = vnode.data;
-      }
-    }
-    var elm, children = vnode.children, sel = vnode.sel;
-    if (isDef(sel)) {
-      // Parse selector
-      var hashIdx = sel.indexOf('#');
-      var dotIdx = sel.indexOf('.', hashIdx);
-      var hash = hashIdx > 0 ? hashIdx : sel.length;
-      var dot = dotIdx > 0 ? dotIdx : sel.length;
-      var tag = hashIdx !== -1 || dotIdx !== -1 ? sel.slice(0, Math.min(hash, dot)) : sel;
-      elm = vnode.elm = isDef(data) && isDef(i = data.ns) ? api.createElementNS(i, tag)
-                                                          : api.createElement(tag);
-      if (hash < dot) elm.id = sel.slice(hash + 1, dot);
-      if (dotIdx > 0) elm.className = sel.slice(dot + 1).replace(/\./g, ' ');
-      if (is.array(children)) {
-        for (i = 0; i < children.length; ++i) {
-          api.appendChild(elm, createElm(children[i], insertedVnodeQueue));
-        }
-      } else if (is.primitive(vnode.text)) {
-        api.appendChild(elm, api.createTextNode(vnode.text));
-      }
-      for (i = 0; i < cbs.create.length; ++i) cbs.create[i](emptyNode, vnode);
-      i = vnode.data.hook; // Reuse variable
-      if (isDef(i)) {
-        if (i.create) i.create(emptyNode, vnode);
-        if (i.insert) insertedVnodeQueue.push(vnode);
-      }
-    } else {
-      elm = vnode.elm = api.createTextNode(vnode.text);
-    }
-    return vnode.elm;
-  }
-
-  function addVnodes(parentElm, before, vnodes, startIdx, endIdx, insertedVnodeQueue) {
-    for (; startIdx <= endIdx; ++startIdx) {
-      api.insertBefore(parentElm, createElm(vnodes[startIdx], insertedVnodeQueue), before);
-    }
-  }
-
-  function invokeDestroyHook(vnode) {
-    var i, j, data = vnode.data;
-    if (isDef(data)) {
-      if (isDef(i = data.hook) && isDef(i = i.destroy)) i(vnode);
-      for (i = 0; i < cbs.destroy.length; ++i) cbs.destroy[i](vnode);
-      if (isDef(i = vnode.children)) {
-        for (j = 0; j < vnode.children.length; ++j) {
-          invokeDestroyHook(vnode.children[j]);
-        }
-      }
-    }
-  }
-
-  function removeVnodes(parentElm, vnodes, startIdx, endIdx) {
-    for (; startIdx <= endIdx; ++startIdx) {
-      var i, listeners, rm, ch = vnodes[startIdx];
-      if (isDef(ch)) {
-        if (isDef(ch.sel)) {
-          invokeDestroyHook(ch);
-          listeners = cbs.remove.length + 1;
-          rm = createRmCb(ch.elm, listeners);
-          for (i = 0; i < cbs.remove.length; ++i) cbs.remove[i](ch, rm);
-          if (isDef(i = ch.data) && isDef(i = i.hook) && isDef(i = i.remove)) {
-            i(ch, rm);
-          } else {
-            rm();
-          }
-        } else { // Text node
-          api.removeChild(parentElm, ch.elm);
-        }
-      }
-    }
-  }
-
-  function updateChildren(parentElm, oldCh, newCh, insertedVnodeQueue) {
-    var oldStartIdx = 0, newStartIdx = 0;
-    var oldEndIdx = oldCh.length - 1;
-    var oldStartVnode = oldCh[0];
-    var oldEndVnode = oldCh[oldEndIdx];
-    var newEndIdx = newCh.length - 1;
-    var newStartVnode = newCh[0];
-    var newEndVnode = newCh[newEndIdx];
-    var oldKeyToIdx, idxInOld, elmToMove, before;
-
-    while (oldStartIdx <= oldEndIdx && newStartIdx <= newEndIdx) {
-      if (isUndef(oldStartVnode)) {
-        oldStartVnode = oldCh[++oldStartIdx]; // Vnode has been moved left
-      } else if (isUndef(oldEndVnode)) {
-        oldEndVnode = oldCh[--oldEndIdx];
-      } else if (sameVnode(oldStartVnode, newStartVnode)) {
-        patchVnode(oldStartVnode, newStartVnode, insertedVnodeQueue);
-        oldStartVnode = oldCh[++oldStartIdx];
-        newStartVnode = newCh[++newStartIdx];
-      } else if (sameVnode(oldEndVnode, newEndVnode)) {
-        patchVnode(oldEndVnode, newEndVnode, insertedVnodeQueue);
-        oldEndVnode = oldCh[--oldEndIdx];
-        newEndVnode = newCh[--newEndIdx];
-      } else if (sameVnode(oldStartVnode, newEndVnode)) { // Vnode moved right
-        patchVnode(oldStartVnode, newEndVnode, insertedVnodeQueue);
-        api.insertBefore(parentElm, oldStartVnode.elm, api.nextSibling(oldEndVnode.elm));
-        oldStartVnode = oldCh[++oldStartIdx];
-        newEndVnode = newCh[--newEndIdx];
-      } else if (sameVnode(oldEndVnode, newStartVnode)) { // Vnode moved left
-        patchVnode(oldEndVnode, newStartVnode, insertedVnodeQueue);
-        api.insertBefore(parentElm, oldEndVnode.elm, oldStartVnode.elm);
-        oldEndVnode = oldCh[--oldEndIdx];
-        newStartVnode = newCh[++newStartIdx];
-      } else {
-        if (isUndef(oldKeyToIdx)) oldKeyToIdx = createKeyToOldIdx(oldCh, oldStartIdx, oldEndIdx);
-        idxInOld = oldKeyToIdx[newStartVnode.key];
-        if (isUndef(idxInOld)) { // New element
-          api.insertBefore(parentElm, createElm(newStartVnode, insertedVnodeQueue), oldStartVnode.elm);
-          newStartVnode = newCh[++newStartIdx];
-        } else {
-          elmToMove = oldCh[idxInOld];
-          patchVnode(elmToMove, newStartVnode, insertedVnodeQueue);
-          oldCh[idxInOld] = undefined;
-          api.insertBefore(parentElm, elmToMove.elm, oldStartVnode.elm);
-          newStartVnode = newCh[++newStartIdx];
-        }
-      }
-    }
-    if (oldStartIdx > oldEndIdx) {
-      before = isUndef(newCh[newEndIdx+1]) ? null : newCh[newEndIdx+1].elm;
-      addVnodes(parentElm, before, newCh, newStartIdx, newEndIdx, insertedVnodeQueue);
-    } else if (newStartIdx > newEndIdx) {
-      removeVnodes(parentElm, oldCh, oldStartIdx, oldEndIdx);
-    }
-  }
-
-  function patchVnode(oldVnode, vnode, insertedVnodeQueue) {
-    var i, hook;
-    if (isDef(i = vnode.data) && isDef(hook = i.hook) && isDef(i = hook.prepatch)) {
-      i(oldVnode, vnode);
-    }
-    var elm = vnode.elm = oldVnode.elm, oldCh = oldVnode.children, ch = vnode.children;
-    if (oldVnode === vnode) return;
-    if (!sameVnode(oldVnode, vnode)) {
-      var parentElm = api.parentNode(oldVnode.elm);
-      elm = createElm(vnode, insertedVnodeQueue);
-      api.insertBefore(parentElm, elm, oldVnode.elm);
-      removeVnodes(parentElm, [oldVnode], 0, 0);
-      return;
-    }
-    if (isDef(vnode.data)) {
-      for (i = 0; i < cbs.update.length; ++i) cbs.update[i](oldVnode, vnode);
-      i = vnode.data.hook;
-      if (isDef(i) && isDef(i = i.update)) i(oldVnode, vnode);
-    }
-    if (isUndef(vnode.text)) {
-      if (isDef(oldCh) && isDef(ch)) {
-        if (oldCh !== ch) updateChildren(elm, oldCh, ch, insertedVnodeQueue);
-      } else if (isDef(ch)) {
-        if (isDef(oldVnode.text)) api.setTextContent(elm, '');
-        addVnodes(elm, null, ch, 0, ch.length - 1, insertedVnodeQueue);
-      } else if (isDef(oldCh)) {
-        removeVnodes(elm, oldCh, 0, oldCh.length - 1);
-      } else if (isDef(oldVnode.text)) {
-        api.setTextContent(elm, '');
-      }
-    } else if (oldVnode.text !== vnode.text) {
-      api.setTextContent(elm, vnode.text);
-    }
-    if (isDef(hook) && isDef(i = hook.postpatch)) {
-      i(oldVnode, vnode);
-    }
-  }
-
-  return function(oldVnode, vnode) {
-    var i, elm, parent;
-    var insertedVnodeQueue = [];
-    for (i = 0; i < cbs.pre.length; ++i) cbs.pre[i]();
-
-    if (isUndef(oldVnode.sel)) {
-      oldVnode = emptyNodeAt(oldVnode);
-    }
-
-    if (sameVnode(oldVnode, vnode)) {
-      patchVnode(oldVnode, vnode, insertedVnodeQueue);
-    } else {
-      elm = oldVnode.elm;
-      parent = api.parentNode(elm);
-
-      createElm(vnode, insertedVnodeQueue);
-
-      if (parent !== null) {
-        api.insertBefore(parent, vnode.elm, api.nextSibling(elm));
-        removeVnodes(parent, [oldVnode], 0, 0);
-      }
-    }
-
-    for (i = 0; i < insertedVnodeQueue.length; ++i) {
-      insertedVnodeQueue[i].data.hook.insert(insertedVnodeQueue[i]);
-    }
-    for (i = 0; i < cbs.post.length; ++i) cbs.post[i]();
-    return vnode;
-  };
-}
-
-module.exports = {init: init};
-
-},{"./htmldomapi":11,"./is":12,"./vnode":19}],19:[function(require,module,exports){
-module.exports = function(sel, data, children, text, elm) {
-  var key = data === undefined ? undefined : data.key;
-  return {sel: sel, data: data, children: children,
-          text: text, elm: elm, key: key};
-};
-
-},{}],20:[function(require,module,exports){
+},{"_process":22}],24:[function(require,module,exports){
 /**
  * Root reference for iframes.
  */
@@ -20115,7 +20345,7 @@ request.put = function(url, data, fn){
   return req;
 };
 
-},{"./is-object":21,"./request":23,"./request-base":22,"emitter":1}],21:[function(require,module,exports){
+},{"./is-object":25,"./request":27,"./request-base":26,"emitter":1}],25:[function(require,module,exports){
 /**
  * Check if `obj` is an object.
  *
@@ -20130,7 +20360,7 @@ function isObject(obj) {
 
 module.exports = isObject;
 
-},{}],22:[function(require,module,exports){
+},{}],26:[function(require,module,exports){
 /**
  * Module of mixed-in functions shared between node and client code
  */
@@ -20504,7 +20734,7 @@ exports.send = function(data){
   return this;
 };
 
-},{"./is-object":21}],23:[function(require,module,exports){
+},{"./is-object":25}],27:[function(require,module,exports){
 // The node and browser modules expose versions of this with the
 // appropriate constructor function bound as first argument
 /**
@@ -20538,66 +20768,34 @@ function request(RequestConstructor, method, url) {
 
 module.exports = request;
 
-},{}],24:[function(require,module,exports){
+},{}],28:[function(require,module,exports){
 'use strict';
 
 var Rx = require('rx');
 var $ = Rx.Observable;
-var Subject = Rx.Subject;
 
+var _require = require('iblokz-data');
 
-var marked = require('marked');
-var moment = require('moment');
-require('moment/locale/bg');
+var obj = _require.obj;
 
-var request = require('iblokz/adapters/request');
-
-var stream = new Subject();
-
-var init = function init() {
-	return request.get('/api/articles').observe().map(function (res) {
-		return res.body;
-	}).map(function (articles) {
-		return articles.list.map(function (article) {
-			return Object.assign({}, article, {
-				text: marked(article.text),
-				createdAt: article.createdAt && moment(article.createdAt).format('DD MMMM Y') || ""
-			});
-		});
-	}).subscribe(function (articles) {
-		return stream.onNext(function (state) {
-			return Object.assign({}, state, { articles: articles });
-		});
-	});
-};
-
-var signInToggle = function signInToggle() {
-	return stream.onNext(function (state) {
-		return Object.assign({}, state, { signInToggled: !state.signInToggled });
-	});
-};
-
-var selectCategory = function selectCategory(category) {
-	return stream.onNext(function (state) {
-		return Object.assign({}, state, { category: category });
-	});
-};
 
 var initial = {
-	articles: [],
-	signInToggled: false,
-	category: false
+	signIn: false,
+	wysiwyg: true
+};
+
+var toggle = function toggle(p) {
+	return function (state) {
+		return obj.patch(state, p, !obj.sub(state, p));
+	};
 };
 
 module.exports = {
-	stream: stream,
-	init: init,
-	signInToggle: signInToggle,
-	selectCategory: selectCategory,
+	toggle: toggle,
 	initial: initial
 };
 
-},{"iblokz/adapters/request":2,"marked":5,"moment":7,"moment/locale/bg":6,"rx":9}],25:[function(require,module,exports){
+},{"iblokz-data":2,"rx":23}],29:[function(require,module,exports){
 'use strict';
 
 // lib
@@ -20605,73 +20803,220 @@ module.exports = {
 var Rx = require('rx');
 var $ = Rx.Observable;
 
+require('moment/locale/bg');
+
 // util
-var vdom = require('iblokz/adapters/vdom');
+var vdom = require('iblokz-snabbdom-helpers');
+
+var _require = require('iblokz-data');
+
+var obj = _require.obj;
 
 // config
+
 var config = {
 	routes: ['admin/:page/:pageId', ':page/:pageId']
 };
-
 // app
+var app = require('./util/app');
 var actions = require('./actions');
 var ui = require('./ui');
 
 // services
+// router
 var router = require('./services/router');
-actions = router.attach(actions);
+actions.router = router.actions;
+// resources
+var resource = require('./services/resource');
+actions = resource.attach(actions, 'articles');
 
-console.log(actions);
+// prep actions
+var actions$ = void 0;
+actions = app.adapt(actions);
 
-// reduce actions to state
-var state$ = actions.stream
-// .map(change => (console.log('ch', change), change))
-.scan(function (state, reducer) {
-	return reducer(state);
-}, actions.initial).map(function (state) {
-	return console.log('sc', state), state;
+// hot reloading
+if (module.hot) {
+	// actions
+	actions$ = $.fromEventPattern(function (h) {
+		return module.hot.accept("./actions", h);
+	}).flatMap(function () {
+		actions = app.adapt(Object.assign({}, require('./actions'), { router: router.actions }, obj.keyValue('articles', resource.applyNs(resource.actions, 'articles'))));
+		return actions.stream.startWith(function (state) {
+			return state;
+		});
+	}).merge(actions.stream);
+	// ui
+	module.hot.accept("./ui", function () {
+		ui = require('./ui');
+		actions.stream.onNext(function (state) {
+			return state;
+		});
+	});
+} else {
+	actions$ = actions.stream;
+}
+
+// actions -> state
+var state$ = actions$.startWith(function () {
+	return actions.initial;
+}).scan(function (state, change) {
+	return change(state);
+}, {}).map(function (state) {
+	return console.log(state), state;
 }).share();
 
 // state change hooks
-state$.skip(2).filter(function (state) {
-	return state.route.page === 'articles';
-}).distinctUntilChanged(function (state) {
-	return state.category;
+router.hook({ state$: state$, actions: actions });
+resource.hook('articles')({ state$: state$, actions: actions });
+
+// trigger read action on pageId param
+state$.distinctUntilChanged(function (state) {
+	return state.router.pageId;
 }).filter(function (state) {
-	return state.category !== null;
+	return state.router.pageId !== null && state.router.page.match(/articles/ig);
 }).subscribe(function (state) {
-	return actions.router.go('articles');
+	return actions.articles.read(state.router.pageId);
 });
 
-state$.skip(2).filter(function (state) {
-	return state.route.page === 'articles';
-}).distinctUntilChanged(function (state) {
-	return state.route.pageId;
-}).filter(function (state) {
-	return state.route.pageId !== null;
-}).subscribe(function (state) {
-	return actions.selectCategory(null);
-});
+/*
+state$
+	.skip(2)
+	.filter(state => state.router.page === 'articles')
+	.distinctUntilChanged(state => state.category)
+	.filter(state => state.category !== null)
+	.subscribe(state => actions.router.go('articles'));
+
+state$
+	.skip(2)
+	.filter(state => state.router.page === 'articles')
+	.distinctUntilChanged(state => state.router.pageId)
+	.filter(state => state.router.pageId !== null)
+	.subscribe(state => actions.selectCategory(null));
+*/
 
 // map state to ui
 var ui$ = state$.map(function (state) {
 	return ui({ state: state, actions: actions });
 });
-router.hook(state$);
 
 // patch stream to dom
 vdom.patchStream(ui$, '#ui');
 
 window.actions = actions;
 
-},{"./actions":24,"./services/router":26,"./ui":28,"iblokz/adapters/vdom":3,"rx":9}],26:[function(require,module,exports){
+},{"./actions":28,"./services/resource":30,"./services/router":31,"./ui":33,"./util/app":46,"iblokz-data":2,"iblokz-snabbdom-helpers":7,"moment/locale/bg":20,"rx":23}],30:[function(require,module,exports){
 'use strict';
 
 var Rx = require('rx');
 var $ = Rx.Observable;
 var Subject = Rx.Subject;
 
-var stream = new Subject();
+var _require = require('iblokz-data');
+
+var obj = _require.obj;
+
+
+var request = require('../util/request');
+
+var initial = {
+	query: {},
+	list: [],
+	doc: {},
+	dirty: true
+};
+
+// ns - namespace
+var list = function list(ns) {
+	return function () {
+		var query = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+		return request.get('/api/' + ns).query(query).observe().map(function (res) {
+			return res.body;
+		}).map(function (data) {
+			return function (state) {
+				return obj.patch(state, ns, Object.assign({}, data, { dirty: false }));
+			};
+		});
+	};
+};
+
+var query = function query(ns) {
+	return function (keyValuePair) {
+		return function (state) {
+			return obj.patch(state, ns, {
+				query: Object.assign({}, obj.sub(state, [].concat(ns, 'query')), keyValuePair),
+				dirty: true
+			});
+		};
+	};
+};
+
+var create = function create(ns) {
+	return function (doc) {
+		return request.post('/api/' + ns).send(doc).observe().map(function () {
+			return function (state) {
+				return obj.patch(state, ns, { dirty: true, doc: {} });
+			};
+		});
+	};
+};
+
+var read = function read(ns) {
+	return function (id) {
+		return request.get('/api/' + ns + '/' + id).observe().map(function (res) {
+			return res.body;
+		}).map(function (doc) {
+			return function (state) {
+				return obj.patch(state, ns, { doc: doc });
+			};
+		});
+	};
+};
+
+var actions = {
+	initial: initial,
+	list: list,
+	query: query,
+	create: create,
+	read: read
+};
+
+var applyNs = function applyNs(o, ns) {
+	return obj.map(o, function (v, k) {
+		return v instanceof Function ? v(ns) : v;
+	});
+};
+
+var attach = function attach(o, ns) {
+	return obj.patch(o, ns, applyNs(actions, ns));
+};
+
+var hook = function hook(ns) {
+	return function (_ref) {
+		var state$ = _ref.state$;
+		var actions = _ref.actions;
+
+		state$.distinctUntilChanged(function (state) {
+			return state[ns].dirty;
+		}).filter(function (state) {
+			return state[ns].dirty;
+		}).subscribe(function (state) {
+			return actions[ns].list(state[ns].query);
+		});
+	};
+};
+
+module.exports = {
+	actions: actions,
+	applyNs: applyNs,
+	attach: attach,
+	hook: hook
+};
+
+},{"../util/request":47,"iblokz-data":2,"rx":23}],31:[function(require,module,exports){
+'use strict';
+
+var Rx = require('rx');
+var $ = Rx.Observable;
 
 var parsePageParams = function parsePageParams(str) {
 	var path = str.split('/');
@@ -20687,52 +21032,45 @@ var parsePageParams = function parsePageParams(str) {
 };
 
 var change = function change(page) {
-	stream.onNext(function (state) {
-		return Object.assign({}, state, { route: parsePageParams(page) });
-	});
+	return function (state) {
+		return Object.assign({}, state, { router: parsePageParams(page) });
+	};
 };
 
 var go = function go(page) {
-	window.location.hash = '/' + (page !== 'home' ? page : '');
-	change(page);
+	window.location.hash = '/' + (page !== 'home' ? page.split('.').join('/') : '');
+	return change(page);
 };
 
-var router = {
-	stream: stream,
-	initial: { route: { page: 'home', path: ['home'], admin: false } },
-	parsePageParams: parsePageParams,
+var actions = {
+	initial: { page: 'home', path: ['home'], admin: false, pageId: null },
 	change: change,
 	go: go
 };
 
-var attach = function attach(actions) {
-	return Object.assign({}, actions, {
-		router: router,
-		stream: $.merge(actions.stream, router.stream),
-		initial: Object.assign({}, actions.initial, router.initial)
-	});
-};
+var hook = function hook(_ref) {
+	var state$ = _ref.state$;
+	var actions = _ref.actions;
 
-var hook = function hook(state$) {
 	state$.take(1).subscribe(function () {
 		window.setTimeout(function () {
-			return change(location.hash.replace('#/', '') || 'home');
+			return actions.router.change(location.hash.replace('#/', '') || 'home');
 		});
 		window.addEventListener('hashchange', function () {
-			return change(location.hash.replace('#/', '') || 'home');
+			return actions.router.change(location.hash.replace('#/', '') || 'home');
 		});
 	});
 };
 
 module.exports = {
-	attach: attach,
+	actions: actions,
 	hook: hook
 };
 
-},{"rx":9}],27:[function(require,module,exports){
+},{"rx":23}],32:[function(require,module,exports){
 'use strict';
 
-var _require = require('iblokz/adapters/vdom');
+var _require = require('iblokz-snabbdom-helpers');
 
 var section = _require.section;
 var h1 = _require.h1;
@@ -20764,27 +21102,30 @@ var links = {
 module.exports = function (_ref) {
 	var state = _ref.state;
 	var actions = _ref.actions;
-	return header([!state.route.admin ? section('.title', [h1('Дружество Родолюбец'), h3('Културно-просветно дружество за връзки с бесарабските и таврийските българи')]) : '', ul('#menu', links[state.route.admin ? 'admin' : 'front'].map(function (link) {
-		return li([a('[href="' + link.href + '"]', { class: { active: link.page === state.route.page } }, link.title)]);
-	}).concat([li('.right', [state.signInToggled ?
+	return header([!state.router.admin ? section('.title', [h1('Дружество Родолюбец'), h3('Културно-просветно дружество за връзки с бесарабските и таврийските българи')]) : '', ul('#menu', links[state.router.admin ? 'admin' : 'front'].map(function (link) {
+		return li([a('[href="' + link.href + '"]', { class: { active: link.page === state.router.page } }, link.title)]);
+	}).concat([li('.right', [state.signIn ?
 	// login form
 	form([label('[for="login-user"]', [i('.fa.fa-user')]), input('#login-user[name="user"][placeholder="Потребителско име"]'), label('[for="login-pass"]', [i('.fa.fa-key')]), input('#login-pass[name="pass"][type="password"][placeholder="Парола"]'), button([i('.fa.fa-sign-in')]), a({ on: { click: function click() {
-				return actions.signInToggle();
+				return actions.toggle('signIn');
 			} } }, [i('.fa.fa-close')])])
 	// toggle button
 	: a({ on: { click: function click() {
-				return actions.signInToggle();
+				return actions.toggle('signIn');
 			} } }, [i('.fa.fa-pencil-square-o')])])]))]);
 };
 
-},{"iblokz/adapters/vdom":3}],28:[function(require,module,exports){
+},{"iblokz-snabbdom-helpers":7}],33:[function(require,module,exports){
 'use strict';
 
-var _require = require('iblokz/adapters/vdom');
+var _require = require('iblokz-snabbdom-helpers');
 
 var section = _require.section;
 
-var obj = require('iblokz/common/obj');
+var _require2 = require('iblokz-data');
+
+var obj = _require2.obj;
+
 
 var _switch = function _switch(value, cases) {
 	return obj.sub(cases, value) && obj.sub(cases, value)['default'] || obj.sub(cases, value) || value instanceof Array && value.length > 1 && _switch(value.slice(0, value.length - 1), cases) || cases['default'];
@@ -20807,13 +21148,13 @@ var pages = {
 module.exports = function (_ref) {
 	var state = _ref.state;
 	var actions = _ref.actions;
-	return section('#ui', [section(state.route.admin ? '#admin' : '#front', [].concat([header({ state: state, actions: actions })], _switch(state.route.path, pages)({ state: state, actions: actions })))]);
+	return section('#ui', [section(state.router.admin ? '#admin' : '#front', [].concat([header({ state: state, actions: actions })], _switch(state.router.path, pages)({ state: state, actions: actions })))]);
 };
 
-},{"./header":27,"./pages/about":29,"./pages/admin":31,"./pages/admin/articles":30,"./pages/admin/pages":32,"./pages/almanac":33,"./pages/articles":34,"./pages/home":35,"./pages/links":36,"iblokz/adapters/vdom":3,"iblokz/common/obj":4}],29:[function(require,module,exports){
+},{"./header":32,"./pages/about":34,"./pages/admin":38,"./pages/admin/articles":36,"./pages/admin/pages":39,"./pages/almanac":40,"./pages/articles":41,"./pages/home":42,"./pages/links":43,"iblokz-data":2,"iblokz-snabbdom-helpers":7}],34:[function(require,module,exports){
 'use strict';
 
-var _require = require('iblokz/adapters/vdom');
+var _require = require('iblokz-snabbdom-helpers');
 
 var section = _require.section;
 var h1 = _require.h1;
@@ -20846,10 +21187,10 @@ module.exports = function (_ref) {
 	return [section('.content', [section('.post', [h1('За Дружеството')]), section('.post', [p({ props: { innerHTML: marked('\n\u0414\u0440\u0443\u0436\u0435\u0441\u0442\u0432\u043E\u0442\u043E \u0437\u0430 \u043F\u0440\u0438\u044F\u0442\u0435\u043B\u0441\u0442\u0432\u043E \u0438 \u043A\u0443\u043B\u0442\u0443\u0440\u043D\u0438 \u0432\u0440\u044A\u0437\u043A\u0438 \u0441 \u0431\u0435\u0441\u0430\u0440\u0430\u0431\u0441\u043A\u0438\u0442\u0435 \u0438 \u0442\u0430\u0432\u0440\u0438\u0439\u0441\u043A\u0438\u0442\u0435 \u0431\u044A\u043B\u0433\u0430\u0440\u0438 \u201E\u0420\u043E\u0434\u043E\u043B\u044E\u0431\u0435\u0446\u201D \u0435 \u043E\u0441\u043D\u043E\u0432\u0430\u043D\u043E \u0432 \u043D\u0430\u0447\u0430\u043B\u043E\u0442\u043E \u043D\u0430 1990 \u0433.\n\n\u041D\u0430 15 \u044F\u043D\u0443\u0430\u0440\u0438 \u0432 \u0421\u043E\u0444\u0438\u044F \u0443\u0447\u0440\u0435\u0434\u0438\u0442\u0435\u043B\u043D\u043E\u0442\u043E \u0441\u044A\u0431\u0440\u0430\u043D\u0438\u0435 \u043F\u0440\u0438\u0435\u043C\u0430 \u0423\u0441\u0442\u0430\u0432\u0430 \u043D\u0430 \u0434\u0440\u0443\u0436\u0435\u0441\u0442\u0432\u043E\u0442\u043E, \u0430 \u0440\u0435\u0448\u0435\u043D\u0438\u0435\u0442\u043E \u0437\u0430 \u0440\u0435\u0433\u0438\u0441\u0442\u0440\u0430\u0446\u0438\u044F \u043D\u0430 \u0421\u043E\u0444\u0438\u0439\u0441\u043A\u0438\u044F \u0433\u0440\u0430\u0434\u0441\u043A\u0438 \u0441\u044A\u0434 \u0435 \u043E\u0442 28.06.1990 \u0433.\n\n\u041F\u0440\u0435\u0437 \u0442\u0435\u0437\u0438 \u043F\u043E\u0432\u0435\u0447\u0435 \u043E\u0442 25 \u0433\u043E\u0434\u0438\u043D\u0438 \u0434\u0440\u0443\u0436\u0435\u0441\u0442\u0432\u043E \u201E\u0420\u043E\u0434\u043E\u043B\u044E\u0431\u0435\u0446\u201D \u043F\u043E\u0435 \u043E\u0442\u0433\u0432\u043E\u0440\u043D\u043E\u0441\u0442\u0430 \u0438 \u043E\u0433\u0440\u043E\u043C\u043D\u0430\u0442\u0430 \u0437\u0430\u0434\u0430\u0447\u0430 \u0434\u0430 \u0437\u0430\u043F\u043E\u0437\u043D\u0430\u0435 \u0431\u044A\u043B\u0433\u0430\u0440\u0438\u0442\u0435 \u0432 \u0411\u044A\u043B\u0433\u0430\u0440\u0438\u044F \u0441\u044A\u0441 \u0441\u044A\u0449\u0435\u0441\u0442\u0432\u0443\u0432\u0430\u043D\u0435\u0442\u043E \u043D\u0430 \u043D\u0430\u0448\u0438 \u0441\u044A\u043D\u0430\u0440\u043E\u0434\u043D\u0438\u0446\u0438 \u0432 \u041C\u043E\u043B\u0434\u043E\u0432\u0430, \u0423\u043A\u0440\u0430\u0439\u043D\u0430, \u041A\u0430\u0437\u0430\u0445\u0441\u0442\u0430\u043D, \u0421\u0438\u0431\u0438\u0440... \u0414\u0440\u0443\u0436\u0435\u0441\u0442\u0432\u043E\u0442\u043E \u0438\u043C\u0430 \u0437\u0430\u0441\u043B\u0443\u0433\u0430 \u0438 \u0437\u0430 \u043F\u043E\u044F\u0432\u0430\u0442\u0430 \u043D\u0430 103 \u043F\u043E\u0441\u0442\u0430\u043D\u043E\u0432\u043B\u0435\u043D\u0438\u0435 \u043D\u0430 \u041C\u0438\u043D\u0438\u0441\u0442\u0435\u0440\u0441\u043A\u0438\u044F \u0441\u044A\u0432\u0435\u0442 \u043D\u0430 \u0420\u0435\u043F\u0443\u0431\u043B\u0438\u043A\u0430 \u0411\u044A\u043B\u0433\u0430\u0440\u0438\u044F \u0437\u0430 \u043F\u0440\u0438\u0435\u043C\u0430\u043D\u0435 \u043D\u0430 \u043D\u0430\u0448\u0438 \u0441\u044A\u043D\u0430\u0440\u043E\u0434\u043D\u0438\u0446\u0438 \u043E\u0442 \u0431\u0438\u0432\u0448\u0438\u0442\u0435 \u0441\u044A\u0432\u0435\u0442\u0441\u043A\u0438 \u0440\u0435\u043F\u0443\u0431\u043B\u0438\u043A\u0438 \u0437\u0430 \u0441\u0442\u0443\u0434\u0435\u043D\u0442\u0438 \u0443 \u043D\u0430\u0441.\n\n\u0418\u0437\u0434\u0430\u0432\u0430\u043D\u0435\u0442\u043E \u043D\u0430 \u0430\u043B\u043C\u0430\u043D\u0430\u0445\u0430 \u201E\u0420\u043E\u0434\u043E\u043B\u044E\u0431\u0435\u0446\u201D \u0441\u0442\u0430\u043D\u0430 \u043D\u0435\u043E\u0431\u0445\u043E\u0434\u0438\u043C\u043E \u043F\u043E\u043C\u0430\u0433\u0430\u043B\u043E \u043D\u0430 \u0443\u0447\u0438\u0442\u0435\u043B\u0438\u0442\u0435, \u043A\u043E\u0438\u0442\u043E \u0442\u0440\u044A\u0433\u0432\u0430\u0442 \u043A\u044A\u043C \u043D\u0430\u0448\u0438\u0442\u0435 \u0437\u0430\u0431\u0440\u0430\u0432\u0435\u043D\u0438 \u0441\u044A\u043D\u0430\u0440\u043E\u0434\u043D\u0438\u0446\u0438. \u0412 1998 \u0433. \u0434\u0440\u0443\u0436\u0435\u0441\u0442\u0432\u043E\u0442\u043E \u0432\u044A\u0437\u0441\u0442\u0430\u043D\u043E\u0432\u0438 \u043E\u0442\u0431\u0435\u043B\u044F\u0437\u0432\u0430\u043D\u0435\u0442\u043E \u0414\u0435\u043D\u044F \u043D\u0430 \u0431\u0435\u0441\u0430\u0440\u0430\u0431\u0441\u043A\u0438\u0442\u0435 \u0431\u044A\u043B\u0433\u0430\u0440\u0438. \u0420\u0430\u0434\u043E\u0441\u0442\u043D\u043E \u0435, \u0447\u0435 \u0438 \u0432 \u0441\u0435\u043B\u0438\u0449\u0430\u0442\u0430 \u043D\u0430 \u043D\u0430\u0448\u0438\u0442\u0435 \u0441\u044A\u043D\u0430\u0440\u043E\u0434\u043D\u0438\u0446\u0438 \u0432 \u043D\u044F\u043A\u043E\u0433\u0430\u0448\u043D\u0438\u0442\u0435 \u0411\u0435\u0441\u0430\u0440\u0430\u0431\u0438\u044F \u0438 \u0422\u0430\u0432\u0440\u0438\u044F \u0442\u043E\u0437\u0438 \u0414\u0435\u043D \u0432\u0435\u0447\u0435 \u043D\u0430\u043C\u0438\u0440\u0430 \u043C\u044F\u0441\u0442\u043E \u0432 \u043F\u0440\u0430\u0437\u043D\u0438\u0447\u043D\u0438\u044F \u0438\u043C \u043A\u0430\u043B\u0435\u043D\u0434\u0430\u0440.\n\n\u0427\u043B\u0435\u043D\u043E\u0432\u0435 \u043D\u0430 \u043D\u0430\u0448\u0435\u0442\u043E \u0434\u0440\u0443\u0436\u0435\u0441\u0442\u0432\u043E \u0438\u0437\u043D\u0430\u0441\u044F\u0442 \u0432 \u0441\u0435\u043B\u0438\u0449\u0430 \u0441 \u043A\u043E\u043C\u043F\u0430\u043A\u0442\u043D\u043E \u0431\u044A\u043B\u0433\u0430\u0440\u0441\u043A\u043E \u043D\u0430\u0441\u0435\u043B\u0435\u043D\u0438\u0435 \u043A\u043E\u043D\u0446\u0435\u0440\u0442\u0438 \u2013 \u0442\u043E\u043F\u043B\u0430 \u0438 \u0441\u044A\u0440\u0434\u0435\u0447\u043D\u0430 \u0432\u0440\u044A\u0437\u043A\u0430 \u0441\u044A\u0441 \u0441\u0442\u0430\u0440\u0430\u0442\u0430 \u0440\u043E\u0434\u0438\u043D\u0430. \u0421\u0442\u0443\u0434\u0435\u043D\u0442\u0438\u0442\u0435 \u0438 \u0437\u0430\u0432\u0440\u044A\u0449\u0430\u0449\u0438\u0442\u0435 \u0441\u0435 \u0437\u0430\u0432\u0438\u043D\u0430\u0433\u0438 \u0432 \u0411\u044A\u043B\u0433\u0430\u0440\u0438\u044F \u0431\u0435\u0441\u0430\u0440\u0430\u0431\u0441\u043A\u0438 \u0438 \u0442\u0430\u0432\u0440\u0438\u0439\u0441\u043A\u0438 \u0431\u044A\u043B\u0433\u0430\u0440\u0438 \u043C\u043E\u0433\u0430\u0442 \u0434\u0430 \u0440\u0430\u0437\u0447\u0438\u0442\u0430\u0442 \u043D\u0430 \u043F\u0440\u0438\u044F\u0442\u0435\u043B\u0441\u043A\u0430 \u043F\u043E\u0434\u043A\u0440\u0435\u043F\u0430 \u043E\u0442 \u0434\u0440\u0443\u0436\u0435\u0441\u0442\u0432\u043E \u201E\u0420\u043E\u0434\u043E\u043B\u044E\u0431\u0435\u0446\u201D.\n\n') } })]), section('.post', [p({ props: { innerHTML: marked('\n[\u0410\u0440\u0445\u0438\u0432\u043D\u0438 \u043C\u0430\u0442\u0435\u0440\u0438\u0430\u043B\u0438 \u0437\u0430 \u0420\u043E\u0434\u043E\u043B\u044E\u0431\u0435\u0446 (omda.bg)](http://prehod.omda.bg/page.php?IDMenu=642&IDLang=1)\n') } })])]), rightColumn({ state: state, actions: actions })];
 };
 
-},{"../right-column":38,"iblokz/adapters/vdom":3,"marked":5}],30:[function(require,module,exports){
+},{"../right-column":45,"iblokz-snabbdom-helpers":7,"marked":19}],35:[function(require,module,exports){
 'use strict';
 
-var _require = require('iblokz/adapters/vdom');
+var _require = require('iblokz-snabbdom-helpers');
 
 var section = _require.section;
 var h1 = _require.h1;
@@ -20862,6 +21203,8 @@ var ul = _require.ul;
 var li = _require.li;
 var p = _require.p;
 var button = _require.button;
+var div = _require.div;
+var span = _require.span;
 var table = _require.table;
 var thead = _require.thead;
 var tbody = _require.tbody;
@@ -20876,17 +21219,163 @@ var textarea = _require.textarea;
 
 
 var marked = require('marked');
+var moment = require('moment');
+
+var find = function find(q) {
+	var el = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : document;
+	return Array.from(el.querySelectorAll(q));
+};
+
+var getParent = function getParent(el, tagName) {
+	return [].concat(tagName).indexOf(el.tagName) > -1 ? el : getParent(el.parentNode, tagName);
+};
+
+var getRangePoint = function getRangePoint(el, offset) {
+	return el.nodeType === 3 || el.childNodes.length === 0 ? { el: el, offset: el.textContent.length < offset ? el.textContent.length : offset } : Array.from(el.childNodes).reduce(function (rp, child) {
+		return rp.el !== el ? rp : child.textContent.length >= rp.offset ? getRangePoint(child, rp.offset) : { el: el, offset: rp.offset - child.textContent.length };
+	}, { el: el, offset: offset });
+};
+
+var caret = {
+	get: function get(el) {
+		var rows = find('p, li', el);
+		console.log(rows);
+		var range = window.getSelection().getRangeAt(0);
+		var parentRow = getParent(range.startContainer, ['LI', 'P']);
+		var colRange = document.createRange();
+		colRange.setStart(parentRow, 0);
+		colRange.setEnd(range.startContainer, range.startOffset);
+		var row = rows.indexOf(parentRow);
+		var col = colRange.toString().length;
+		return {
+			row: row,
+			col: col
+		};
+	},
+	set: function set(el, pos) {
+		var parentRow = find('p, li', el)[pos.row];
+		var rp = getRangePoint(parentRow, pos.col);
+		console.log(rp);
+		var range = document.createRange();
+		range.setStart(rp.el, rp.offset);
+		range.setEnd(rp.el, rp.offset);
+		var sel = window.getSelection();
+		sel.removeAllRanges();
+		sel.addRange(range);
+	}
+};
 
 module.exports = function (_ref) {
 	var state = _ref.state;
 	var actions = _ref.actions;
-	return [section('.content', [ul('.breadcrumb', ['Администрация', 'Публикации'].concat(state.route.pageId ? state.route.pageId === 'new' && ['Нова Публикация'] || ['\u0420\u0435\u0434\u0430\u043A\u0442\u0438\u0440\u0430\u0439 \u041F\u0443\u0431\u043B\u0438\u043A\u0430\u0446\u0438\u044F'] : []).map(function (item) {
+	return state.articles.doc._id === state.router.pageId ? div('.edit', [form([div([label('Заглавие'), input('[type="text"][name="title"]', { props: { value: state.articles.doc.title || '' } })]), div([label('Автор'), input('[type="text"][name="author"]', { props: { value: state.articles.doc.author || '' } })]), div([label(['Текст', span('.right', [button('[type="button"]', {
+		class: { on: state.wysiwyg },
+		on: { click: function click() {
+				return actions.toggle('wysiwyg');
+			} }
+	}, 'Wysiwyg'), button('[type="button"]', {
+		class: { on: !state.wysiwyg },
+		on: { click: function click() {
+				return actions.toggle('wysiwyg');
+			} }
+	}, 'Markdown')])]), state.wysiwyg ? div('.wysiwyg[contenteditable="true"]', {
+		props: { innerHTML: marked(state.articles.doc.text) },
+		on: {
+			keydown: function keydown(ev) {
+				return console.log(caret.get(ev.target));
+			}
+		}
+	}) : textarea('[name="text"]', state.articles.doc.text || '')])])]) : '';
+};
+
+},{"iblokz-snabbdom-helpers":7,"marked":19,"moment":21}],36:[function(require,module,exports){
+'use strict';
+
+var _require = require('iblokz-snabbdom-helpers');
+
+var section = _require.section;
+var h1 = _require.h1;
+var h2 = _require.h2;
+var h3 = _require.h3;
+var hr = _require.hr;
+var header = _require.header;
+var i = _require.i;
+var ul = _require.ul;
+var li = _require.li;
+var p = _require.p;
+var button = _require.button;
+var div = _require.div;
+var span = _require.span;
+var table = _require.table;
+var thead = _require.thead;
+var tbody = _require.tbody;
+var tr = _require.tr;
+var td = _require.td;
+var th = _require.th;
+var a = _require.a;
+var form = _require.form;
+var label = _require.label;
+var input = _require.input;
+var textarea = _require.textarea;
+
+
+var marked = require('marked');
+var moment = require('moment');
+
+// crud
+var list = require('./list');
+var edit = require('./edit');
+
+module.exports = function (_ref) {
+	var state = _ref.state;
+	var actions = _ref.actions;
+	return [section('.content', [ul('.breadcrumb', ['Администрация', 'Публикации'].concat(state.router.pageId ? state.router.pageId === 'new' && ['Нова Публикация'] || ['\u0420\u0435\u0434\u0430\u043A\u0442\u0438\u0440\u0430\u0439 \u041F\u0443\u0431\u043B\u0438\u043A\u0430\u0446\u0438\u044F'] : []).map(function (item) {
 		return li(item);
-	})), !state.route.pageId ? section('.post', [button({
+	})), !state.router.pageId ? list({ state: state, actions: actions }) : edit({ state: state, actions: actions })])];
+};
+
+},{"./edit":35,"./list":37,"iblokz-snabbdom-helpers":7,"marked":19,"moment":21}],37:[function(require,module,exports){
+'use strict';
+
+var _require = require('iblokz-snabbdom-helpers');
+
+var section = _require.section;
+var h1 = _require.h1;
+var h2 = _require.h2;
+var h3 = _require.h3;
+var hr = _require.hr;
+var header = _require.header;
+var i = _require.i;
+var ul = _require.ul;
+var li = _require.li;
+var p = _require.p;
+var button = _require.button;
+var div = _require.div;
+var span = _require.span;
+var table = _require.table;
+var thead = _require.thead;
+var tbody = _require.tbody;
+var tr = _require.tr;
+var td = _require.td;
+var th = _require.th;
+var a = _require.a;
+var form = _require.form;
+var label = _require.label;
+var input = _require.input;
+var textarea = _require.textarea;
+
+
+var marked = require('marked');
+var moment = require('moment');
+
+module.exports = function (_ref) {
+	var state = _ref.state;
+	var actions = _ref.actions;
+	return div([section('.post', [button({
 		on: { click: function click() {
 				return actions.router.go('admin/articles/new');
 			} }
-	}, [i('.fa.fa-plus'), 'Добави публикация'])]) : '', !state.route.pageId ? table('.crud', [thead([tr([th('[width="600"]', 'Заглавие'), th('Автор'), th('Категории'), th('Дата'), th('Издание'), th('[width="120"]', 'Действия')])]), tbody(state.articles.map(function (article) {
+	}, [i('.fa.fa-plus'), 'Добави публикация'])]), table('.crud', [thead([tr([th('[width="600"]', 'Заглавие'), th('Автор'), th('Категории'), th('Дата'), th('Издание'), th('[width="120"]', 'Действия')])]), tbody(state.articles.list.map(function (article) {
 		return tr([td(article.title), td(article.author), td(article.categories), td(article.createdAt), td(article.publishedIn), td([button('.fa.fa-external-link', {
 			on: { click: function click() {
 					return actions.router.go('articles/' + article._id);
@@ -20896,17 +21385,13 @@ module.exports = function (_ref) {
 					return actions.router.go('admin/articles/' + article._id);
 				} }
 		}), button('.fa.fa-trash')])]);
-	}))]) : '', state.route.pageId ? state.articles.filter(function (a) {
-		return a._id === state.route.pageId;
-	}).map(function (article) {
-		return form([label('Заглавие'), input('[type="text"][name="title"]', { props: { value: article.title || '' } }), label('Автор'), input('[type="text"][name="author"]', { props: { value: article.author || '' } }), label('Текст'), textarea('[name="text"]', article.text || '')]);
-	}).pop() : ''])];
+	}))])]);
 };
 
-},{"iblokz/adapters/vdom":3,"marked":5}],31:[function(require,module,exports){
+},{"iblokz-snabbdom-helpers":7,"marked":19,"moment":21}],38:[function(require,module,exports){
 'use strict';
 
-var _require = require('iblokz/adapters/vdom');
+var _require = require('iblokz-snabbdom-helpers');
 
 var section = _require.section;
 var h1 = _require.h1;
@@ -20937,10 +21422,10 @@ module.exports = function (_ref) {
 	})), section('.post', [p({ props: { innerHTML: marked('\n\t\t\t\t\u0414\u043E\u0431\u0440\u0435 \u0414\u043E\u0448\u043B\u0438!\n\t\t\t') } })])])];
 };
 
-},{"iblokz/adapters/vdom":3,"marked":5}],32:[function(require,module,exports){
+},{"iblokz-snabbdom-helpers":7,"marked":19}],39:[function(require,module,exports){
 'use strict';
 
-var _require = require('iblokz/adapters/vdom');
+var _require = require('iblokz-snabbdom-helpers');
 
 var section = _require.section;
 var h1 = _require.h1;
@@ -20971,10 +21456,10 @@ module.exports = function (_ref) {
 	})), section('.post', [p({ props: { innerHTML: marked('\n\t\t\t\t\u0414\u043E\u0431\u0440\u0435 \u0414\u043E\u0448\u043B\u0438!\n\t\t\t') } })])])];
 };
 
-},{"iblokz/adapters/vdom":3,"marked":5}],33:[function(require,module,exports){
+},{"iblokz-snabbdom-helpers":7,"marked":19}],40:[function(require,module,exports){
 'use strict';
 
-var _require = require('iblokz/adapters/vdom');
+var _require = require('iblokz-snabbdom-helpers');
 
 var section = _require.section;
 var h1 = _require.h1;
@@ -21004,10 +21489,10 @@ module.exports = function (_ref) {
 	return [section('.content', [section('.post', [h1('Алманах “Родолюбец“')]), section('.post', [p({ props: { innerHTML: marked('\n\u041A\u0430\u0442\u043E \u043F\u0435\u0447\u0430\u0442\u043D\u043E \u0438\u0437\u0434\u0430\u043D\u0438\u0435 \u043D\u0430 \u0434\u0440\u0443\u0436\u0435\u0441\u0442\u0432\u043E \u201C\u0420\u043E\u0434\u043E\u043B\u044E\u0431\u0435\u0446\u201D \u0432\u0441\u044F\u043A\u0430 \u0447\u0435\u0442\u043D\u0430 \u0433\u043E\u0434\u0438\u043D\u0430 \u0438\u0437\u043B\u0438\u0437\u0430 \u0430\u043B\u043C\u0430\u043D\u0430\u0445\u044A\u0442 \u201C\u0420\u043E\u0434\u043E\u043B\u044E\u0431\u0435\u0446\u201D, \u0435\u0434\u043D\u0430 \u0438\u0441\u0442\u0438\u043D\u0441\u043A\u0430 \u201C\u0445\u0440\u0438\u0441\u0442\u043E\u043C\u0430\u0442\u0438\u044F \u043F\u043E \u0440\u043E\u0434\u043E\u043B\u044E\u0431\u0438\u0435\u201D.\n\n\u041A\u0430\u0442\u043E \u0441\u0431\u043E\u0440\u043D\u0438\u043A \u043E\u0442 \u043F\u043E\u043B\u0435\u0437\u043D\u0438, \u0442\u0435\u043C\u0430\u0442\u0438\u0447\u043D\u0438 \u0447\u0435\u0442\u0438\u0432\u0430, \u0410\u043B\u043C\u0430\u043D\u0430\u0445\u044A\u0442 \u0438\u043C\u0430 \u0443\u0442\u0432\u044A\u0440\u0434\u0435\u043D\u0438 8 \u0434\u044F\u043B\u0430, \u043A\u043E\u0438\u0442\u043E \u0441\u0435 \u043F\u043E\u0434\u0434\u044A\u0440\u0436\u0430\u0442 \u0432\u044A\u0432 \u0432\u0441\u0435\u043A\u0438 \u0431\u0440\u043E\u0439, \u043A\u0430\u043A\u0442\u043E \u0441\u043B\u0435\u0434\u0432\u0430:\n- **\u0414\u044F\u043B I. \u0414\u0415 \u0415 \u0411\u042A\u041B\u0413\u0410\u0420\u0418\u042F?** - \u0433\u0435\u043E\u0433\u0440\u0430\u0444\u0441\u043A\u0438 \u043E\u0447\u0435\u0440\u0446\u0438 \u0437\u0430 \u0411\u044A\u043B\u0433\u0430\u0440\u0438\u044F \u0438\u043B\u0438 \u0437\u0430 \u043D\u0435\u0439\u043D\u0438 \u043E\u0431\u043B\u0430\u0441\u0442\u0438 \u0438 \u043E\u0447\u0435\u0440\u0446\u0438 \u0437\u0430 \u043E\u0431\u0435\u043A\u0442\u0438 \u0432 \u0442\u044F\u0445.\n- **\u0414\u044F\u043B II. \u0411\u042A\u041B\u0413\u0410\u0420\u0418\u042F \u041F\u0420\u0415\u0417 \u0412\u0415\u041A\u041E\u0412\u0415\u0422\u0415** - \u0418\u0441\u0442\u043E\u0440\u0438\u0447\u0435\u0441\u043A\u0438 \u043E\u0447\u0435\u0440\u0446\u0438 \u0437\u0430 \u0411\u044A\u043B\u0433\u0430\u0440\u0438\u044F.\n- **\u0414\u044F\u043B III. \u042E\u0411\u0418\u041B\u0415\u0419\u041D\u0418 \u0413\u041E\u0414\u0418\u0428\u041D\u0418\u041D\u0418** - \u041E\u0442\u0440\u0430\u0437\u044F\u0432\u0430\u0442 \u0441\u0435 \u0437\u043D\u0430\u0447\u0438\u0442\u0435\u043B\u043D\u0438 \u0441\u044A\u0431\u0438\u0442\u0438\u044F \u043E\u0442 \u0431\u044A\u043B\u0433\u0430\u0440\u0441\u043A\u0430\u0442\u0430 \u0438\u0441\u0442\u043E\u0440\u0438\u044F, \u044F\u0432\u044F\u0432\u0430\u0449\u0438 \u0441\u0435 \u044E\u0431\u0438\u043B\u0435\u0439\u043D\u0438 \u043A\u044A\u043C \u0433\u043E\u0434\u0438\u043D\u0430\u0442\u0430 \u043D\u0430 \u0438\u0437\u0434\u0430\u0432\u0430\u043D\u0435\u0442\u043E \u043D\u0430 \u0410\u043B\u043C\u0430\u043D\u0430\u0445\u0430.\n- **\u0414\u044F\u043B IV. \u0411\u042A\u041B\u0413\u0410\u0420\u0421\u041A\u0418 \u041F\u0410\u041D\u0422\u0415\u041E\u041D** - \u0420\u0430\u0437\u0434\u0435\u043B, \u0432 \u043A\u043E\u0439\u0442\u043E \u0441\u0430 \u043E\u0442\u0431\u0435\u043B\u044F\u0437\u0430\u043D\u0438 \u0437\u043D\u0430\u0447\u0438\u043C\u0438 \u043B\u0438\u0447\u043D\u043E\u0441\u0442\u0438 \u043E\u0442 \u0431\u044A\u043B\u0433\u0430\u0440\u0441\u043A\u0430\u0442\u0430 \u043F\u043E\u043B\u0438\u0442\u0438\u0447\u0435\u0441\u043A\u0430 \u0438 \u043A\u0443\u043B\u0442\u0443\u0440\u043D\u0430 \u0438\u0441\u0442\u043E\u0440\u0438\u044F.\n- **\u0414\u044F\u043B V. \u0421\u042A\u041A\u0420\u041E\u0412\u0418\u0429\u041D\u0418\u0426\u0410 \u041D\u0410 \u041D\u0410\u0420\u041E\u0414\u041D\u0418\u042F \u0414\u0423\u0425** - \u0421\u0442\u0430\u0442\u0438\u0438 \u0438 \u043E\u0447\u0435\u0440\u0446\u0438 \u0432\u044A\u0440\u0445\u0443 \u0431\u044A\u043B\u0433\u0430\u0440\u0441\u043A\u0438\u044F \u0444\u043E\u043B\u043A\u043B\u043E\u0440 \u0438 \u043E\u0431\u0440\u0430\u0437\u0446\u0438 \u043E\u0442 \u043D\u0430\u0440\u043E\u0434\u043D\u0438 \u043F\u0435\u0441\u043D\u0438 \u0438 \u043F\u0440\u0438\u043A\u0430\u0437\u043A\u0438.\n- **\u0414\u044F\u043B VI. \u0421 \u0411\u042A\u041B\u0413\u0410\u0420\u0418\u042F \u0412 \u0421\u042A\u0420\u0426\u0415\u0422\u041E** - \u041D\u0430\u0439-\u0432\u0430\u0436\u043D\u0438\u044F\u0442 \u0438 \u043D\u0430\u0439-\u043E\u0431\u0435\u043C\u0438\u0441\u0442 \u0434\u044F\u043B \u043E\u0442 \u0441\u0431\u043E\u0440\u043D\u0438\u043A\u0430, \u0438\u0437\u043F\u044A\u043B\u043D\u0435\u043D \u0441 \u0438\u0437\u043F\u043E\u0432\u0435\u0434\u0438, \u0441\u043F\u043E\u043C\u0435\u043D\u0438, \u0441\u0442\u0430\u0442\u0438\u0438 \u0438 \u043E\u0447\u0435\u0440\u0446\u0438 \u043D\u0430 \u0431\u0435\u0441\u0430\u0440\u0430\u0431\u0441\u043A\u0438 \u0438 \u0437\u0430 \u0431\u0435\u0441\u0430\u0440\u0430\u0431\u0441\u043A\u0438 \u0431\u044A\u043B\u0433\u0430\u0440\u0438, \u043E\u0447\u0435\u0440\u0446\u0438 \u0437\u0430 \u0431\u044A\u043B\u0433\u0430\u0440\u0438\u0442\u0435-\u0433\u0430\u0433\u0430\u0443\u0437\u0438 \u0432 \u0411\u0435\u0441\u0430\u0440\u0430\u0431\u0438\u044F \u0438 \u0432 \u0411\u044A\u043B\u0433\u0430\u0440\u0438\u044F \u0438 \u0437\u0430 \u0431\u044A\u043B\u0433\u0430\u0440\u0438\u0442\u0435 \u0436\u0438\u0432\u0435\u0435\u0449\u0438 \u0432\u044A\u043D \u043E\u0442 \u0433\u0440\u0430\u043D\u0438\u0446\u0438\u0442\u0435 \u043D\u0430 \u0411\u044A\u043B\u0433\u0430\u0440\u0438\u044F.\n- **\u0414\u044F\u043B VII. \u0422\u0412\u041E\u0420\u0426\u0418 \u041E\u0422 \u0411\u0415\u0421\u0410\u0420\u0410\u0411\u0418\u042F** - \u043A\u0440\u0430\u0442\u043A\u0438 \u0431\u0438\u043E\u0433\u0440\u0430\u0444\u0438\u0447\u043D\u0438 \u0431\u0435\u043B\u0435\u0436\u043A\u0438 \u0438 \u0442\u0432\u043E\u0440\u0431\u0438 \u043D\u0430 \u0431\u0435\u0441\u0430\u0440\u0430\u0431\u0441\u043A\u0438 \u043F\u043E\u0435\u0442\u0438 \u0438 \u0442\u0432\u043E\u0440\u0446\u0438\n- **\u0414\u044F\u043B VIII. \u0420\u041E\u0414\u041E\u041B\u042E\u0411\u0415\u0426 \u0417\u0410 \u0421\u0415\u0411\u0415 \u0421\u0418** - \u0440\u0430\u0437\u0434\u0435\u043B, \u0432 \u043A\u043E\u0439\u0442\u043E \u0434\u0440\u0443\u0436\u0435\u0441\u0442\u0432\u043E\u0442\u043E \u043E\u0442\u0440\u0430\u0437\u044F\u0432\u0430 \u043D\u044F\u043A\u043E\u0438 \u043E\u0442 \u0441\u0432\u043E\u0438\u0442\u0435 \u0434\u0435\u0439\u043D\u043E\u0441\u0442\u0438, \u043F\u0443\u0431\u043B\u0438\u043A\u0443\u0432\u0430 \u043D\u043E\u0440\u043C\u0430\u0442\u0438\u0432\u043D\u0438 \u0434\u043E\u043A\u0443\u043C\u0435\u043D\u0442\u0438, \u0441\u0432\u044A\u0440\u0437\u0430\u043D\u0438 \u0441 \u043E\u0431\u0443\u0447\u0435\u043D\u0438\u0435\u0442\u043E \u043D\u0430 \u0441\u0442\u0443\u0434\u0435\u043D\u0442\u0438\u0442\u0435 \u043E\u0442 \u0431\u044A\u043B\u0433\u0430\u0440\u0441\u043A\u0430\u0442\u0430 \u0434\u0438\u0430\u0441\u043F\u043E\u0440\u0430 \u0438\u0437\u0432\u044A\u043D \u0433\u0440\u0430\u043D\u0438\u0446\u0438\u0442\u0435 \u043D\u0430 \u0434\u043D\u0435\u0448\u043D\u0430 \u0411\u044A\u043B\u0433\u0430\u0440\u0438\u044F, \u0441\u043F\u0435\u0446\u0438\u0430\u043B\u0438\u0441\u0442\u0438 \u0438 \u043E\u0431\u043D\u0430\u0440\u043E\u0434\u0432\u0430 \u0441\u043F\u0438\u0441\u044A\u0446\u0438 \u043D\u0430 \u043F\u0440\u0438\u0435\u0442\u0438 \u0443 \u043D\u0430\u0441 \u0441\u0442\u0443\u0434\u0435\u043D\u0442\u0438, \u043D\u0430 \u0437\u0430\u0432\u044A\u0440\u0448\u0438\u043B\u0438\u0442\u0435 \u0432 \u0411\u044A\u043B\u0433\u0430\u0440\u0438\u044F \u0441\u043F\u0435\u0446\u0438\u0430\u043B\u0438\u0441\u0442\u0438 \u0438 \u043D\u0430 \u0438\u0437\u043F\u0440\u0430\u0442\u0435\u043D\u0438\u0442\u0435 \u0432 \u0411\u0435\u0441\u0430\u0440\u0430\u0431\u0438\u044F \u0443\u0447\u0438\u0442\u0435\u043B\u0438.\n\t\t\t') } })])]), rightColumn({ state: state, actions: actions })];
 };
 
-},{"../right-column":38,"iblokz/adapters/vdom":3,"marked":5}],34:[function(require,module,exports){
+},{"../right-column":45,"iblokz-snabbdom-helpers":7,"marked":19}],41:[function(require,module,exports){
 'use strict';
 
-var _require = require('iblokz/adapters/vdom');
+var _require = require('iblokz-snabbdom-helpers');
 
 var section = _require.section;
 var h1 = _require.h1;
@@ -21032,40 +21517,46 @@ var a = _require.a;
 
 var rightColumn = require('../right-column');
 
+var marked = require('marked');
+var moment = require('moment');
+
 module.exports = function (_ref) {
 	var state = _ref.state;
 	var actions = _ref.actions;
 	return [section('.content', [section('.post', [h1('Публикации'), div('.menu', [ul([li([a({
-		class: { active: state.category === false },
+		class: { active: state.articles.query.categories !== undefined && state.articles.query.categories === false
+		},
 		on: { click: function click(el) {
-				return actions.selectCategory(false);
+				actions.articles.query({ categories: false });
+				if (state.router.pageId !== null) actions.router.go('articles');
 			} }
-	}, 'Всички')])].concat(state.articles.reduce(function (cats, a) {
+	}, 'Без')]), li([a({
+		class: { active: state.articles.query.categories === undefined || state.articles.query.categories === '' },
+		on: { click: function click(el) {
+				actions.articles.query({ categories: '' });
+				if (state.router.pageId !== null) actions.router.go('articles');
+			} }
+	}, 'Всички')])].concat(state.articles.list.reduce(function (cats, a) {
 		return cats.concat(a.categories.filter(function (c) {
 			return cats.indexOf(c) === -1;
 		}) || []);
 	}, []).map(function (category) {
 		return li([a({
-			class: { active: category === state.category },
+			class: { active: state.articles.query.categories && category === state.articles.query.categories },
 			on: { click: function click(el) {
-					return actions.selectCategory(category);
+					actions.articles.query({ categories: category });
+					if (state.router.pageId !== null) actions.router.go('articles');
 				} }
 		}, category)]);
-	})))])]), state.route.pageId ? state.articles.filter(function (a) {
-		return a._id === state.route.pageId;
-	}).map(function (article) {
-		return section('.post', [h1(article.title), p('.meta', [span('.left', article.categories && article.categories.join(', ') || ''), span('.right', [(article.publishedIn || article.createdAt) && 'Публикувана ' || '', article.publishedIn && '\u0432 ' + article.publishedIn + ' ' || '', article.createdAt && '\u043D\u0430 ' + article.createdAt + ' ' || '', article.author && '\u0410\u0432\u0442\u043E\u0440: ' + article.author || ''])]), p('.body', { props: { innerHTML: article.text } })]);
-	}).pop() : section('.post', [div(state.articles.filter(function (a) {
-		return !state.category || a.categories.indexOf(state.category) > -1;
-	}).map(function (article) {
-		return div('.article-item', [a('.title[href="#/articles/' + article._id + '"]', article.title), p('.item-meta', [span('.left', article.categories && article.categories.join(', ') || ''), span('.right', [(article.publishedIn || article.createdAt) && 'Публикувана ' || '', article.publishedIn && '\u0432 ' + article.publishedIn + ' ' || '', article.createdAt && '\u043D\u0430 ' + article.createdAt + ' ' || '', article.author && '\u0410\u0432\u0442\u043E\u0440: ' + article.author || ''])])]);
+	})))])]), state.router.pageId && state.articles.doc._id === state.router.pageId ? section('.post', [h1(state.articles.doc.title), p('.meta', [span('.left', state.articles.doc.categories && state.articles.doc.categories.join(', ') || ''), span('.right', [(state.articles.doc.publishedIn || state.articles.doc.createdAt) && 'Публикувана ' || '', state.articles.doc.publishedIn && '\u0432 ' + state.articles.doc.publishedIn + ' ' || '', state.articles.doc.createdAt && '\u043D\u0430 ' + moment(state.articles.doc.createdAt).format('DD MMMM Y') + ' ' || '', state.articles.doc.author && '\u0410\u0432\u0442\u043E\u0440: ' + state.articles.doc.author || ''])]), p('.body', { props: { innerHTML: marked(state.articles.doc.text) } })]) : section('.post', [div(state.articles.list.map(function (article) {
+		return div('.article-item', [a('.title[href="#/articles/' + article._id + '"]', article.title), p('.item-meta', [span('.left', article.categories && article.categories.join(', ') || ''), span('.right', [(article.publishedIn || article.createdAt) && 'Публикувана ' || '', article.publishedIn && '\u0432 ' + article.publishedIn + ' ' || '', article.createdAt && '\u043D\u0430 ' + moment(article.createdAt).format('DD MMMM Y') + ' ' || '', article.author && '\u0410\u0432\u0442\u043E\u0440: ' + article.author || ''])])]);
 	}))])]), rightColumn({ state: state, actions: actions })];
 };
 
-},{"../right-column":38,"iblokz/adapters/vdom":3}],35:[function(require,module,exports){
+},{"../right-column":45,"iblokz-snabbdom-helpers":7,"marked":19,"moment":21}],42:[function(require,module,exports){
 'use strict';
 
-var _require = require('iblokz/adapters/vdom');
+var _require = require('iblokz-snabbdom-helpers');
 
 var section = _require.section;
 var h1 = _require.h1;
@@ -21090,6 +21581,9 @@ var img = _require.img;
 
 var rightColumn = require('../right-column');
 
+var marked = require('marked');
+var moment = require('moment');
+
 var pinnedFirst = function pinnedFirst(articles) {
 	return articles.reduce(function (list, a) {
 		return a.pinned ? [a].concat(list) : list.concat(a);
@@ -21105,15 +21599,15 @@ module.exports = function (_ref) {
   	img('.article[src="/img/mh100.png"][style="padding: 0"]')
   ])
   */
-	].concat(pinnedFirst(state.articles).map(function (article) {
-		return section('.post', [h1([a('[href="#/articles/' + article._id + '"]', article.title)]), p('.meta', [span('.left', article.categories && article.categories.join(', ') || ''), span('.right', [(article.publishedIn || article.createdAt) && 'Публикувана ' || '', article.publishedIn && '\u0432 ' + article.publishedIn + ' ' || '', article.createdAt && '\u043D\u0430 ' + article.createdAt + ' ' || '', article.author && '\u0410\u0432\u0442\u043E\u0440: ' + article.author || ''])]), p('.body', { props: { innerHTML: article.text } })]);
+	].concat(pinnedFirst(state.articles.list).map(function (article) {
+		return section('.post', [h1([a('[href="#/articles/' + article._id + '"]', article.title)]), p('.meta', [span('.left', article.categories && article.categories.join(', ') || ''), span('.right', [(article.publishedIn || article.createdAt) && 'Публикувана ' || '', article.publishedIn && '\u0432 ' + article.publishedIn + ' ' || '', article.createdAt && '\u043D\u0430 ' + moment(article.createdAt).format('DD MMMM Y') + ' ' || '', article.author && '\u0410\u0432\u0442\u043E\u0440: ' + article.author || ''])]), p('.body', { props: { innerHTML: marked(article.text) } })]);
 	}))), rightColumn({ state: state, actions: actions })];
 };
 
-},{"../right-column":38,"iblokz/adapters/vdom":3}],36:[function(require,module,exports){
+},{"../right-column":45,"iblokz-snabbdom-helpers":7,"marked":19,"moment":21}],43:[function(require,module,exports){
 'use strict';
 
-var _require = require('iblokz/adapters/vdom');
+var _require = require('iblokz-snabbdom-helpers');
 
 var section = _require.section;
 var h1 = _require.h1;
@@ -21144,7 +21638,7 @@ module.exports = function (_ref) {
 	return [section('.content', [section('.post', [h1('Връзки')]), section('.post', [p({ props: { innerHTML: marked('\n- [\u0414\u044A\u0440\u0436\u0430\u0432\u043D\u0430 \u0430\u0433\u0435\u043D\u0446\u0438\u044F \u0437\u0430 \u0431\u044A\u043B\u0433\u0430\u0440\u0438\u0442\u0435 \u0432 \u0447\u0443\u0436\u0431\u0438\u043D\u0430](http://aba.government.bg)\n- [\u041C\u0438\u043D\u0438\u0441\u0442\u0435\u0440\u0441\u0442\u0432\u043E\u0442\u043E \u043D\u0430 \u043E\u0431\u0440\u0430\u0437\u043E\u0432\u0430\u043D\u0438\u0435\u0442\u043E \u0438 \u043D\u0430\u0443\u043A\u0430\u0442\u0430 > \u0417\u0430 \u0431\u044A\u043B\u0433\u0430\u0440\u0438\u0442\u0435 \u0437\u0430\u0434 \u0433\u0440\u0430\u043D\u0438\u0446\u0430](http://www.mon.bg/?go=page&amp;pageId=15&amp;subpageId=173)\n- [\u041D\u0430\u0443\u0447\u043D\u043E \u0434\u0440\u0443\u0436\u0435\u0441\u0442\u0432\u043E \u043D\u0430 \u0431\u044A\u043B\u0433\u0430\u0440\u0438\u0441\u0442\u0438\u0442\u0435 \u0432 \u0420\u0435\u043F\u0443\u0431\u043B\u0438\u043A\u0430 \u041C\u043E\u043B\u0434\u043E\u0432\u0430](http://ndb.md/)\n- [\u0411\u044A\u043B\u0433\u0430\u0440\u0441\u043A\u0430 \u0412\u0438\u0440\u0442\u0443\u0430\u043B\u043D\u0430 \u0411\u0438\u0431\u043B\u0438\u043E\u0442\u0435\u043A\u0430](http://slovo.bg)\n- [\u0412\u0435\u0441\u0442\u043D\u0438\u043A "\u0420\u043E\u0434\u0435\u043D \u041A\u0440\u0430\u0439" - \u041E\u0434\u0435\u0441\u0430](http://www.rodenkray.od.ua/)\n- [\u0410\u0440\u0445\u0438\u0432\u043D\u0438 \u043C\u0430\u0442\u0435\u0440\u0438\u0430\u043B\u0438 \u0437\u0430 \u0420\u043E\u0434\u043E\u043B\u044E\u0431\u0435\u0446 (omda.bg)](http://prehod.omda.bg/page.php?IDMenu=642&IDLang=1)\n- [\u0410\u0440\u0445\u0438\u0432\u043D\u0438 \u043C\u0430\u0442\u0435\u0440\u0438\u0430\u043B\u0438 \u043F\u043E \u0432\u044A\u043F\u0440\u043E\u0441\u0438\u0442\u0435 \u043D\u0430 \u0431\u044A\u043B\u0433\u0430\u0440\u0438\u0442\u0435 \u0437\u0430\u0434 \u0433\u0440\u0430\u043D\u0438\u0446\u0430 (omda.bg)](http://prehod.omda.bg/page.php/?IDMenu=604)\n\t\t\t') } })])]), rightColumn({ state: state, actions: actions })];
 };
 
-},{"../right-column":38,"iblokz/adapters/vdom":3,"marked":5}],37:[function(require,module,exports){
+},{"../right-column":45,"iblokz-snabbdom-helpers":7,"marked":19}],44:[function(require,module,exports){
 'use strict';
 
 var moment = require('moment');
@@ -21169,7 +21663,7 @@ var getDays = function getDays() {
 	return days;
 };
 
-var _require = require('iblokz/adapters/vdom');
+var _require = require('iblokz-snabbdom-helpers');
 
 var section = _require.section;
 var h1 = _require.h1;
@@ -21208,10 +21702,10 @@ module.exports = function (_ref) {
 	}))])]);
 };
 
-},{"iblokz/adapters/vdom":3,"moment":7,"moment/locale/bg":6}],38:[function(require,module,exports){
+},{"iblokz-snabbdom-helpers":7,"moment":21,"moment/locale/bg":20}],45:[function(require,module,exports){
 'use strict';
 
-var _require = require('iblokz/adapters/vdom');
+var _require = require('iblokz-snabbdom-helpers');
 
 var section = _require.section;
 var h1 = _require.h1;
@@ -21238,7 +21732,60 @@ var calendar = require('./calendar');
 module.exports = function (_ref) {
 	var state = _ref.state;
 	var actions = _ref.actions;
-	return section('.right-column', [section([h2('За контакт:'), ul([li([a('[href="https://goo.gl/maps/nuw3q3d9CuK2"][target="_blank"]', [i('.fa.fa-map-marker'), 'бул. „Евлоги Георгиев“ 169, ет. II-ри'])]), li([a('[href="https://fb.com/groups/rodolubets"][target="_blank"]', [i('.fa.fa-facebook-official'), 'Facebook Група на д-во Родолюбец'])]), li([a('[href="mailto:rodolubets@abv.bg"]', [i('.fa.fa-envelope-o'), 'rodolubets at abv dot bg'])])])]), section([h2('Предстоящи събития:'), ul([li([a('[href="https://www.facebook.com/events/237310966716062/"][target="_blank"]', '24.02 Представяне на Алманах Родолюбец, брой 8-ми 2016г.')])])]), section([h2('Минали събития:'), ul([li([a('[href="https://www.facebook.com/events/224414394672363/"][target="_blank"]', '13.01 Отбелязване 90-годишнината от рождението на Петър Недов 17:30ч.')]), li([a('[href="https://www.facebook.com/events/391007054575193/"][target="_blank"]', '15.12 Коледно-новогодишна среща на д-во Родолюбец 18:00-22:00ч. читалище Славянска Беседа')]), li([a('[href="https://www.facebook.com/events/1781298892137645/"][target="_blank"]', '17-24.11 Честване на 100 годишнина от рождението на Мишо Хаджийски')]), li([a('[href="https://www.facebook.com/events/191852797922713/"][target="_blank"]', '27.10 18:30 Традиционен празничен концерт, посветен на Деня на Бесарабските Българи')])])]), calendar({ state: state, actions: actions })]);
+	return section('.right-column', [section([h2('За контакт:'), ul([li([a('[href="https://goo.gl/maps/nuw3q3d9CuK2"][target="_blank"]', [i('.fa.fa-map-marker'), 'бул. „Евлоги Георгиев“ 169, ет. II-ри'])]), li([a('[href="https://fb.com/groups/rodolubets"][target="_blank"]', [i('.fa.fa-facebook-official'), 'Facebook Група на д-во Родолюбец'])]), li([a('[href="mailto:rodolubets@abv.bg"]', [i('.fa.fa-envelope-o'), 'rodolubets at abv dot bg'])])])]), section([h2('Предстоящи събития:'), ul([li([a('[href="https://www.facebook.com/events/1878729519040663/"][target="_blank"]', '24.03 Нико Стоянов на 70 години, 18:00')])])]), section([h2('Минали събития:'), ul([li([a('[href="https://www.facebook.com/events/237310966716062/"][target="_blank"]', '24.02 Представяне на Алманах Родолюбец, брой 8-ми 2016г.')]), li([a('[href="https://www.facebook.com/events/224414394672363/"][target="_blank"]', '13.01 Отбелязване 90-годишнината от рождението на Петър Недов 17:30ч.')]), li([a('[href="https://www.facebook.com/events/391007054575193/"][target="_blank"]', '15.12 Коледно-новогодишна среща на д-во Родолюбец 18:00-22:00ч. читалище Славянска Беседа')]), li([a('[href="https://www.facebook.com/events/1781298892137645/"][target="_blank"]', '17-24.11 Честване на 100 годишнина от рождението на Мишо Хаджийски')]), li([a('[href="https://www.facebook.com/events/191852797922713/"][target="_blank"]', '27.10 18:30 Традиционен празничен концерт, посветен на Деня на Бесарабските Българи')])])]), calendar({ state: state, actions: actions })]);
 };
 
-},{"./calendar":37,"iblokz/adapters/vdom":3}]},{},[25]);
+},{"./calendar":44,"iblokz-snabbdom-helpers":7}],46:[function(require,module,exports){
+'use strict';
+
+// lib
+
+var Rx = require('rx');
+var $ = Rx.Observable;
+
+var _require = require('iblokz-data');
+
+var arr = _require.arr;
+var obj = _require.obj;
+
+
+var observe = function observe(source) {
+	return source instanceof Rx.Observable ? source : source.then instanceof Function ? Rx.Observable.fromPromise(source) : Rx.Observable.just(source);
+};
+
+var adapt = function adapt(o) {
+	return Object.keys(o).filter(function (key) {
+		return key !== 'initial';
+	}).reduce(function (o2, key) {
+		return Object.assign({}, o2, o[key] instanceof Function && obj.keyValue(key, function () {
+			observe(o[key].apply(null, Array.from(arguments))).subscribe(function (resp) {
+				return o2.stream.onNext(resp);
+			});
+		}) || o[key] instanceof Object && function () {
+			var o3 = adapt(o[key]);
+			return Object.assign({
+				stream: $.merge(o2.stream, o3.stream),
+				initial: Object.assign({}, o2.initial, obj.keyValue(key, o3.initial))
+			}, obj.keyValue(key, o3));
+		}() || obj.keyValue(key, o[key]));
+	}, { stream: new Rx.Subject(), initial: o.initial || {} });
+};
+
+module.exports = {
+	adapt: adapt
+};
+
+},{"iblokz-data":2,"rx":23}],47:[function(require,module,exports){
+'use strict';
+
+var Rx = require('rx');
+var $ = Rx.Observable;
+var superagent = require('superagent');
+
+superagent.Request.prototype.observe = function () {
+	return $.fromNodeCallback(this.end, this)();
+};
+
+module.exports = superagent;
+
+},{"rx":23,"superagent":24}]},{},[29]);

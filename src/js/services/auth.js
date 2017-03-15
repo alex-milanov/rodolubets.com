@@ -3,18 +3,14 @@
 const Rx = require('rx');
 const $ = Rx.Observable;
 const Subject = Rx.Subject;
-const request = require('iblokz/adapters/request');
-const obj = require('iblokz/common/obj');
+const request = require('../util/request');
+const {obj} = require('iblokz-data');
 
 // const page = require('../page');
 
 const stream = new Subject();
 
-const forceLogout = () => {
-	// store.set('user', null);
-	stream.onNext(state => obj.patch(state, 'auth', {user: null}));
-	// page.go('login');
-};
+const forceLogout = () => state => obj.patch(state, 'auth', {user: null});
 
 const login = data => request
 	.post('/api/auth')
@@ -22,13 +18,11 @@ const login = data => request
 	.set('Accept', 'application/json')
 	.observe()
 	.map(res => res.body)
-	.subscribe(body => {
-		if (body.status === 'success') {
-			// store.set('user', user);
-			stream.onNext(state => obj.patch(state, 'auth', {user: body.user}));
-			// page.go('videos');
-		}
-	});
+	.map(body => state =>
+		(body.status === 'success')
+			? state => obj.patch(state, 'auth', {user: body.user})
+			: state
+	);
 
 const logout = token => request
 	.delete('/api/auth')
@@ -36,11 +30,11 @@ const logout = token => request
 	.set('Accept', 'application/json')
 	.observe()
 	.map(res => res.body)
-	.subscribe(data => {
-		if (data.status === 'success') {
-			forceLogout();
-		}
-	}, () => forceLogout());
+	.map(data =>
+		(data.status === 'success')
+			? forceLogout()
+			: state => state
+	);
 
 const auth = {
 	forceLogout,
@@ -55,7 +49,6 @@ const attach = actions => Object.assign(
 	actions,
 	{
 		auth,
-		stream: $.merge(actions.stream, auth.stream),
 		initial: Object.assign({}, actions.initial, auth.initial)
 	}
 );

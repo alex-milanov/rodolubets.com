@@ -2574,7 +2574,45 @@ h1, h2, h3, h4, h5 {
           color: inherit; }
         #ui > #admin .content .post button i {
           margin-right: 10px; }
-    #ui > #admin .content .crud {
+    #ui > #admin .content .edit {
+      display: inline-block;
+      background: rgba(255, 255, 255, 0.7);
+      box-shadow: 0px 0px 3px #bbb;
+      border-bottom: 1px solid #bbb;
+      position: relative;
+      margin-bottom: 20px;
+      width: 100%;
+      padding: 0px 10px; }
+      #ui > #admin .content .edit label, #ui > #admin .content .edit input, #ui > #admin .content .edit textarea {
+        width: 100%;
+        margin: 0px;
+        line-height: 32px;
+        font-size: 16px; }
+      #ui > #admin .content .edit label > span > button {
+        line-height: 32px;
+        height: 32px;
+        padding: 0px 10px;
+        margin-left: 5px;
+        border: 1px solid #aaa;
+        cursor: pointer; }
+        #ui > #admin .content .edit label > span > button.on {
+          background: #aaa; }
+      #ui > #admin .content .edit input, #ui > #admin .content .edit textarea {
+        padding: 0px 10px; }
+      #ui > #admin .content .edit textarea {
+        min-height: 480px;
+        margin: 10px 0px;
+        line-height: 24px; }
+      #ui > #admin .content .edit .wysiwyg {
+        padding: 20px;
+        min-height: 480px; }
+        #ui > #admin .content .edit .wysiwyg img {
+          margin: 0px 20px;
+          float: right;
+          box-shadow: 1px 1px 17px #ddd; }
+      #ui > #admin .content .edit div {
+        margin: 10px 0px; }
+    #ui > #admin .content table.crud {
       display: inline-block;
       background: rgba(255, 255, 255, 0.7);
       box-shadow: 0px 0px 3px #bbb;
@@ -2584,12 +2622,12 @@ h1, h2, h3, h4, h5 {
       border-collapse: separate;
       border-spacing: 0;
       font-size: 14px; }
-      #ui > #admin .content .crud td, #ui > #admin .content .crud th {
+      #ui > #admin .content table.crud td, #ui > #admin .content table.crud th {
         height: 40px;
         box-sizing: border-box; }
-        #ui > #admin .content .crud td:not(:last-child), #ui > #admin .content .crud th:not(:last-child) {
+        #ui > #admin .content table.crud td:not(:last-child), #ui > #admin .content table.crud th:not(:last-child) {
           padding: 0px 5px; }
-        #ui > #admin .content .crud td button, #ui > #admin .content .crud th button {
+        #ui > #admin .content table.crud td button, #ui > #admin .content table.crud th button {
           margin: 0px;
           padding: 0px;
           outline: none;
@@ -2614,28 +2652,28 @@ h1, h2, h3, h4, h5 {
           width: 39px;
           background: inherit;
           border: 0px; }
-          #ui > #admin .content .crud td button:focus, #ui > #admin .content .crud td button:active, #ui > #admin .content .crud td button::-moz-focus-inner, #ui > #admin .content .crud td button:-moz-focusring, #ui > #admin .content .crud td button::-moz-focus-outer, #ui > #admin .content .crud th button:focus, #ui > #admin .content .crud th button:active, #ui > #admin .content .crud th button::-moz-focus-inner, #ui > #admin .content .crud th button:-moz-focusring, #ui > #admin .content .crud th button::-moz-focus-outer {
+          #ui > #admin .content table.crud td button:focus, #ui > #admin .content table.crud td button:active, #ui > #admin .content table.crud td button::-moz-focus-inner, #ui > #admin .content table.crud td button:-moz-focusring, #ui > #admin .content table.crud td button::-moz-focus-outer, #ui > #admin .content table.crud th button:focus, #ui > #admin .content table.crud th button:active, #ui > #admin .content table.crud th button::-moz-focus-inner, #ui > #admin .content table.crud th button:-moz-focusring, #ui > #admin .content table.crud th button::-moz-focus-outer {
             outline: none;
             border-radius: 0px;
             border-image: none; }
-          #ui > #admin .content .crud td button:hover, #ui > #admin .content .crud td button.active, #ui > #admin .content .crud th button:hover, #ui > #admin .content .crud th button.active {
+          #ui > #admin .content table.crud td button:hover, #ui > #admin .content table.crud td button.active, #ui > #admin .content table.crud th button:hover, #ui > #admin .content table.crud th button.active {
             color: #333;
             background: #e5ede4;
             box-shadow: inset 0px 0px 10px #d5d5d5; }
-          #ui > #admin .content .crud td button:active, #ui > #admin .content .crud th button:active {
+          #ui > #admin .content table.crud td button:active, #ui > #admin .content table.crud th button:active {
             transition: background .3s, box-shadow .1s;
             background: #e5eae5;
             padding: 11px 10px 9px 10px; }
-          #ui > #admin .content .crud td button:focus, #ui > #admin .content .crud th button:focus {
+          #ui > #admin .content table.crud td button:focus, #ui > #admin .content table.crud th button:focus {
             outline: none; }
-          #ui > #admin .content .crud td button a, #ui > #admin .content .crud th button a {
+          #ui > #admin .content table.crud td button a, #ui > #admin .content table.crud th button a {
             text-decoration: none;
             color: inherit; }
-      #ui > #admin .content .crud tr > :not(:first-child) {
+      #ui > #admin .content table.crud tr > :not(:first-child) {
         border-left: 1px solid #ccc; }
-      #ui > #admin .content .crud tr:not(:first-child) > * {
+      #ui > #admin .content table.crud tr:not(:first-child) > * {
         border-top: 1px solid #ccc; }
-      #ui > #admin .content .crud thead > tr:last-child > * {
+      #ui > #admin .content table.crud thead > tr:last-child > * {
         border-bottom: 1px solid #aaa; }
 
 #ui .right-column {

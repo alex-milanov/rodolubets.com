@@ -3,9 +3,12 @@
 const {
 	section, h1, h2, h3, hr, header, i, ul, li, p,
 	table, thead, tbody, tr, td, th, span, div, a
-} = require('iblokz/adapters/vdom');
+} = require('iblokz-snabbdom-helpers');
 
 const rightColumn = require('../right-column');
+
+const marked = require('marked');
+const moment = require('moment');
 
 module.exports = ({state, actions}) => [
 	section('.content', [
@@ -14,49 +17,71 @@ module.exports = ({state, actions}) => [
 			div('.menu', [
 				ul([
 					li([a({
-						class: {active: state.category === false},
-						on: {click: el => actions.selectCategory(false)}
-					}, 'Всички')])
-				].concat(state.articles.reduce((cats, a) => cats.concat(a.categories.filter(c => cats.indexOf(c) === -1) || []), []).map(category =>
+						class: {active:
+							state.articles.query.categories !== undefined
+							&& (state.articles.query.categories === false)
+						},
+						on: {click: el => {
+							actions.articles.query({categories: false});
+							if (state.router.pageId !== null) actions.router.go('articles');
+						}}
+					}, 'Без')]),
 					li([a({
-						class: {active: category === state.category},
-						on: {click: el => actions.selectCategory(category)}
-					}, category)])
+						class: {active:
+							state.articles.query.categories === undefined || (state.articles.query.categories === '')},
+						on: {click: el => {
+							actions.articles.query({categories: ''});
+							if (state.router.pageId !== null) actions.router.go('articles');
+						}}
+					}, 'Всички')])
+				].concat(
+					state.articles.list
+						.reduce((cats, a) =>
+							cats.concat(a.categories.filter(c => cats.indexOf(c) === -1) || []), [])
+						.map(category =>
+							li([a({
+								class: {active:
+									state.articles.query.categories && category === state.articles.query.categories},
+								on: {click: el => {
+									actions.articles.query({categories: category});
+									if (state.router.pageId !== null) actions.router.go('articles');
+								}}
+							}, category)])
 				)))
 			])
 		]),
-		(state.route.pageId) ? state.articles.filter(a => a._id === state.route.pageId).map(article =>
-			section('.post', [
-				h1(article.title),
+		(state.router.pageId && state.articles.doc._id === state.router.pageId)
+			? section('.post', [
+				h1(state.articles.doc.title),
 				p('.meta', [
-					span('.left', article.categories && article.categories.join(', ') || ''),
+					span('.left', state.articles.doc.categories && state.articles.doc.categories.join(', ') || ''),
 					span('.right', [
-						(article.publishedIn || article.createdAt) && 'Публикувана ' || '',
-						article.publishedIn && `в ${article.publishedIn} ` || '',
-						article.createdAt && `на ${article.createdAt} ` || '',
-						article.author && `Автор: ${article.author}` || ''
+						(state.articles.doc.publishedIn || state.articles.doc.createdAt) && 'Публикувана ' || '',
+						state.articles.doc.publishedIn && `в ${state.articles.doc.publishedIn} ` || '',
+						state.articles.doc.createdAt && `на ${moment(state.articles.doc.createdAt).format('DD MMMM Y')} ` || '',
+						state.articles.doc.author && `Автор: ${state.articles.doc.author}` || ''
 					])
 				]),
-				p('.body', {props: {innerHTML: article.text}})
-			])).pop()
-		: section('.post', [
-			div(state.articles
-				.filter(a => !state.category || (a.categories.indexOf(state.category) > -1))
-				.map(article =>
-					div('.article-item', [
-						a(`.title[href="#/articles/${article._id}"]`, article.title),
-						p('.item-meta', [
-							span('.left', article.categories && article.categories.join(', ') || ''),
-							span('.right', [
-								(article.publishedIn || article.createdAt) && 'Публикувана ' || '',
-								article.publishedIn && `в ${article.publishedIn} ` || '',
-								article.createdAt && `на ${article.createdAt} ` || '',
-								article.author && `Автор: ${article.author}` || ''
+				p('.body', {props: {innerHTML: marked(state.articles.doc.text)}})
+			])
+			: section('.post', [
+				div(state.articles.list
+					.map(article =>
+						div('.article-item', [
+							a(`.title[href="#/articles/${article._id}"]`, article.title),
+							p('.item-meta', [
+								span('.left', article.categories && article.categories.join(', ') || ''),
+								span('.right', [
+									(article.publishedIn || article.createdAt) && 'Публикувана ' || '',
+									article.publishedIn && `в ${article.publishedIn} ` || '',
+									article.createdAt && `на ${moment(article.createdAt).format('DD MMMM Y')} ` || '',
+									article.author && `Автор: ${article.author}` || ''
+								])
 							])
 						])
-					])
-			))
-		])
+					)
+				)
+			])
 	]),
 	rightColumn({state, actions})
 ];

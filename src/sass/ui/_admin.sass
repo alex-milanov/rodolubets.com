@@ -36,7 +36,43 @@
 				border: 0px
 				i
 					margin-right: 10px
-		.crud
+		.edit
+			+rod-panel
+			position: relative
+			margin-bottom: 20px
+			width: 100%
+			padding: 0px 10px
+			label, input, textarea
+				width: 100%
+				margin: 0px
+				line-height: 32px
+				font-size: 16px
+			label > span > button
+				line-height: 32px
+				height: 32px
+				padding: 0px 10px
+				margin-left: 5px
+				border: 1px solid #aaa
+				cursor: pointer
+				&.on
+					background: #aaa
+			input, textarea
+				padding: 0px 10px
+			textarea
+				min-height: 480px
+				margin: 10px 0px
+				line-height: 24px
+			.wysiwyg
+				padding: 20px
+				min-height: 480px
+				img
+					margin: 0px 20px
+					float: right
+					box-shadow: 1px 1px 17px #ddd
+			div
+				margin: 10px 0px
+
+		table.crud
 			+rod-panel
 			display: table
 			width: 100%

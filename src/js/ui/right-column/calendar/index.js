@@ -25,7 +25,7 @@ const getDays = () => {
 const {
 	section, h1, h2, h3, hr, header, i, ul, li,
 	table, thead, tbody, tr, td, th, button
-} = require('iblokz/adapters/vdom');
+} = require('iblokz-snabbdom-helpers');
 
 module.exports = ({state, actions}) => section('.calendar', [
 	table([

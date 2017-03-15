@@ -3,7 +3,7 @@
 const {
 	section, h1, h2, h3, hr, header, i, ul, li, a,
 	table, thead, tbody, tr, td, th, form, input, button, label
-} = require('iblokz/adapters/vdom');
+} = require('iblokz-snabbdom-helpers');
 
 const links = {
 	front: [
@@ -22,19 +22,19 @@ const links = {
 };
 
 module.exports = ({state, actions}) => header([
-	!state.route.admin ? section('.title', [
+	!state.router.admin ? section('.title', [
 		h1('Дружество Родолюбец'),
 		h3('Културно-просветно дружество за връзки с бесарабските и таврийските българи')
 	]) : '',
-	ul('#menu', links[state.route.admin ? 'admin' : 'front'].map(link =>
+	ul('#menu', links[state.router.admin ? 'admin' : 'front'].map(link =>
 		li([a(
 			`[href="${link.href}"]`,
-			{class: {active: link.page === state.route.page}},
+			{class: {active: link.page === state.router.page}},
 			link.title
 		)])
 	).concat(
 		[
-			li('.right', [(state.signInToggled)
+			li('.right', [(state.signIn)
 				// login form
 				? form([
 					label('[for="login-user"]', [i('.fa.fa-user')]),
@@ -44,12 +44,12 @@ module.exports = ({state, actions}) => header([
 					button([
 						i('.fa.fa-sign-in')
 					]),
-					a({on: {click: () => actions.signInToggle()}}, [
+					a({on: {click: () => actions.toggle('signIn')}}, [
 						i('.fa.fa-close')
 					])
 				])
 				// toggle button
-				: a({on: {click: () => actions.signInToggle()}}, [
+				: a({on: {click: () => actions.toggle('signIn')}}, [
 					i('.fa.fa-pencil-square-o')
 				])
 			])

@@ -3,9 +3,12 @@
 const {
 	section, h1, h2, h3, hr, header, i, ul, li, p,
 	table, thead, tbody, tr, td, th, span, a, img
-} = require('iblokz/adapters/vdom');
+} = require('iblokz-snabbdom-helpers');
 
 const rightColumn = require('../right-column');
+
+const marked = require('marked');
+const moment = require('moment');
 
 const pinnedFirst = articles => articles
 	.reduce((list, a) => a.pinned ? [a].concat(list) : list.concat(a), []);
@@ -17,7 +20,7 @@ module.exports = ({state, actions}) => [
 			img('.article[src="/img/mh100.png"][style="padding: 0"]')
 		])
 		*/
-	].concat(pinnedFirst(state.articles).map(article =>
+	].concat(pinnedFirst(state.articles.list).map(article =>
 		section('.post', [
 			h1([a(`[href="#/articles/${article._id}"]`, article.title)]),
 			p('.meta', [
@@ -25,11 +28,11 @@ module.exports = ({state, actions}) => [
 				span('.right', [
 					(article.publishedIn || article.createdAt) && 'Публикувана ' || '',
 					article.publishedIn && `в ${article.publishedIn} ` || '',
-					article.createdAt && `на ${article.createdAt} ` || '',
+					article.createdAt && `на ${moment(article.createdAt).format('DD MMMM Y')} ` || '',
 					article.author && `Автор: ${article.author}` || ''
 				])
 			]),
-			p('.body', {props: {innerHTML: article.text}})
+			p('.body', {props: {innerHTML: marked(article.text)}})
 		]))
 	)),
 	rightColumn({state, actions})
