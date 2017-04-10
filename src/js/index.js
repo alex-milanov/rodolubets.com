@@ -94,7 +94,6 @@ state$
 // map state to ui
 const ui$ = state$.map(state => ui({state, actions}));
 
-
 // patch stream to dom
 vdom.patchStream(ui$, '#ui');
 

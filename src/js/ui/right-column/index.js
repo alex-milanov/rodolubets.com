@@ -9,7 +9,6 @@ const calendar = require('./calendar');
 
 module.exports = ({state, actions}) => section('.right-column', [
 	section([
-		h2('За контакт:'),
 		ul([
 			li([a('[href="https://goo.gl/maps/nuw3q3d9CuK2"][target="_blank"]', [
 				i('.fa.fa-map-marker'),
@@ -19,24 +18,32 @@ module.exports = ({state, actions}) => section('.right-column', [
 				i('.fa.fa-facebook-official'),
 				'Facebook Група на д-во Родолюбец'
 			])]),
+			li([a('[href="https://www.youtube.com/channel/UC29vwswzZgc4QjO0NDJKzdQ"][target="_blank"]', [
+				i('.fa.fa-youtube'),
+				'Youtube Канал на Дружеството'
+			])]),
 			li([a('[href="mailto:rodolubets@abv.bg"]', [
 				i('.fa.fa-envelope-o'),
-				'rodolubets at abv dot bg'
+				'Ел. Поща: rodolubets at abv dot bg'
 			])])
 		])
 	]),
 	section([
-		h2('Предстоящи събития:'),
+		h2('Предстои:'),
 		ul([
 			li([a(
-				'[href="https://www.facebook.com/events/1878729519040663/"][target="_blank"]',
-				'24.03 Нико Стоянов на 70 години, 18:00'
+				'[href="https://www.facebook.com/events/616430778561488/"][target="_blank"]',
+				'23.04 Великденска среща на д-во Родолюбец, 17:00 Славянска Беседа'
 			)])
 		])
 	]),
 	section([
 		h2('Минали събития:'),
 		ul([
+			li([a(
+				'[href="https://www.facebook.com/events/1878729519040663/"][target="_blank"]',
+				'24.03 Нико Стоянов на 70 години, 18:00'
+			)]),
 			li([a(
 				'[href="https://www.facebook.com/events/237310966716062/"][target="_blank"]',
 				'24.02 Представяне на Алманах Родолюбец, брой 8-ми 2016г.'
