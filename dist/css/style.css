@@ -2505,6 +2505,8 @@ h1, h2, h3, h4, h5 {
         margin: 0px 20px;
         float: right;
         box-shadow: 1px 1px 17px #ddd; }
+        #ui > #front .content .post img[alt="left"] {
+          float: left; }
       #ui > #front .content .post table {
         margin: 10px 0px; }
         #ui > #front .content .post table td {
