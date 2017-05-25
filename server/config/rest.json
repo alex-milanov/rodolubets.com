@@ -6,7 +6,7 @@
 		"articles": {
 			"model": "Article",
 			"schema": {
-				"title" : { "type": "String", "required": true, "minLength": 1, "maxLength": 30, "unique": true },
+				"title" : { "type": "String", "required": true, "minLength": 1, "maxLength": 100, "unique": true },
 				"text" : "String",
 				"author": "String",
 				"publishedIn": "String",
