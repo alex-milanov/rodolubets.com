@@ -29,7 +29,8 @@ const query = ns => keyValuePair => state => obj.patch(state, ns, {
 	dirty: true
 });
 
-const create = ns => doc => request.post(`/api/${ns}`)
+const create = ns => (doc, token) => request.post(`/api/${ns}`)
+	.set(token && {'x-access-token': token} || {})
 	.send(doc)
 	.observe()
 	.map(() => state => obj.patch(state, ns, {dirty: true, doc: {}}));
@@ -39,12 +40,27 @@ const read = ns => id => request.get(`/api/${ns}/${id}`)
 	.map(res => res.body)
 	.map(doc => state => obj.patch(state, ns, {doc}));
 
+const update = ns => (id, doc, token) => request.put(`/api/${ns}/${id}`)
+	.set(token && {'x-access-token': token} || {})
+	.send(doc)
+	.observe()
+	.map(() => state => obj.patch(state, ns, {dirty: true, doc: {}}));
+
+const save = ns => (doc, token) => doc._id
+	? update(ns)(doc._id, doc, token)
+	: create(ns)(doc, token);
+
+const reset = ns => () => state => obj.patch(state, ns, {doc: {}});
+
 const actions = {
 	initial,
 	list,
 	query,
 	create,
-	read
+	update,
+	save,
+	read,
+	reset
 };
 
 const applyNs = (o, ns) => obj.map(o, (v, k) => (v instanceof Function) ? v(ns) : v);
@@ -52,8 +68,9 @@ const applyNs = (o, ns) => obj.map(o, (v, k) => (v instanceof Function) ? v(ns) 
 const attach = (o, ns) => obj.patch(o, ns, applyNs(actions, ns));
 
 const hook = ns => ({state$, actions}) => {
+	console.log({ns});
 	state$
-		.distinctUntilChanged(state => state[ns].dirty)
+		.distinctUntilChanged(state => ((console.log(ns, state[ns])), state[ns].dirty))
 		.filter(state => state[ns].dirty)
 		.subscribe(state => actions[ns].list(state[ns].query));
 };

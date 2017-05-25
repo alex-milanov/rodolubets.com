@@ -33,8 +33,26 @@
 				"crud": true,
 				"contentType": "json"
 			},
-			"users": {},
-			"articles": {}
+			"users": {
+				"_meta": {
+					"access": {
+						"admin": "all",
+						"publisher": "own",
+						"user": "list,view",
+						"anonymous": "create"
+					}
+				}
+			},
+			"articles": {
+				"_meta": {
+					"access": {
+						"admin": "all",
+						"publisher": "own",
+						"user": "list,view",
+						"anonymous": "list,view"
+					}
+				}
+			}
 		}
 	}
 }

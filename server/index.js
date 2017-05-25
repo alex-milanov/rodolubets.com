@@ -19,7 +19,7 @@ const restApi = require('iblokz-rest-api');
 
 // init
 const app = express();
-const db = mongoose.connect('mongodb://localhost:27017/rod');
+const db = mongoose.connect(config.db.uri);
 
 // express prefs
 app.use(bodyParser.urlencoded({extended: true}));
@@ -33,8 +33,11 @@ restApi.loadModel(config.rest, db);
 // load additional models
 require('./models/user');
 
+// auth
+require('./api/auth')({app, db, config});
+
 // initis rest endpoints
 restApi.initRoutes(app, config.rest, {}, db);
 
 // Logging initialization
-app.listen(config.env.port, () => console.log(`Listening to port ${config.env.port}`));
+app.listen(config.port, () => console.log(`Listening to port ${config.port}`));

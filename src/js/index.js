@@ -29,6 +29,9 @@ actions.router = router.actions;
 // resources
 const resource = require('./services/resource');
 actions = resource.attach(actions, 'articles');
+// auth
+const auth = require('./services/auth');
+actions.auth = auth.actions;
 
 // prep actions
 let actions$;
@@ -44,7 +47,10 @@ if (module.hot) {
 			actions = app.adapt(Object.assign(
 				{},
 				require('./actions'),
-				{router: router.actions},
+				{
+					router: router.actions,
+					auth: auth.actions
+				},
 				obj.keyValue('articles', resource.applyNs(resource.actions, 'articles'))
 			));
 			return actions.stream.startWith(state => state);
@@ -68,12 +74,15 @@ const state$ = actions$
 // state change hooks
 router.hook({state$, actions});
 resource.hook('articles')({state$, actions});
+auth.hook({state$, actions});
 
 // trigger read action on pageId param
 state$
 	.distinctUntilChanged(state => state.router.pageId)
 	.filter(state => state.router.pageId !== null && state.router.page.match(/articles/ig))
-	.subscribe(state => actions.articles.read(state.router.pageId));
+	.subscribe(state => state.router.pageId === 'new'
+		? actions.articles.reset()
+		: actions.articles.read(state.router.pageId));
 
 /*
 state$

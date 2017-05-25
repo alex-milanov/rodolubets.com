@@ -7,12 +7,23 @@ const {obj} = require('iblokz-data');
 
 const initial = {
 	signIn: false,
-	wysiwyg: true
+	editor: {
+		wysiwyg: true,
+		sel: {row: 0, col: 0, length: 0}
+	}
 };
 
-const toggle = p => state => obj.patch(state, p, !obj.sub(state, p));
+const set = (path, val) => state => obj.patch(state, path, val);
+const toggle = path => state => obj.patch(state, path, !obj.sub(state, path));
+
+const editArticle = (text, sel) => state => obj.patch(
+	obj.patch(state, ['articles', 'doc'], {text}),
+	'editor', {sel}
+);
 
 module.exports = {
+	set,
 	toggle,
+	editArticle,
 	initial
 };

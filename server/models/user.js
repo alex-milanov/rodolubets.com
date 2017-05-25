@@ -9,36 +9,30 @@ var userSchema = new mongoose.Schema({
 	name: String,
 	role: {type: String, default: 'user'},
 	email: String,
-	password: String,
-	salt: String,
+	password: {type: String, minlength: 4, required: true},
 	registerDate: {type: Date, default: Date.now},
 	lastLoginDate: Date
 });
 
-/**
- * Hook a pre save method to hash the password
- */
+const hashPassword = password => {
+	console.log(password);
+	return crypto.createHash('sha256').update(password).digest('hex');
+};
+
+// Hook a pre save method to hash the password
 userSchema.pre('save', function(next) {
-	if (!this.salt && this.password && this.password.length > 6) {
-		this.salt = new Buffer(crypto.randomBytes(16).toString('base64'), 'base64');
-		this.password = this.hashPassword(this.password);
-	}
+	console.log(this);
+	this.password = hashPassword(this.password);
 	next();
 });
 
-/**
- * Create instance method for hashing a password
- */
-userSchema.methods.hashPassword = password =>
-	(this.salt && password)
-		? crypto.pbkdf2Sync(password, this.salt, 10000, 64).toString('base64')
-		: password;
+// Create instance method for hashing a password
+userSchema.methods.hashPassword = hashPassword;
 
-/**
- * Create instance method for authenticating user
- */
+// Create instance method for authenticating user
 userSchema.methods.authenticate = function(password) {
-	return this.password === this.hashPassword(password);
+	console.log(this.password, hashPassword(password));
+	return (this.password === hashPassword(password));
 };
 
 // create the model for users and expose it to our app

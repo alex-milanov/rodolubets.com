@@ -2233,6 +2233,15 @@ h1, h2, h3, h4, h5 {
 .right {
   float: right !important; }
 
+@keyframes fadein {
+  from {
+    opacity: 0.3; }
+  to {
+    opacity: 1; } }
+
+#ui > * {
+  animation: fadein .5s; }
+
 #ui header {
   width: 100%;
   vertical-align: bottom; }
@@ -2373,7 +2382,8 @@ h1, h2, h3, h4, h5 {
     margin-top: 18px;
     display: inline-block;
     vertical-align: top;
-    width: 70%; }
+    width: 70%;
+    float: left; }
     #ui > #front .content .post {
       display: inline-block;
       background: rgba(255, 255, 255, 0.7);
@@ -2505,6 +2515,7 @@ h1, h2, h3, h4, h5 {
 #ui > #admin {
   margin: 20px; }
   #ui > #admin .content {
+    animation: fadein .5s;
     margin: 0px;
     padding: 0px;
     margin-top: 18px;
@@ -2602,14 +2613,22 @@ h1, h2, h3, h4, h5 {
       #ui > #admin .content .edit textarea {
         min-height: 480px;
         margin: 10px 0px;
-        line-height: 24px; }
-      #ui > #admin .content .edit .wysiwyg {
         padding: 20px;
-        min-height: 480px; }
-        #ui > #admin .content .edit .wysiwyg img {
+        line-height: 24px; }
+      #ui > #admin .content .edit div[contenteditable="true"] {
+        display: none;
+        padding: 20px;
+        margin: 10px -10px;
+        min-height: 480px;
+        outline: none; }
+        #ui > #admin .content .edit div[contenteditable="true"] img {
           margin: 0px 20px;
           float: right;
           box-shadow: 1px 1px 17px #ddd; }
+      #ui > #admin .content .edit .wysiwyg [contenteditable="true"] {
+        display: block; }
+      #ui > #admin .content .edit .wysiwyg textarea {
+        display: none; }
       #ui > #admin .content .edit div {
         margin: 10px 0px; }
     #ui > #admin .content table.crud {

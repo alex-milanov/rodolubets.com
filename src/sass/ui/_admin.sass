@@ -1,6 +1,7 @@
 #ui > #admin
 	margin: 20px
 	.content
+		animation: fadein .5s
 		+no-margin-padding
 		margin-top: 18px
 		display: inline-block
@@ -61,14 +62,23 @@
 			textarea
 				min-height: 480px
 				margin: 10px 0px
-				line-height: 24px
-			.wysiwyg
 				padding: 20px
+				line-height: 24px
+			div[contenteditable="true"]
+				display: none
+				padding: 20px
+				margin: 10px -10px
 				min-height: 480px
+				outline: none
 				img
 					margin: 0px 20px
 					float: right
 					box-shadow: 1px 1px 17px #ddd
+			.wysiwyg
+				[contenteditable="true"]
+					display: block
+				textarea
+					display: none
 			div
 				margin: 10px 0px
 

@@ -5,7 +5,8 @@ const path = require('path');
 
 const paths = {
 	'dist/fonts': ['node_modules/font-awesome/fonts', 'assets/fonts'],
-	'dist/img': 'assets/img'
+	'dist/img': 'assets/img',
+	'dist/docs': 'assets/docs'
 };
 
 Object.keys(paths)

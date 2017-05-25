@@ -1,4 +1,189 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
+/**
+ * This file automatically generated from `build.js`.
+ * Do not manually edit.
+ */
+
+module.exports = [
+  "address",
+  "article",
+  "aside",
+  "blockquote",
+  "canvas",
+  "dd",
+  "div",
+  "dl",
+  "dt",
+  "fieldset",
+  "figcaption",
+  "figure",
+  "footer",
+  "form",
+  "h1",
+  "h2",
+  "h3",
+  "h4",
+  "h5",
+  "h6",
+  "header",
+  "hgroup",
+  "hr",
+  "li",
+  "main",
+  "nav",
+  "noscript",
+  "ol",
+  "output",
+  "p",
+  "pre",
+  "section",
+  "table",
+  "tfoot",
+  "ul",
+  "video"
+];
+
+},{}],2:[function(require,module,exports){
+
+},{}],3:[function(require,module,exports){
+'use strict';
+
+var voidElements = require('void-elements');
+Object.keys(voidElements).forEach(function (name) {
+  voidElements[name.toUpperCase()] = 1;
+});
+
+var blockElements = {};
+require('block-elements').forEach(function (name) {
+  blockElements[name.toUpperCase()] = 1;
+});
+
+/**
+ * isBlockElem(node) determines if the given node is a block element.
+ *
+ * @param {Node} node
+ * @return {Boolean}
+ */
+function isBlockElem(node) {
+  return !!(node && blockElements[node.nodeName]);
+}
+
+/**
+ * isVoid(node) determines if the given node is a void element.
+ *
+ * @param {Node} node
+ * @return {Boolean}
+ */
+function isVoid(node) {
+  return !!(node && voidElements[node.nodeName]);
+}
+
+/**
+ * whitespace(elem [, isBlock]) removes extraneous whitespace from an
+ * the given element. The function isBlock may optionally be passed in
+ * to determine whether or not an element is a block element; if none
+ * is provided, defaults to using the list of block elements provided
+ * by the `block-elements` module.
+ *
+ * @param {Node} elem
+ * @param {Function} blockTest
+ */
+function collapseWhitespace(elem, isBlock) {
+  if (!elem.firstChild || elem.nodeName === 'PRE') return;
+
+  if (typeof isBlock !== 'function') {
+    isBlock = isBlockElem;
+  }
+
+  var prevText = null;
+  var prevVoid = false;
+
+  var prev = null;
+  var node = next(prev, elem);
+
+  while (node !== elem) {
+    if (node.nodeType === 3) {
+      // Node.TEXT_NODE
+      var text = node.data.replace(/[ \r\n\t]+/g, ' ');
+
+      if ((!prevText || / $/.test(prevText.data)) && !prevVoid && text[0] === ' ') {
+        text = text.substr(1);
+      }
+
+      // `text` might be empty at this point.
+      if (!text) {
+        node = remove(node);
+        continue;
+      }
+
+      node.data = text;
+      prevText = node;
+    } else if (node.nodeType === 1) {
+      // Node.ELEMENT_NODE
+      if (isBlock(node) || node.nodeName === 'BR') {
+        if (prevText) {
+          prevText.data = prevText.data.replace(/ $/, '');
+        }
+
+        prevText = null;
+        prevVoid = false;
+      } else if (isVoid(node)) {
+        // Avoid trimming space around non-block, non-BR void elements.
+        prevText = null;
+        prevVoid = true;
+      }
+    } else {
+      node = remove(node);
+      continue;
+    }
+
+    var nextNode = next(prev, node);
+    prev = node;
+    node = nextNode;
+  }
+
+  if (prevText) {
+    prevText.data = prevText.data.replace(/ $/, '');
+    if (!prevText.data) {
+      remove(prevText);
+    }
+  }
+}
+
+/**
+ * remove(node) removes the given node from the DOM and returns the
+ * next node in the sequence.
+ *
+ * @param {Node} node
+ * @return {Node} node
+ */
+function remove(node) {
+  var next = node.nextSibling || node.parentNode;
+
+  node.parentNode.removeChild(node);
+
+  return next;
+}
+
+/**
+ * next(prev, current) returns the next node in the sequence, given the
+ * current and previous nodes.
+ *
+ * @param {Node} prev
+ * @param {Node} current
+ * @return {Node}
+ */
+function next(prev, current) {
+  if (prev && prev.parentNode === current || current.nodeName === 'PRE') {
+    return current.nextSibling || current.parentNode;
+  }
+
+  return current.firstChild || current.nextSibling || current.parentNode;
+}
+
+module.exports = collapseWhitespace;
+
+},{"block-elements":1,"void-elements":35}],4:[function(require,module,exports){
 
 /**
  * Expose `Emitter`.
@@ -163,7 +348,7 @@ Emitter.prototype.hasListeners = function(event){
   return !! this.listeners(event).length;
 };
 
-},{}],2:[function(require,module,exports){
+},{}],5:[function(require,module,exports){
 module.exports = {
 	obj: require('./lib/obj'),
 	arr: require('./lib/arr'),
@@ -171,7 +356,7 @@ module.exports = {
 	fn: require('./lib/fn')
 };
 
-},{"./lib/arr":3,"./lib/fn":4,"./lib/obj":5,"./lib/str":6}],3:[function(require,module,exports){
+},{"./lib/arr":6,"./lib/fn":7,"./lib/obj":8,"./lib/str":9}],6:[function(require,module,exports){
 'use strict';
 
 const add = (arr, item) => [].concat(arr, [item]);
@@ -191,7 +376,7 @@ module.exports = {
 	toggle
 };
 
-},{}],4:[function(require,module,exports){
+},{}],7:[function(require,module,exports){
 'use strict';
 
 const compose = (...fList) => (...args) => fList.reduce(
@@ -206,7 +391,7 @@ module.exports = {
 	switch: _switch
 };
 
-},{}],5:[function(require,module,exports){
+},{}],8:[function(require,module,exports){
 'use strict';
 
 const keyValue = (k, v) => {
@@ -260,7 +445,7 @@ module.exports = {
 	chainCall
 };
 
-},{}],6:[function(require,module,exports){
+},{}],9:[function(require,module,exports){
 'use strict';
 
 const toCamelCase = (str, glue) =>
@@ -292,7 +477,7 @@ module.exports = {
 	toDocumentId
 };
 
-},{}],7:[function(require,module,exports){
+},{}],10:[function(require,module,exports){
 'use strict';
 
 const snabbdom = require('snabbdom');
@@ -381,7 +566,7 @@ module.exports = Object.assign(
 	hyperHelpers
 );
 
-},{"iblokz-data":2,"snabbdom":16,"snabbdom/h":8,"snabbdom/modules/attributes":11,"snabbdom/modules/class":12,"snabbdom/modules/eventlisteners":13,"snabbdom/modules/props":14,"snabbdom/modules/style":15}],8:[function(require,module,exports){
+},{"iblokz-data":5,"snabbdom":19,"snabbdom/h":11,"snabbdom/modules/attributes":14,"snabbdom/modules/class":15,"snabbdom/modules/eventlisteners":16,"snabbdom/modules/props":17,"snabbdom/modules/style":18}],11:[function(require,module,exports){
 "use strict";
 var vnode_1 = require("./vnode");
 var is = require("./is");
@@ -441,7 +626,7 @@ exports.h = h;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.default = h;
 
-},{"./is":10,"./vnode":18}],9:[function(require,module,exports){
+},{"./is":13,"./vnode":21}],12:[function(require,module,exports){
 "use strict";
 function createElement(tagName) {
     return document.createElement(tagName);
@@ -508,7 +693,7 @@ exports.htmlDomApi = {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.default = exports.htmlDomApi;
 
-},{}],10:[function(require,module,exports){
+},{}],13:[function(require,module,exports){
 "use strict";
 exports.array = Array.isArray;
 function primitive(s) {
@@ -516,7 +701,7 @@ function primitive(s) {
 }
 exports.primitive = primitive;
 
-},{}],11:[function(require,module,exports){
+},{}],14:[function(require,module,exports){
 "use strict";
 var NamespaceURIs = {
     "xlink": "http://www.w3.org/1999/xlink"
@@ -576,7 +761,7 @@ exports.attributesModule = { create: updateAttrs, update: updateAttrs };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.default = exports.attributesModule;
 
-},{}],12:[function(require,module,exports){
+},{}],15:[function(require,module,exports){
 "use strict";
 function updateClass(oldVnode, vnode) {
     var cur, name, elm = vnode.elm, oldClass = oldVnode.data.class, klass = vnode.data.class;
@@ -602,7 +787,7 @@ exports.classModule = { create: updateClass, update: updateClass };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.default = exports.classModule;
 
-},{}],13:[function(require,module,exports){
+},{}],16:[function(require,module,exports){
 "use strict";
 function invokeHandler(handler, vnode, event) {
     if (typeof handler === "function") {
@@ -698,7 +883,7 @@ exports.eventListenersModule = {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.default = exports.eventListenersModule;
 
-},{}],14:[function(require,module,exports){
+},{}],17:[function(require,module,exports){
 "use strict";
 function updateProps(oldVnode, vnode) {
     var key, cur, old, elm = vnode.elm, oldProps = oldVnode.data.props, props = vnode.data.props;
@@ -725,7 +910,7 @@ exports.propsModule = { create: updateProps, update: updateProps };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.default = exports.propsModule;
 
-},{}],15:[function(require,module,exports){
+},{}],18:[function(require,module,exports){
 "use strict";
 var raf = (typeof window !== 'undefined' && window.requestAnimationFrame) || setTimeout;
 var nextFrame = function (fn) { raf(function () { raf(fn); }); };
@@ -812,7 +997,7 @@ exports.styleModule = {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.default = exports.styleModule;
 
-},{}],16:[function(require,module,exports){
+},{}],19:[function(require,module,exports){
 "use strict";
 var vnode_1 = require("./vnode");
 var is = require("./is");
@@ -1119,7 +1304,7 @@ function init(modules, domApi) {
 }
 exports.init = init;
 
-},{"./h":8,"./htmldomapi":9,"./is":10,"./thunk":17,"./vnode":18}],17:[function(require,module,exports){
+},{"./h":11,"./htmldomapi":12,"./is":13,"./thunk":20,"./vnode":21}],20:[function(require,module,exports){
 "use strict";
 var h_1 = require("./h");
 function copyToThunk(vnode, thunk) {
@@ -1166,7 +1351,7 @@ exports.thunk = function thunk(sel, key, fn, args) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.default = exports.thunk;
 
-},{"./h":8}],18:[function(require,module,exports){
+},{"./h":11}],21:[function(require,module,exports){
 "use strict";
 function vnode(sel, data, children, text, elm) {
     var key = data === undefined ? undefined : data.key;
@@ -1177,7 +1362,7 @@ exports.vnode = vnode;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.default = vnode;
 
-},{}],19:[function(require,module,exports){
+},{}],22:[function(require,module,exports){
 (function (global){
 /**
  * marked - a markdown parser
@@ -2467,7 +2652,7 @@ if (typeof module !== 'undefined' && typeof exports === 'object') {
 }());
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],20:[function(require,module,exports){
+},{}],23:[function(require,module,exports){
 //! moment.js locale configuration
 //! locale : Bulgarian [bg]
 //! author : Krasen Borisov : https://github.com/kraz
@@ -2558,7 +2743,7 @@ if (typeof module !== 'undefined' && typeof exports === 'object') {
     return bg;
 
 }));
-},{"../moment":21}],21:[function(require,module,exports){
+},{"../moment":24}],24:[function(require,module,exports){
 //! moment.js
 //! version : 2.15.1
 //! authors : Tim Wood, Iskren Chernev, Moment.js contributors
@@ -6793,7 +6978,7 @@ if (typeof module !== 'undefined' && typeof exports === 'object') {
     return _moment;
 
 }));
-},{}],22:[function(require,module,exports){
+},{}],25:[function(require,module,exports){
 // shim for using process in browser
 var process = module.exports = {};
 
@@ -6975,7 +7160,7 @@ process.chdir = function (dir) {
 };
 process.umask = function() { return 0; };
 
-},{}],23:[function(require,module,exports){
+},{}],26:[function(require,module,exports){
 (function (process,global){
 // Copyright (c) Microsoft, All rights reserved. See License.txt in the project root for license information.
 
@@ -19367,7 +19552,7 @@ var ReactiveTest = Rx.ReactiveTest = {
 }.call(this));
 
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"_process":22}],24:[function(require,module,exports){
+},{"_process":25}],27:[function(require,module,exports){
 /**
  * Root reference for iframes.
  */
@@ -20345,7 +20530,7 @@ request.put = function(url, data, fn){
   return req;
 };
 
-},{"./is-object":25,"./request":27,"./request-base":26,"emitter":1}],25:[function(require,module,exports){
+},{"./is-object":28,"./request":30,"./request-base":29,"emitter":4}],28:[function(require,module,exports){
 /**
  * Check if `obj` is an object.
  *
@@ -20360,7 +20545,7 @@ function isObject(obj) {
 
 module.exports = isObject;
 
-},{}],26:[function(require,module,exports){
+},{}],29:[function(require,module,exports){
 /**
  * Module of mixed-in functions shared between node and client code
  */
@@ -20734,7 +20919,7 @@ exports.send = function(data){
   return this;
 };
 
-},{"./is-object":25}],27:[function(require,module,exports){
+},{"./is-object":28}],30:[function(require,module,exports){
 // The node and browser modules expose versions of this with the
 // appropriate constructor function bound as first argument
 /**
@@ -20768,7 +20953,610 @@ function request(RequestConstructor, method, url) {
 
 module.exports = request;
 
-},{}],28:[function(require,module,exports){
+},{}],31:[function(require,module,exports){
+/*
+ * to-markdown - an HTML to Markdown converter
+ *
+ * Copyright 2011+, Dom Christie
+ * Licenced under the MIT licence
+ *
+ */
+
+'use strict'
+
+var toMarkdown
+var converters
+var mdConverters = require('./lib/md-converters')
+var gfmConverters = require('./lib/gfm-converters')
+var HtmlParser = require('./lib/html-parser')
+var collapse = require('collapse-whitespace')
+
+/*
+ * Utilities
+ */
+
+var blocks = ['address', 'article', 'aside', 'audio', 'blockquote', 'body',
+  'canvas', 'center', 'dd', 'dir', 'div', 'dl', 'dt', 'fieldset', 'figcaption',
+  'figure', 'footer', 'form', 'frameset', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
+  'header', 'hgroup', 'hr', 'html', 'isindex', 'li', 'main', 'menu', 'nav',
+  'noframes', 'noscript', 'ol', 'output', 'p', 'pre', 'section', 'table',
+  'tbody', 'td', 'tfoot', 'th', 'thead', 'tr', 'ul'
+]
+
+function isBlock (node) {
+  return blocks.indexOf(node.nodeName.toLowerCase()) !== -1
+}
+
+var voids = [
+  'area', 'base', 'br', 'col', 'command', 'embed', 'hr', 'img', 'input',
+  'keygen', 'link', 'meta', 'param', 'source', 'track', 'wbr'
+]
+
+function isVoid (node) {
+  return voids.indexOf(node.nodeName.toLowerCase()) !== -1
+}
+
+function htmlToDom (string) {
+  var tree = new HtmlParser().parseFromString(string, 'text/html')
+  collapse(tree.documentElement, isBlock)
+  return tree
+}
+
+/*
+ * Flattens DOM tree into single array
+ */
+
+function bfsOrder (node) {
+  var inqueue = [node]
+  var outqueue = []
+  var elem
+  var children
+  var i
+
+  while (inqueue.length > 0) {
+    elem = inqueue.shift()
+    outqueue.push(elem)
+    children = elem.childNodes
+    for (i = 0; i < children.length; i++) {
+      if (children[i].nodeType === 1) inqueue.push(children[i])
+    }
+  }
+  outqueue.shift()
+  return outqueue
+}
+
+/*
+ * Contructs a Markdown string of replacement text for a given node
+ */
+
+function getContent (node) {
+  var text = ''
+  for (var i = 0; i < node.childNodes.length; i++) {
+    if (node.childNodes[i].nodeType === 1) {
+      text += node.childNodes[i]._replacement
+    } else if (node.childNodes[i].nodeType === 3) {
+      text += node.childNodes[i].data
+    } else continue
+  }
+  return text
+}
+
+/*
+ * Returns the HTML string of an element with its contents converted
+ */
+
+function outer (node, content) {
+  return node.cloneNode(false).outerHTML.replace('><', '>' + content + '<')
+}
+
+function canConvert (node, filter) {
+  if (typeof filter === 'string') {
+    return filter === node.nodeName.toLowerCase()
+  }
+  if (Array.isArray(filter)) {
+    return filter.indexOf(node.nodeName.toLowerCase()) !== -1
+  } else if (typeof filter === 'function') {
+    return filter.call(toMarkdown, node)
+  } else {
+    throw new TypeError('`filter` needs to be a string, array, or function')
+  }
+}
+
+function isFlankedByWhitespace (side, node) {
+  var sibling
+  var regExp
+  var isFlanked
+
+  if (side === 'left') {
+    sibling = node.previousSibling
+    regExp = / $/
+  } else {
+    sibling = node.nextSibling
+    regExp = /^ /
+  }
+
+  if (sibling) {
+    if (sibling.nodeType === 3) {
+      isFlanked = regExp.test(sibling.nodeValue)
+    } else if (sibling.nodeType === 1 && !isBlock(sibling)) {
+      isFlanked = regExp.test(sibling.textContent)
+    }
+  }
+  return isFlanked
+}
+
+function flankingWhitespace (node, content) {
+  var leading = ''
+  var trailing = ''
+
+  if (!isBlock(node)) {
+    var hasLeading = /^[ \r\n\t]/.test(content)
+    var hasTrailing = /[ \r\n\t]$/.test(content)
+
+    if (hasLeading && !isFlankedByWhitespace('left', node)) {
+      leading = ' '
+    }
+    if (hasTrailing && !isFlankedByWhitespace('right', node)) {
+      trailing = ' '
+    }
+  }
+
+  return { leading: leading, trailing: trailing }
+}
+
+/*
+ * Finds a Markdown converter, gets the replacement, and sets it on
+ * `_replacement`
+ */
+
+function process (node) {
+  var replacement
+  var content = getContent(node)
+
+  // Remove blank nodes
+  if (!isVoid(node) && !/A|TH|TD/.test(node.nodeName) && /^\s*$/i.test(content)) {
+    node._replacement = ''
+    return
+  }
+
+  for (var i = 0; i < converters.length; i++) {
+    var converter = converters[i]
+
+    if (canConvert(node, converter.filter)) {
+      if (typeof converter.replacement !== 'function') {
+        throw new TypeError(
+          '`replacement` needs to be a function that returns a string'
+        )
+      }
+
+      var whitespace = flankingWhitespace(node, content)
+
+      if (whitespace.leading || whitespace.trailing) {
+        content = content.trim()
+      }
+      replacement = whitespace.leading +
+        converter.replacement.call(toMarkdown, content, node) +
+        whitespace.trailing
+      break
+    }
+  }
+
+  node._replacement = replacement
+}
+
+toMarkdown = function (input, options) {
+  options = options || {}
+
+  if (typeof input !== 'string') {
+    throw new TypeError(input + ' is not a string')
+  }
+
+  if (input === '') {
+    return ''
+  }
+
+  // Escape potential ol triggers
+  input = input.replace(/(\d+)\. /g, '$1\\. ')
+
+  var clone = htmlToDom(input).body
+  var nodes = bfsOrder(clone)
+  var output
+
+  converters = mdConverters.slice(0)
+  if (options.gfm) {
+    converters = gfmConverters.concat(converters)
+  }
+
+  if (options.converters) {
+    converters = options.converters.concat(converters)
+  }
+
+  // Process through nodes in reverse (so deepest child elements are first).
+  for (var i = nodes.length - 1; i >= 0; i--) {
+    process(nodes[i])
+  }
+  output = getContent(clone)
+
+  return output.replace(/^[\t\r\n]+|[\t\r\n\s]+$/g, '')
+    .replace(/\n\s+\n/g, '\n\n')
+    .replace(/\n{3,}/g, '\n\n')
+}
+
+toMarkdown.isBlock = isBlock
+toMarkdown.isVoid = isVoid
+toMarkdown.outer = outer
+
+module.exports = toMarkdown
+
+},{"./lib/gfm-converters":32,"./lib/html-parser":33,"./lib/md-converters":34,"collapse-whitespace":3}],32:[function(require,module,exports){
+'use strict'
+
+function cell (content, node) {
+  var index = Array.prototype.indexOf.call(node.parentNode.childNodes, node)
+  var prefix = ' '
+  if (index === 0) prefix = '| '
+  return prefix + content + ' |'
+}
+
+var highlightRegEx = /highlight highlight-(\S+)/
+
+module.exports = [
+  {
+    filter: 'br',
+    replacement: function () {
+      return '\n'
+    }
+  },
+  {
+    filter: ['del', 's', 'strike'],
+    replacement: function (content) {
+      return '~~' + content + '~~'
+    }
+  },
+
+  {
+    filter: function (node) {
+      return node.type === 'checkbox' && node.parentNode.nodeName === 'LI'
+    },
+    replacement: function (content, node) {
+      return (node.checked ? '[x]' : '[ ]') + ' '
+    }
+  },
+
+  {
+    filter: ['th', 'td'],
+    replacement: function (content, node) {
+      return cell(content, node)
+    }
+  },
+
+  {
+    filter: 'tr',
+    replacement: function (content, node) {
+      var borderCells = ''
+      var alignMap = { left: ':--', right: '--:', center: ':-:' }
+
+      if (node.parentNode.nodeName === 'THEAD') {
+        for (var i = 0; i < node.childNodes.length; i++) {
+          var align = node.childNodes[i].attributes.align
+          var border = '---'
+
+          if (align) border = alignMap[align.value] || border
+
+          borderCells += cell(border, node.childNodes[i])
+        }
+      }
+      return '\n' + content + (borderCells ? '\n' + borderCells : '')
+    }
+  },
+
+  {
+    filter: 'table',
+    replacement: function (content) {
+      return '\n\n' + content + '\n\n'
+    }
+  },
+
+  {
+    filter: ['thead', 'tbody', 'tfoot'],
+    replacement: function (content) {
+      return content
+    }
+  },
+
+  // Fenced code blocks
+  {
+    filter: function (node) {
+      return node.nodeName === 'PRE' &&
+      node.firstChild &&
+      node.firstChild.nodeName === 'CODE'
+    },
+    replacement: function (content, node) {
+      return '\n\n```\n' + node.firstChild.textContent + '\n```\n\n'
+    }
+  },
+
+  // Syntax-highlighted code blocks
+  {
+    filter: function (node) {
+      return node.nodeName === 'PRE' &&
+      node.parentNode.nodeName === 'DIV' &&
+      highlightRegEx.test(node.parentNode.className)
+    },
+    replacement: function (content, node) {
+      var language = node.parentNode.className.match(highlightRegEx)[1]
+      return '\n\n```' + language + '\n' + node.textContent + '\n```\n\n'
+    }
+  },
+
+  {
+    filter: function (node) {
+      return node.nodeName === 'DIV' &&
+      highlightRegEx.test(node.className)
+    },
+    replacement: function (content) {
+      return '\n\n' + content + '\n\n'
+    }
+  }
+]
+
+},{}],33:[function(require,module,exports){
+/*
+ * Set up window for Node.js
+ */
+
+var _window = (typeof window !== 'undefined' ? window : this)
+
+/*
+ * Parsing HTML strings
+ */
+
+function canParseHtmlNatively () {
+  var Parser = _window.DOMParser
+  var canParse = false
+
+  // Adapted from https://gist.github.com/1129031
+  // Firefox/Opera/IE throw errors on unsupported types
+  try {
+    // WebKit returns null on unsupported types
+    if (new Parser().parseFromString('', 'text/html')) {
+      canParse = true
+    }
+  } catch (e) {}
+
+  return canParse
+}
+
+function createHtmlParser () {
+  var Parser = function () {}
+
+  // For Node.js environments
+  if (typeof document === 'undefined') {
+    var jsdom = require('jsdom')
+    Parser.prototype.parseFromString = function (string) {
+      return jsdom.jsdom(string, {
+        features: {
+          FetchExternalResources: [],
+          ProcessExternalResources: false
+        }
+      })
+    }
+  } else {
+    if (!shouldUseActiveX()) {
+      Parser.prototype.parseFromString = function (string) {
+        var doc = document.implementation.createHTMLDocument('')
+        doc.open()
+        doc.write(string)
+        doc.close()
+        return doc
+      }
+    } else {
+      Parser.prototype.parseFromString = function (string) {
+        var doc = new window.ActiveXObject('htmlfile')
+        doc.designMode = 'on' // disable on-page scripts
+        doc.open()
+        doc.write(string)
+        doc.close()
+        return doc
+      }
+    }
+  }
+  return Parser
+}
+
+function shouldUseActiveX () {
+  var useActiveX = false
+
+  try {
+    document.implementation.createHTMLDocument('').open()
+  } catch (e) {
+    if (window.ActiveXObject) useActiveX = true
+  }
+
+  return useActiveX
+}
+
+module.exports = canParseHtmlNatively() ? _window.DOMParser : createHtmlParser()
+
+},{"jsdom":2}],34:[function(require,module,exports){
+'use strict'
+
+module.exports = [
+  {
+    filter: 'p',
+    replacement: function (content) {
+      return '\n\n' + content + '\n\n'
+    }
+  },
+
+  {
+    filter: 'br',
+    replacement: function () {
+      return '  \n'
+    }
+  },
+
+  {
+    filter: ['h1', 'h2', 'h3', 'h4', 'h5', 'h6'],
+    replacement: function (content, node) {
+      var hLevel = node.nodeName.charAt(1)
+      var hPrefix = ''
+      for (var i = 0; i < hLevel; i++) {
+        hPrefix += '#'
+      }
+      return '\n\n' + hPrefix + ' ' + content + '\n\n'
+    }
+  },
+
+  {
+    filter: 'hr',
+    replacement: function () {
+      return '\n\n* * *\n\n'
+    }
+  },
+
+  {
+    filter: ['em', 'i'],
+    replacement: function (content) {
+      return '_' + content + '_'
+    }
+  },
+
+  {
+    filter: ['strong', 'b'],
+    replacement: function (content) {
+      return '**' + content + '**'
+    }
+  },
+
+  // Inline code
+  {
+    filter: function (node) {
+      var hasSiblings = node.previousSibling || node.nextSibling
+      var isCodeBlock = node.parentNode.nodeName === 'PRE' && !hasSiblings
+
+      return node.nodeName === 'CODE' && !isCodeBlock
+    },
+    replacement: function (content) {
+      return '`' + content + '`'
+    }
+  },
+
+  {
+    filter: function (node) {
+      return node.nodeName === 'A' && node.getAttribute('href')
+    },
+    replacement: function (content, node) {
+      var titlePart = node.title ? ' "' + node.title + '"' : ''
+      return '[' + content + '](' + node.getAttribute('href') + titlePart + ')'
+    }
+  },
+
+  {
+    filter: 'img',
+    replacement: function (content, node) {
+      var alt = node.alt || ''
+      var src = node.getAttribute('src') || ''
+      var title = node.title || ''
+      var titlePart = title ? ' "' + title + '"' : ''
+      return src ? '![' + alt + ']' + '(' + src + titlePart + ')' : ''
+    }
+  },
+
+  // Code blocks
+  {
+    filter: function (node) {
+      return node.nodeName === 'PRE' && node.firstChild.nodeName === 'CODE'
+    },
+    replacement: function (content, node) {
+      return '\n\n    ' + node.firstChild.textContent.replace(/\n/g, '\n    ') + '\n\n'
+    }
+  },
+
+  {
+    filter: 'blockquote',
+    replacement: function (content) {
+      content = content.trim()
+      content = content.replace(/\n{3,}/g, '\n\n')
+      content = content.replace(/^/gm, '> ')
+      return '\n\n' + content + '\n\n'
+    }
+  },
+
+  {
+    filter: 'li',
+    replacement: function (content, node) {
+      content = content.replace(/^\s+/, '').replace(/\n/gm, '\n    ')
+      var prefix = '*   '
+      var parent = node.parentNode
+      var index = Array.prototype.indexOf.call(parent.children, node) + 1
+
+      prefix = /ol/i.test(parent.nodeName) ? index + '.  ' : '*   '
+      return prefix + content
+    }
+  },
+
+  {
+    filter: ['ul', 'ol'],
+    replacement: function (content, node) {
+      var strings = []
+      for (var i = 0; i < node.childNodes.length; i++) {
+        strings.push(node.childNodes[i]._replacement)
+      }
+
+      if (/li/i.test(node.parentNode.nodeName)) {
+        return '\n' + strings.join('\n')
+      }
+      return '\n\n' + strings.join('\n') + '\n\n'
+    }
+  },
+
+  {
+    filter: function (node) {
+      return this.isBlock(node)
+    },
+    replacement: function (content, node) {
+      return '\n\n' + this.outer(node, content) + '\n\n'
+    }
+  },
+
+  // Anything else!
+  {
+    filter: function () {
+      return true
+    },
+    replacement: function (content, node) {
+      return this.outer(node, content)
+    }
+  }
+]
+
+},{}],35:[function(require,module,exports){
+/**
+ * This file automatically generated from `pre-publish.js`.
+ * Do not manually edit.
+ */
+
+module.exports = {
+  "area": true,
+  "base": true,
+  "br": true,
+  "col": true,
+  "embed": true,
+  "hr": true,
+  "img": true,
+  "input": true,
+  "keygen": true,
+  "link": true,
+  "menuitem": true,
+  "meta": true,
+  "param": true,
+  "source": true,
+  "track": true,
+  "wbr": true
+};
+
+},{}],36:[function(require,module,exports){
 'use strict';
 
 var Rx = require('rx');
@@ -20781,21 +21569,37 @@ var obj = _require.obj;
 
 var initial = {
 	signIn: false,
-	wysiwyg: true
+	editor: {
+		wysiwyg: true,
+		sel: { row: 0, col: 0, length: 0 }
+	}
 };
 
-var toggle = function toggle(p) {
+var set = function set(path, val) {
 	return function (state) {
-		return obj.patch(state, p, !obj.sub(state, p));
+		return obj.patch(state, path, val);
+	};
+};
+var toggle = function toggle(path) {
+	return function (state) {
+		return obj.patch(state, path, !obj.sub(state, path));
+	};
+};
+
+var editArticle = function editArticle(text, sel) {
+	return function (state) {
+		return obj.patch(obj.patch(state, ['articles', 'doc'], { text: text }), 'editor', { sel: sel });
 	};
 };
 
 module.exports = {
+	set: set,
 	toggle: toggle,
+	editArticle: editArticle,
 	initial: initial
 };
 
-},{"iblokz-data":2,"rx":23}],29:[function(require,module,exports){
+},{"iblokz-data":5,"rx":26}],37:[function(require,module,exports){
 'use strict';
 
 // lib
@@ -20829,6 +21633,9 @@ actions.router = router.actions;
 // resources
 var resource = require('./services/resource');
 actions = resource.attach(actions, 'articles');
+// auth
+var auth = require('./services/auth');
+actions.auth = auth.actions;
 
 // prep actions
 var actions$ = void 0;
@@ -20840,7 +21647,10 @@ if (module.hot) {
 	actions$ = $.fromEventPattern(function (h) {
 		return module.hot.accept("./actions", h);
 	}).flatMap(function () {
-		actions = app.adapt(Object.assign({}, require('./actions'), { router: router.actions }, obj.keyValue('articles', resource.applyNs(resource.actions, 'articles'))));
+		actions = app.adapt(Object.assign({}, require('./actions'), {
+			router: router.actions,
+			auth: auth.actions
+		}, obj.keyValue('articles', resource.applyNs(resource.actions, 'articles'))));
 		return actions.stream.startWith(function (state) {
 			return state;
 		});
@@ -20868,6 +21678,7 @@ var state$ = actions$.startWith(function () {
 // state change hooks
 router.hook({ state$: state$, actions: actions });
 resource.hook('articles')({ state$: state$, actions: actions });
+auth.hook({ state$: state$, actions: actions });
 
 // trigger read action on pageId param
 state$.distinctUntilChanged(function (state) {
@@ -20875,7 +21686,7 @@ state$.distinctUntilChanged(function (state) {
 }).filter(function (state) {
 	return state.router.pageId !== null && state.router.page.match(/articles/ig);
 }).subscribe(function (state) {
-	return actions.articles.read(state.router.pageId);
+	return state.router.pageId === 'new' ? actions.articles.reset() : actions.articles.read(state.router.pageId);
 });
 
 /*
@@ -20904,7 +21715,73 @@ vdom.patchStream(ui$, '#ui');
 
 window.actions = actions;
 
-},{"./actions":28,"./services/resource":30,"./services/router":31,"./ui":33,"./util/app":46,"iblokz-data":2,"iblokz-snabbdom-helpers":7,"moment/locale/bg":20,"rx":23}],30:[function(require,module,exports){
+},{"./actions":36,"./services/auth":38,"./services/resource":39,"./services/router":40,"./ui":42,"./util/app":55,"iblokz-data":5,"iblokz-snabbdom-helpers":10,"moment/locale/bg":23,"rx":26}],38:[function(require,module,exports){
+'use strict';
+
+var Rx = require('rx');
+var $ = Rx.Observable;
+var Subject = Rx.Subject;
+var request = require('../util/request');
+var store = require('../util/store');
+
+var _require = require('iblokz-data');
+
+var obj = _require.obj;
+
+// const page = require('../page');
+
+var forceLogout = function forceLogout() {
+	return function (state) {
+		store.set('user', null);
+		store.set('token', null);
+		window.location = '#/';
+		return obj.patch(state, 'auth', { user: null, token: null });
+	};
+};
+
+var login = function login(data) {
+	return request.post('/api/auth').send(data).set('Accept', 'application/json').observe().map(function (res) {
+		return res.body;
+	}).map(function (body) {
+		if (body.success) {
+			store.set('user', body.user);
+			store.set('token', body.token);
+			window.location = '#/admin';
+			return function (state) {
+				return obj.patch(state, 'auth', { user: body.user });
+			};
+		}
+		return function (state) {
+			return state;
+		};
+	});
+};
+
+var logout = function logout(token) {
+	return request.delete('/api/auth').query({ token: token }).set('Accept', 'application/json').observe().map(function (res) {
+		return res.body;
+	}).map(function (data) {
+		return data.success ? forceLogout() : function (state) {
+			return state;
+		};
+	});
+};
+
+var actions = {
+	forceLogout: forceLogout,
+	login: login,
+	logout: forceLogout,
+	initial: { user: store.get('user'), token: store.get('token') }
+};
+
+var hook = function hook(state$) {};
+
+module.exports = {
+	actions: actions,
+	hook: hook
+};
+
+},{"../util/request":57,"../util/store":58,"iblokz-data":5,"rx":26}],39:[function(require,module,exports){
 'use strict';
 
 var Rx = require('rx');
@@ -20951,8 +21828,8 @@ var query = function query(ns) {
 };
 
 var create = function create(ns) {
-	return function (doc) {
-		return request.post('/api/' + ns).send(doc).observe().map(function () {
+	return function (doc, token) {
+		return request.post('/api/' + ns).set(token && { 'x-access-token': token } || {}).send(doc).observe().map(function () {
 			return function (state) {
 				return obj.patch(state, ns, { dirty: true, doc: {} });
 			};
@@ -20972,12 +21849,39 @@ var read = function read(ns) {
 	};
 };
 
+var update = function update(ns) {
+	return function (id, doc, token) {
+		return request.put('/api/' + ns + '/' + id).set(token && { 'x-access-token': token } || {}).send(doc).observe().map(function () {
+			return function (state) {
+				return obj.patch(state, ns, { dirty: true, doc: {} });
+			};
+		});
+	};
+};
+
+var save = function save(ns) {
+	return function (doc, token) {
+		return doc._id ? update(ns)(doc._id, doc, token) : create(ns)(doc, token);
+	};
+};
+
+var reset = function reset(ns) {
+	return function () {
+		return function (state) {
+			return obj.patch(state, ns, { doc: {} });
+		};
+	};
+};
+
 var actions = {
 	initial: initial,
 	list: list,
 	query: query,
 	create: create,
-	read: read
+	update: update,
+	save: save,
+	read: read,
+	reset: reset
 };
 
 var applyNs = function applyNs(o, ns) {
@@ -20995,8 +21899,9 @@ var hook = function hook(ns) {
 		var state$ = _ref.state$;
 		var actions = _ref.actions;
 
+		console.log({ ns: ns });
 		state$.distinctUntilChanged(function (state) {
-			return state[ns].dirty;
+			return console.log(ns, state[ns]), state[ns].dirty;
 		}).filter(function (state) {
 			return state[ns].dirty;
 		}).subscribe(function (state) {
@@ -21012,7 +21917,7 @@ module.exports = {
 	hook: hook
 };
 
-},{"../util/request":47,"iblokz-data":2,"rx":23}],31:[function(require,module,exports){
+},{"../util/request":57,"iblokz-data":5,"rx":26}],40:[function(require,module,exports){
 'use strict';
 
 var Rx = require('rx');
@@ -21031,15 +21936,18 @@ var parsePageParams = function parsePageParams(str) {
 	};
 };
 
-var change = function change(page) {
+var change = void 0;
+var go = void 0;
+
+change = function change(page) {
 	return function (state) {
-		return Object.assign({}, state, { router: parsePageParams(page) });
+		return page.match('admin') && (!state.auth.user || state.auth.user.role !== 'admin') ? (go('home'), state) : Object.assign({}, state, { router: parsePageParams(page) });
 	};
 };
 
-var go = function go(page) {
+go = function go(page) {
 	window.location.hash = '/' + (page !== 'home' ? page.split('.').join('/') : '');
-	return change(page);
+	// return state => state;
 };
 
 var actions = {
@@ -21067,7 +21975,7 @@ module.exports = {
 	hook: hook
 };
 
-},{"rx":23}],32:[function(require,module,exports){
+},{"rx":26}],41:[function(require,module,exports){
 'use strict';
 
 var _require = require('iblokz-snabbdom-helpers');
@@ -21082,6 +21990,7 @@ var i = _require.i;
 var ul = _require.ul;
 var li = _require.li;
 var a = _require.a;
+var span = _require.span;
 var table = _require.table;
 var thead = _require.thead;
 var tbody = _require.tbody;
@@ -21099,23 +22008,45 @@ var links = {
 	admin: [{ page: 'admin.home', href: '#/admin', title: 'Табло' }, { page: 'admin.articles', href: '#/admin/articles', title: 'Публикации' }, { page: 'admin.events', href: '#/admin/events', title: 'Събития' }, { page: 'admin.pages', href: '#/admin/pages', title: 'Страници' }]
 };
 
+var formToData = function formToData(form) {
+	return Array.from(form.elements)
+	// .map(el => (console.log(el.name), el))
+	.filter(function (el) {
+		return el.name !== undefined;
+	}).reduce(function (o, el) {
+		return o[el.name] = el.value, o;
+	}, {});
+};
+
 module.exports = function (_ref) {
 	var state = _ref.state;
 	var actions = _ref.actions;
-	return header([!state.router.admin ? section('.title', [h1('Дружество Родолюбец'), h3('Културно-просветно дружество за връзки с бесарабските и таврийските българи')]) : '', ul('#menu', links[state.router.admin ? 'admin' : 'front'].map(function (link) {
+	return header([!state.router.admin ? section('.title', [h1('Дружество Родолюбец'), h3('Културно-просветно дружество за връзки с бесарабските и таврийските българи')]) : '', ul('#menu', [].concat(state.auth.user && li(state.router.admin ? a('[href="#/"][title="Начална страница"]', [i('.fa.fa-newspaper-o')]) : a('[href="#/admin/"][title="Администрация"]', [i('.fa.fa-dashboard')])) || '', links[state.router.admin ? 'admin' : 'front'].map(function (link) {
 		return li([a('[href="' + link.href + '"]', { class: { active: link.page === state.router.page } }, link.title)]);
-	}).concat([li('.right', [state.signIn ?
+	}), [li('.right', !state.auth.user ? [state.signIn ?
 	// login form
-	form([label('[for="login-user"]', [i('.fa.fa-user')]), input('#login-user[name="user"][placeholder="Потребителско име"]'), label('[for="login-pass"]', [i('.fa.fa-key')]), input('#login-pass[name="pass"][type="password"][placeholder="Парола"]'), button([i('.fa.fa-sign-in')]), a({ on: { click: function click() {
+	form({
+		on: {
+			submit: function submit(ev) {
+				ev.preventDefault();
+				var data = formToData(ev.target);
+				actions.auth.login(data);
+			}
+		}
+	}, [label('[for="login-email"]', [i('.fa.fa-user')]), input('#login-email[name="email"][placeholder="Потребителско име"]'), label('[for="login-pass"]', [i('.fa.fa-key')]), input('#login-password[name="password"][type="password"][placeholder="Парола"]'), button([i('.fa.fa-sign-in')]), a({ on: { click: function click() {
 				return actions.toggle('signIn');
 			} } }, [i('.fa.fa-close')])])
 	// toggle button
 	: a({ on: { click: function click() {
 				return actions.toggle('signIn');
-			} } }, [i('.fa.fa-pencil-square-o')])])]))]);
+			} } }, [i('.fa.fa-pencil-square-o')])] : [span(state.auth.user.name || state.auth.user.email), button({
+		on: { click: function click() {
+				return actions.auth.logout();
+			} }
+	}, [i('.fa.fa-sign-out')])])]))]);
 };
 
-},{"iblokz-snabbdom-helpers":7}],33:[function(require,module,exports){
+},{"iblokz-snabbdom-helpers":10}],42:[function(require,module,exports){
 'use strict';
 
 var _require = require('iblokz-snabbdom-helpers');
@@ -21151,7 +22082,7 @@ module.exports = function (_ref) {
 	return section('#ui', [section(state.router.admin ? '#admin' : '#front', [].concat([header({ state: state, actions: actions })], _switch(state.router.path, pages)({ state: state, actions: actions })))]);
 };
 
-},{"./header":32,"./pages/about":34,"./pages/admin":38,"./pages/admin/articles":36,"./pages/admin/pages":39,"./pages/almanac":40,"./pages/articles":41,"./pages/home":42,"./pages/links":43,"iblokz-data":2,"iblokz-snabbdom-helpers":7}],34:[function(require,module,exports){
+},{"./header":41,"./pages/about":43,"./pages/admin":47,"./pages/admin/articles":45,"./pages/admin/pages":48,"./pages/almanac":49,"./pages/articles":50,"./pages/home":51,"./pages/links":52,"iblokz-data":5,"iblokz-snabbdom-helpers":10}],43:[function(require,module,exports){
 'use strict';
 
 var _require = require('iblokz-snabbdom-helpers');
@@ -21187,7 +22118,7 @@ module.exports = function (_ref) {
 	return [section('.content', [section('.post', [h1('За Дружеството')]), section('.post', [p({ props: { innerHTML: marked('\n\u0414\u0440\u0443\u0436\u0435\u0441\u0442\u0432\u043E\u0442\u043E \u0437\u0430 \u043F\u0440\u0438\u044F\u0442\u0435\u043B\u0441\u0442\u0432\u043E \u0438 \u043A\u0443\u043B\u0442\u0443\u0440\u043D\u0438 \u0432\u0440\u044A\u0437\u043A\u0438 \u0441 \u0431\u0435\u0441\u0430\u0440\u0430\u0431\u0441\u043A\u0438\u0442\u0435 \u0438 \u0442\u0430\u0432\u0440\u0438\u0439\u0441\u043A\u0438\u0442\u0435 \u0431\u044A\u043B\u0433\u0430\u0440\u0438 \u201E\u0420\u043E\u0434\u043E\u043B\u044E\u0431\u0435\u0446\u201D \u0435 \u043E\u0441\u043D\u043E\u0432\u0430\u043D\u043E \u0432 \u043D\u0430\u0447\u0430\u043B\u043E\u0442\u043E \u043D\u0430 1990 \u0433.\n\n\u041D\u0430 15 \u044F\u043D\u0443\u0430\u0440\u0438 \u0432 \u0421\u043E\u0444\u0438\u044F \u0443\u0447\u0440\u0435\u0434\u0438\u0442\u0435\u043B\u043D\u043E\u0442\u043E \u0441\u044A\u0431\u0440\u0430\u043D\u0438\u0435 \u043F\u0440\u0438\u0435\u043C\u0430 \u0423\u0441\u0442\u0430\u0432\u0430 \u043D\u0430 \u0434\u0440\u0443\u0436\u0435\u0441\u0442\u0432\u043E\u0442\u043E, \u0430 \u0440\u0435\u0448\u0435\u043D\u0438\u0435\u0442\u043E \u0437\u0430 \u0440\u0435\u0433\u0438\u0441\u0442\u0440\u0430\u0446\u0438\u044F \u043D\u0430 \u0421\u043E\u0444\u0438\u0439\u0441\u043A\u0438\u044F \u0433\u0440\u0430\u0434\u0441\u043A\u0438 \u0441\u044A\u0434 \u0435 \u043E\u0442 28.06.1990 \u0433.\n\n\u041F\u0440\u0435\u0437 \u0442\u0435\u0437\u0438 \u043F\u043E\u0432\u0435\u0447\u0435 \u043E\u0442 25 \u0433\u043E\u0434\u0438\u043D\u0438 \u0434\u0440\u0443\u0436\u0435\u0441\u0442\u0432\u043E \u201E\u0420\u043E\u0434\u043E\u043B\u044E\u0431\u0435\u0446\u201D \u043F\u043E\u0435 \u043E\u0442\u0433\u0432\u043E\u0440\u043D\u043E\u0441\u0442\u0430 \u0438 \u043E\u0433\u0440\u043E\u043C\u043D\u0430\u0442\u0430 \u0437\u0430\u0434\u0430\u0447\u0430 \u0434\u0430 \u0437\u0430\u043F\u043E\u0437\u043D\u0430\u0435 \u0431\u044A\u043B\u0433\u0430\u0440\u0438\u0442\u0435 \u0432 \u0411\u044A\u043B\u0433\u0430\u0440\u0438\u044F \u0441\u044A\u0441 \u0441\u044A\u0449\u0435\u0441\u0442\u0432\u0443\u0432\u0430\u043D\u0435\u0442\u043E \u043D\u0430 \u043D\u0430\u0448\u0438 \u0441\u044A\u043D\u0430\u0440\u043E\u0434\u043D\u0438\u0446\u0438 \u0432 \u041C\u043E\u043B\u0434\u043E\u0432\u0430, \u0423\u043A\u0440\u0430\u0439\u043D\u0430, \u041A\u0430\u0437\u0430\u0445\u0441\u0442\u0430\u043D, \u0421\u0438\u0431\u0438\u0440... \u0414\u0440\u0443\u0436\u0435\u0441\u0442\u0432\u043E\u0442\u043E \u0438\u043C\u0430 \u0437\u0430\u0441\u043B\u0443\u0433\u0430 \u0438 \u0437\u0430 \u043F\u043E\u044F\u0432\u0430\u0442\u0430 \u043D\u0430 103 \u043F\u043E\u0441\u0442\u0430\u043D\u043E\u0432\u043B\u0435\u043D\u0438\u0435 \u043D\u0430 \u041C\u0438\u043D\u0438\u0441\u0442\u0435\u0440\u0441\u043A\u0438\u044F \u0441\u044A\u0432\u0435\u0442 \u043D\u0430 \u0420\u0435\u043F\u0443\u0431\u043B\u0438\u043A\u0430 \u0411\u044A\u043B\u0433\u0430\u0440\u0438\u044F \u0437\u0430 \u043F\u0440\u0438\u0435\u043C\u0430\u043D\u0435 \u043D\u0430 \u043D\u0430\u0448\u0438 \u0441\u044A\u043D\u0430\u0440\u043E\u0434\u043D\u0438\u0446\u0438 \u043E\u0442 \u0431\u0438\u0432\u0448\u0438\u0442\u0435 \u0441\u044A\u0432\u0435\u0442\u0441\u043A\u0438 \u0440\u0435\u043F\u0443\u0431\u043B\u0438\u043A\u0438 \u0437\u0430 \u0441\u0442\u0443\u0434\u0435\u043D\u0442\u0438 \u0443 \u043D\u0430\u0441.\n\n\u0418\u0437\u0434\u0430\u0432\u0430\u043D\u0435\u0442\u043E \u043D\u0430 \u0430\u043B\u043C\u0430\u043D\u0430\u0445\u0430 \u201E\u0420\u043E\u0434\u043E\u043B\u044E\u0431\u0435\u0446\u201D \u0441\u0442\u0430\u043D\u0430 \u043D\u0435\u043E\u0431\u0445\u043E\u0434\u0438\u043C\u043E \u043F\u043E\u043C\u0430\u0433\u0430\u043B\u043E \u043D\u0430 \u0443\u0447\u0438\u0442\u0435\u043B\u0438\u0442\u0435, \u043A\u043E\u0438\u0442\u043E \u0442\u0440\u044A\u0433\u0432\u0430\u0442 \u043A\u044A\u043C \u043D\u0430\u0448\u0438\u0442\u0435 \u0437\u0430\u0431\u0440\u0430\u0432\u0435\u043D\u0438 \u0441\u044A\u043D\u0430\u0440\u043E\u0434\u043D\u0438\u0446\u0438. \u0412 1998 \u0433. \u0434\u0440\u0443\u0436\u0435\u0441\u0442\u0432\u043E\u0442\u043E \u0432\u044A\u0437\u0441\u0442\u0430\u043D\u043E\u0432\u0438 \u043E\u0442\u0431\u0435\u043B\u044F\u0437\u0432\u0430\u043D\u0435\u0442\u043E \u0414\u0435\u043D\u044F \u043D\u0430 \u0431\u0435\u0441\u0430\u0440\u0430\u0431\u0441\u043A\u0438\u0442\u0435 \u0431\u044A\u043B\u0433\u0430\u0440\u0438. \u0420\u0430\u0434\u043E\u0441\u0442\u043D\u043E \u0435, \u0447\u0435 \u0438 \u0432 \u0441\u0435\u043B\u0438\u0449\u0430\u0442\u0430 \u043D\u0430 \u043D\u0430\u0448\u0438\u0442\u0435 \u0441\u044A\u043D\u0430\u0440\u043E\u0434\u043D\u0438\u0446\u0438 \u0432 \u043D\u044F\u043A\u043E\u0433\u0430\u0448\u043D\u0438\u0442\u0435 \u0411\u0435\u0441\u0430\u0440\u0430\u0431\u0438\u044F \u0438 \u0422\u0430\u0432\u0440\u0438\u044F \u0442\u043E\u0437\u0438 \u0414\u0435\u043D \u0432\u0435\u0447\u0435 \u043D\u0430\u043C\u0438\u0440\u0430 \u043C\u044F\u0441\u0442\u043E \u0432 \u043F\u0440\u0430\u0437\u043D\u0438\u0447\u043D\u0438\u044F \u0438\u043C \u043A\u0430\u043B\u0435\u043D\u0434\u0430\u0440.\n\n\u0427\u043B\u0435\u043D\u043E\u0432\u0435 \u043D\u0430 \u043D\u0430\u0448\u0435\u0442\u043E \u0434\u0440\u0443\u0436\u0435\u0441\u0442\u0432\u043E \u0438\u0437\u043D\u0430\u0441\u044F\u0442 \u0432 \u0441\u0435\u043B\u0438\u0449\u0430 \u0441 \u043A\u043E\u043C\u043F\u0430\u043A\u0442\u043D\u043E \u0431\u044A\u043B\u0433\u0430\u0440\u0441\u043A\u043E \u043D\u0430\u0441\u0435\u043B\u0435\u043D\u0438\u0435 \u043A\u043E\u043D\u0446\u0435\u0440\u0442\u0438 \u2013 \u0442\u043E\u043F\u043B\u0430 \u0438 \u0441\u044A\u0440\u0434\u0435\u0447\u043D\u0430 \u0432\u0440\u044A\u0437\u043A\u0430 \u0441\u044A\u0441 \u0441\u0442\u0430\u0440\u0430\u0442\u0430 \u0440\u043E\u0434\u0438\u043D\u0430. \u0421\u0442\u0443\u0434\u0435\u043D\u0442\u0438\u0442\u0435 \u0438 \u0437\u0430\u0432\u0440\u044A\u0449\u0430\u0449\u0438\u0442\u0435 \u0441\u0435 \u0437\u0430\u0432\u0438\u043D\u0430\u0433\u0438 \u0432 \u0411\u044A\u043B\u0433\u0430\u0440\u0438\u044F \u0431\u0435\u0441\u0430\u0440\u0430\u0431\u0441\u043A\u0438 \u0438 \u0442\u0430\u0432\u0440\u0438\u0439\u0441\u043A\u0438 \u0431\u044A\u043B\u0433\u0430\u0440\u0438 \u043C\u043E\u0433\u0430\u0442 \u0434\u0430 \u0440\u0430\u0437\u0447\u0438\u0442\u0430\u0442 \u043D\u0430 \u043F\u0440\u0438\u044F\u0442\u0435\u043B\u0441\u043A\u0430 \u043F\u043E\u0434\u043A\u0440\u0435\u043F\u0430 \u043E\u0442 \u0434\u0440\u0443\u0436\u0435\u0441\u0442\u0432\u043E \u201E\u0420\u043E\u0434\u043E\u043B\u044E\u0431\u0435\u0446\u201D.\n\n') } })]), section('.post', [p({ props: { innerHTML: marked('\n[\u0410\u0440\u0445\u0438\u0432\u043D\u0438 \u043C\u0430\u0442\u0435\u0440\u0438\u0430\u043B\u0438 \u0437\u0430 \u0420\u043E\u0434\u043E\u043B\u044E\u0431\u0435\u0446 (omda.bg)](http://prehod.omda.bg/page.php?IDMenu=642&IDLang=1)\n') } })])]), rightColumn({ state: state, actions: actions })];
 };
 
-},{"../right-column":45,"iblokz-snabbdom-helpers":7,"marked":19}],35:[function(require,module,exports){
+},{"../right-column":54,"iblokz-snabbdom-helpers":10,"marked":22}],44:[function(require,module,exports){
 'use strict';
 
 var _require = require('iblokz-snabbdom-helpers');
@@ -21218,7 +22149,9 @@ var input = _require.input;
 var textarea = _require.textarea;
 
 
-var marked = require('marked');
+var $ = require('rx').Observable;
+
+var md = require('../../../../util/md');
 var moment = require('moment');
 
 var find = function find(q) {
@@ -21231,64 +22164,120 @@ var getParent = function getParent(el, tagName) {
 };
 
 var getRangePoint = function getRangePoint(el, offset) {
-	return el.nodeType === 3 || el.childNodes.length === 0 ? { el: el, offset: el.textContent.length < offset ? el.textContent.length : offset } : Array.from(el.childNodes).reduce(function (rp, child) {
-		return rp.el !== el ? rp : child.textContent.length >= rp.offset ? getRangePoint(child, rp.offset) : { el: el, offset: rp.offset - child.textContent.length };
+	return el.nodeType === 3 || el.childNodes.length === 0 ? { el: el, offset: el.textContent.length < offset ? el.textContent.length : offset } : Array.from(el.childNodes).reduce(function (rp, child, index) {
+		return rp.el !== el ? rp : child.textContent.length >= rp.offset ? getRangePoint(child, rp.offset) : index < el.childNodes.length - 1 ? { el: el, offset: rp.offset - child.textContent.length } : { el: child, offset: child.textContent.length };
 	}, { el: el, offset: offset });
 };
 
 var caret = {
 	get: function get(el) {
-		var rows = find('p, li', el);
+		var rows = find('p, li, div', el);
 		console.log(rows);
 		var range = window.getSelection().getRangeAt(0);
-		var parentRow = getParent(range.startContainer, ['LI', 'P']);
+		var parentRow = getParent(range.startContainer, ['LI', 'P', 'DIV']);
 		var colRange = document.createRange();
 		colRange.setStart(parentRow, 0);
 		colRange.setEnd(range.startContainer, range.startOffset);
 		var row = rows.indexOf(parentRow);
 		var col = colRange.toString().length;
+		console.log(range.toString());
 		return {
 			row: row,
-			col: col
+			col: col,
+			length: range.toString().length
 		};
 	},
 	set: function set(el, pos) {
-		var parentRow = find('p, li', el)[pos.row];
-		var rp = getRangePoint(parentRow, pos.col);
-		console.log(rp);
-		var range = document.createRange();
-		range.setStart(rp.el, rp.offset);
-		range.setEnd(rp.el, rp.offset);
-		var sel = window.getSelection();
-		sel.removeAllRanges();
-		sel.addRange(range);
+		var parentRow = find('p, li, div', el)[pos.row];
+		if (parentRow) {
+			var rp = getRangePoint(parentRow, pos.col);
+			var ep = pos.length === 0 ? rp : getRangePoint(parentRow, pos.col + pos.length);
+			console.log(parentRow, pos, rp);
+			var range = document.createRange();
+			range.setStart(rp.el, rp.offset);
+			range.setEnd(ep.el, ep.offset);
+			var sel = window.getSelection();
+			sel.removeAllRanges();
+			sel.addRange(range);
+		}
 	}
+};
+
+var formToData = function formToData(form) {
+	return Array.from(form.elements).filter(function (el) {
+		return el.name !== undefined;
+	}).reduce(function (o, el) {
+		return o[el.name] = el.value, o;
+	}, {});
 };
 
 module.exports = function (_ref) {
 	var state = _ref.state;
 	var actions = _ref.actions;
-	return state.articles.doc._id === state.router.pageId ? div('.edit', [form([div([label('Заглавие'), input('[type="text"][name="title"]', { props: { value: state.articles.doc.title || '' } })]), div([label('Автор'), input('[type="text"][name="author"]', { props: { value: state.articles.doc.author || '' } })]), div([label(['Текст', span('.right', [button('[type="button"]', {
-		class: { on: state.wysiwyg },
-		on: { click: function click() {
-				return actions.toggle('wysiwyg');
-			} }
-	}, 'Wysiwyg'), button('[type="button"]', {
-		class: { on: !state.wysiwyg },
-		on: { click: function click() {
-				return actions.toggle('wysiwyg');
-			} }
-	}, 'Markdown')])]), state.wysiwyg ? div('.wysiwyg[contenteditable="true"]', {
-		props: { innerHTML: marked(state.articles.doc.text) },
+	return state.articles.doc._id === state.router.pageId || state.router.pageId === 'new' ? div('.edit', [form({
 		on: {
-			keydown: function keydown(ev) {
-				return console.log(caret.get(ev.target));
+			submit: function submit(ev) {
+				ev.preventDefault();
+				var data = formToData(ev.target);
+				data.categories = (data.categories || '').split(',').map(function (c) {
+					return c.trim();
+				});
+				console.log(data, state.auth);
+				actions.articles.save(data, state.auth.token);
+				actions.router.go('admin.articles');
+				return false;
 			}
 		}
-	}) : textarea('[name="text"]', state.articles.doc.text || '')])])]) : '';
+	}, [state.articles.doc._id && input('[type="hidden"][name="_id"]', { props: { value: state.articles.doc._id || '' } }) || '', div([label('Заглавие'), input('[type="text"][name="title"]', { props: { value: state.articles.doc.title || '' } })]), div([label('Автор'), input('[type="text"][name="author"]', { props: { value: state.articles.doc.author || '' } })]), div([label('Категории'), input('[type="text"][name="categories"]', { props: { value: (state.articles.doc.categories || []).join(', ') } })]), div([label(['Текст', span('.right', [button('[type="button"]', {
+		class: { on: state.editor.wysiwyg },
+		on: { click: function click() {
+				return actions.toggle(['editor', 'wysiwyg']);
+			} }
+	}, 'Wysiwyg'), button('[type="button"]', {
+		class: { on: !state.editor.wysiwyg },
+		on: { click: function click() {
+				return actions.toggle(['editor', 'wysiwyg']);
+			} }
+	}, 'Markdown')])]), div({
+		class: {
+			wysiwyg: state.editor.wysiwyg
+		}
+	}, [div('[contenteditable="true"]', {
+		props: { innerHTML: md.toHTML(state.articles.doc.text || '<p>&nbsp;</p>') },
+		on: {
+			focus: function focus(_ref2) {
+				var target = _ref2.target;
+				return $.fromEvent(target, 'input').map(function (ev) {
+					return ev.target;
+				}).takeUntil($.fromEvent(target, 'blur')).debounce(500).subscribe(function (el) {
+					return actions.editArticle(md.fromHTML(el.innerHTML), caret.get(el));
+				});
+			}
+		},
+		hook: {
+			postpatch: function postpatch(oldvnode, _ref3) {
+				var elm = _ref3.elm;
+				return caret.set(elm, state.editor.sel);
+			}
+		}
+	}), textarea('[name="text"]', {
+		on: {
+			focus: function focus(_ref4) {
+				var target = _ref4.target;
+				return $.fromEvent(target, 'input').map(function (ev) {
+					return ev.target;
+				}).takeUntil($.fromEvent(target, 'blur')).debounce(500).subscribe(function (el) {
+					return actions.set(['articles', 'doc', 'text'], el.value);
+				});
+			}
+		},
+		props: {
+			innerHTML: state.articles.doc.text || ''
+		}
+	})])]), div([button('[type="submit"]', 'Save')])])]) : '';
 };
 
-},{"iblokz-snabbdom-helpers":7,"marked":19,"moment":21}],36:[function(require,module,exports){
+},{"../../../../util/md":56,"iblokz-snabbdom-helpers":10,"moment":24,"rx":26}],45:[function(require,module,exports){
 'use strict';
 
 var _require = require('iblokz-snabbdom-helpers');
@@ -21334,7 +22323,7 @@ module.exports = function (_ref) {
 	})), !state.router.pageId ? list({ state: state, actions: actions }) : edit({ state: state, actions: actions })])];
 };
 
-},{"./edit":35,"./list":37,"iblokz-snabbdom-helpers":7,"marked":19,"moment":21}],37:[function(require,module,exports){
+},{"./edit":44,"./list":46,"iblokz-snabbdom-helpers":10,"marked":22,"moment":24}],46:[function(require,module,exports){
 'use strict';
 
 var _require = require('iblokz-snabbdom-helpers');
@@ -21388,7 +22377,7 @@ module.exports = function (_ref) {
 	}))])]);
 };
 
-},{"iblokz-snabbdom-helpers":7,"marked":19,"moment":21}],38:[function(require,module,exports){
+},{"iblokz-snabbdom-helpers":10,"marked":22,"moment":24}],47:[function(require,module,exports){
 'use strict';
 
 var _require = require('iblokz-snabbdom-helpers');
@@ -21422,7 +22411,7 @@ module.exports = function (_ref) {
 	})), section('.post', [p({ props: { innerHTML: marked('\n\t\t\t\t\u0414\u043E\u0431\u0440\u0435 \u0414\u043E\u0448\u043B\u0438!\n\t\t\t') } })])])];
 };
 
-},{"iblokz-snabbdom-helpers":7,"marked":19}],39:[function(require,module,exports){
+},{"iblokz-snabbdom-helpers":10,"marked":22}],48:[function(require,module,exports){
 'use strict';
 
 var _require = require('iblokz-snabbdom-helpers');
@@ -21456,7 +22445,7 @@ module.exports = function (_ref) {
 	})), section('.post', [p({ props: { innerHTML: marked('\n\t\t\t\t\u0414\u043E\u0431\u0440\u0435 \u0414\u043E\u0448\u043B\u0438!\n\t\t\t') } })])])];
 };
 
-},{"iblokz-snabbdom-helpers":7,"marked":19}],40:[function(require,module,exports){
+},{"iblokz-snabbdom-helpers":10,"marked":22}],49:[function(require,module,exports){
 'use strict';
 
 var _require = require('iblokz-snabbdom-helpers');
@@ -21489,7 +22478,7 @@ module.exports = function (_ref) {
 	return [section('.content', [section('.post', [h1('Алманах “Родолюбец“')]), section('.post', [p({ props: { innerHTML: marked('\n\u041A\u0430\u0442\u043E \u043F\u0435\u0447\u0430\u0442\u043D\u043E \u0438\u0437\u0434\u0430\u043D\u0438\u0435 \u043D\u0430 \u0434\u0440\u0443\u0436\u0435\u0441\u0442\u0432\u043E \u201C\u0420\u043E\u0434\u043E\u043B\u044E\u0431\u0435\u0446\u201D \u0432\u0441\u044F\u043A\u0430 \u0447\u0435\u0442\u043D\u0430 \u0433\u043E\u0434\u0438\u043D\u0430 \u0438\u0437\u043B\u0438\u0437\u0430 \u0430\u043B\u043C\u0430\u043D\u0430\u0445\u044A\u0442 \u201C\u0420\u043E\u0434\u043E\u043B\u044E\u0431\u0435\u0446\u201D, \u0435\u0434\u043D\u0430 \u0438\u0441\u0442\u0438\u043D\u0441\u043A\u0430 \u201C\u0445\u0440\u0438\u0441\u0442\u043E\u043C\u0430\u0442\u0438\u044F \u043F\u043E \u0440\u043E\u0434\u043E\u043B\u044E\u0431\u0438\u0435\u201D.\n\n\u041A\u0430\u0442\u043E \u0441\u0431\u043E\u0440\u043D\u0438\u043A \u043E\u0442 \u043F\u043E\u043B\u0435\u0437\u043D\u0438, \u0442\u0435\u043C\u0430\u0442\u0438\u0447\u043D\u0438 \u0447\u0435\u0442\u0438\u0432\u0430, \u0410\u043B\u043C\u0430\u043D\u0430\u0445\u044A\u0442 \u0438\u043C\u0430 \u0443\u0442\u0432\u044A\u0440\u0434\u0435\u043D\u0438 8 \u0434\u044F\u043B\u0430, \u043A\u043E\u0438\u0442\u043E \u0441\u0435 \u043F\u043E\u0434\u0434\u044A\u0440\u0436\u0430\u0442 \u0432\u044A\u0432 \u0432\u0441\u0435\u043A\u0438 \u0431\u0440\u043E\u0439, \u043A\u0430\u043A\u0442\u043E \u0441\u043B\u0435\u0434\u0432\u0430:\n- **\u0414\u044F\u043B I. \u0414\u0415 \u0415 \u0411\u042A\u041B\u0413\u0410\u0420\u0418\u042F?** - \u0433\u0435\u043E\u0433\u0440\u0430\u0444\u0441\u043A\u0438 \u043E\u0447\u0435\u0440\u0446\u0438 \u0437\u0430 \u0411\u044A\u043B\u0433\u0430\u0440\u0438\u044F \u0438\u043B\u0438 \u0437\u0430 \u043D\u0435\u0439\u043D\u0438 \u043E\u0431\u043B\u0430\u0441\u0442\u0438 \u0438 \u043E\u0447\u0435\u0440\u0446\u0438 \u0437\u0430 \u043E\u0431\u0435\u043A\u0442\u0438 \u0432 \u0442\u044F\u0445.\n- **\u0414\u044F\u043B II. \u0411\u042A\u041B\u0413\u0410\u0420\u0418\u042F \u041F\u0420\u0415\u0417 \u0412\u0415\u041A\u041E\u0412\u0415\u0422\u0415** - \u0418\u0441\u0442\u043E\u0440\u0438\u0447\u0435\u0441\u043A\u0438 \u043E\u0447\u0435\u0440\u0446\u0438 \u0437\u0430 \u0411\u044A\u043B\u0433\u0430\u0440\u0438\u044F.\n- **\u0414\u044F\u043B III. \u042E\u0411\u0418\u041B\u0415\u0419\u041D\u0418 \u0413\u041E\u0414\u0418\u0428\u041D\u0418\u041D\u0418** - \u041E\u0442\u0440\u0430\u0437\u044F\u0432\u0430\u0442 \u0441\u0435 \u0437\u043D\u0430\u0447\u0438\u0442\u0435\u043B\u043D\u0438 \u0441\u044A\u0431\u0438\u0442\u0438\u044F \u043E\u0442 \u0431\u044A\u043B\u0433\u0430\u0440\u0441\u043A\u0430\u0442\u0430 \u0438\u0441\u0442\u043E\u0440\u0438\u044F, \u044F\u0432\u044F\u0432\u0430\u0449\u0438 \u0441\u0435 \u044E\u0431\u0438\u043B\u0435\u0439\u043D\u0438 \u043A\u044A\u043C \u0433\u043E\u0434\u0438\u043D\u0430\u0442\u0430 \u043D\u0430 \u0438\u0437\u0434\u0430\u0432\u0430\u043D\u0435\u0442\u043E \u043D\u0430 \u0410\u043B\u043C\u0430\u043D\u0430\u0445\u0430.\n- **\u0414\u044F\u043B IV. \u0411\u042A\u041B\u0413\u0410\u0420\u0421\u041A\u0418 \u041F\u0410\u041D\u0422\u0415\u041E\u041D** - \u0420\u0430\u0437\u0434\u0435\u043B, \u0432 \u043A\u043E\u0439\u0442\u043E \u0441\u0430 \u043E\u0442\u0431\u0435\u043B\u044F\u0437\u0430\u043D\u0438 \u0437\u043D\u0430\u0447\u0438\u043C\u0438 \u043B\u0438\u0447\u043D\u043E\u0441\u0442\u0438 \u043E\u0442 \u0431\u044A\u043B\u0433\u0430\u0440\u0441\u043A\u0430\u0442\u0430 \u043F\u043E\u043B\u0438\u0442\u0438\u0447\u0435\u0441\u043A\u0430 \u0438 \u043A\u0443\u043B\u0442\u0443\u0440\u043D\u0430 \u0438\u0441\u0442\u043E\u0440\u0438\u044F.\n- **\u0414\u044F\u043B V. \u0421\u042A\u041A\u0420\u041E\u0412\u0418\u0429\u041D\u0418\u0426\u0410 \u041D\u0410 \u041D\u0410\u0420\u041E\u0414\u041D\u0418\u042F \u0414\u0423\u0425** - \u0421\u0442\u0430\u0442\u0438\u0438 \u0438 \u043E\u0447\u0435\u0440\u0446\u0438 \u0432\u044A\u0440\u0445\u0443 \u0431\u044A\u043B\u0433\u0430\u0440\u0441\u043A\u0438\u044F \u0444\u043E\u043B\u043A\u043B\u043E\u0440 \u0438 \u043E\u0431\u0440\u0430\u0437\u0446\u0438 \u043E\u0442 \u043D\u0430\u0440\u043E\u0434\u043D\u0438 \u043F\u0435\u0441\u043D\u0438 \u0438 \u043F\u0440\u0438\u043A\u0430\u0437\u043A\u0438.\n- **\u0414\u044F\u043B VI. \u0421 \u0411\u042A\u041B\u0413\u0410\u0420\u0418\u042F \u0412 \u0421\u042A\u0420\u0426\u0415\u0422\u041E** - \u041D\u0430\u0439-\u0432\u0430\u0436\u043D\u0438\u044F\u0442 \u0438 \u043D\u0430\u0439-\u043E\u0431\u0435\u043C\u0438\u0441\u0442 \u0434\u044F\u043B \u043E\u0442 \u0441\u0431\u043E\u0440\u043D\u0438\u043A\u0430, \u0438\u0437\u043F\u044A\u043B\u043D\u0435\u043D \u0441 \u0438\u0437\u043F\u043E\u0432\u0435\u0434\u0438, \u0441\u043F\u043E\u043C\u0435\u043D\u0438, \u0441\u0442\u0430\u0442\u0438\u0438 \u0438 \u043E\u0447\u0435\u0440\u0446\u0438 \u043D\u0430 \u0431\u0435\u0441\u0430\u0440\u0430\u0431\u0441\u043A\u0438 \u0438 \u0437\u0430 \u0431\u0435\u0441\u0430\u0440\u0430\u0431\u0441\u043A\u0438 \u0431\u044A\u043B\u0433\u0430\u0440\u0438, \u043E\u0447\u0435\u0440\u0446\u0438 \u0437\u0430 \u0431\u044A\u043B\u0433\u0430\u0440\u0438\u0442\u0435-\u0433\u0430\u0433\u0430\u0443\u0437\u0438 \u0432 \u0411\u0435\u0441\u0430\u0440\u0430\u0431\u0438\u044F \u0438 \u0432 \u0411\u044A\u043B\u0433\u0430\u0440\u0438\u044F \u0438 \u0437\u0430 \u0431\u044A\u043B\u0433\u0430\u0440\u0438\u0442\u0435 \u0436\u0438\u0432\u0435\u0435\u0449\u0438 \u0432\u044A\u043D \u043E\u0442 \u0433\u0440\u0430\u043D\u0438\u0446\u0438\u0442\u0435 \u043D\u0430 \u0411\u044A\u043B\u0433\u0430\u0440\u0438\u044F.\n- **\u0414\u044F\u043B VII. \u0422\u0412\u041E\u0420\u0426\u0418 \u041E\u0422 \u0411\u0415\u0421\u0410\u0420\u0410\u0411\u0418\u042F** - \u043A\u0440\u0430\u0442\u043A\u0438 \u0431\u0438\u043E\u0433\u0440\u0430\u0444\u0438\u0447\u043D\u0438 \u0431\u0435\u043B\u0435\u0436\u043A\u0438 \u0438 \u0442\u0432\u043E\u0440\u0431\u0438 \u043D\u0430 \u0431\u0435\u0441\u0430\u0440\u0430\u0431\u0441\u043A\u0438 \u043F\u043E\u0435\u0442\u0438 \u0438 \u0442\u0432\u043E\u0440\u0446\u0438\n- **\u0414\u044F\u043B VIII. \u0420\u041E\u0414\u041E\u041B\u042E\u0411\u0415\u0426 \u0417\u0410 \u0421\u0415\u0411\u0415 \u0421\u0418** - \u0440\u0430\u0437\u0434\u0435\u043B, \u0432 \u043A\u043E\u0439\u0442\u043E \u0434\u0440\u0443\u0436\u0435\u0441\u0442\u0432\u043E\u0442\u043E \u043E\u0442\u0440\u0430\u0437\u044F\u0432\u0430 \u043D\u044F\u043A\u043E\u0438 \u043E\u0442 \u0441\u0432\u043E\u0438\u0442\u0435 \u0434\u0435\u0439\u043D\u043E\u0441\u0442\u0438, \u043F\u0443\u0431\u043B\u0438\u043A\u0443\u0432\u0430 \u043D\u043E\u0440\u043C\u0430\u0442\u0438\u0432\u043D\u0438 \u0434\u043E\u043A\u0443\u043C\u0435\u043D\u0442\u0438, \u0441\u0432\u044A\u0440\u0437\u0430\u043D\u0438 \u0441 \u043E\u0431\u0443\u0447\u0435\u043D\u0438\u0435\u0442\u043E \u043D\u0430 \u0441\u0442\u0443\u0434\u0435\u043D\u0442\u0438\u0442\u0435 \u043E\u0442 \u0431\u044A\u043B\u0433\u0430\u0440\u0441\u043A\u0430\u0442\u0430 \u0434\u0438\u0430\u0441\u043F\u043E\u0440\u0430 \u0438\u0437\u0432\u044A\u043D \u0433\u0440\u0430\u043D\u0438\u0446\u0438\u0442\u0435 \u043D\u0430 \u0434\u043D\u0435\u0448\u043D\u0430 \u0411\u044A\u043B\u0433\u0430\u0440\u0438\u044F, \u0441\u043F\u0435\u0446\u0438\u0430\u043B\u0438\u0441\u0442\u0438 \u0438 \u043E\u0431\u043D\u0430\u0440\u043E\u0434\u0432\u0430 \u0441\u043F\u0438\u0441\u044A\u0446\u0438 \u043D\u0430 \u043F\u0440\u0438\u0435\u0442\u0438 \u0443 \u043D\u0430\u0441 \u0441\u0442\u0443\u0434\u0435\u043D\u0442\u0438, \u043D\u0430 \u0437\u0430\u0432\u044A\u0440\u0448\u0438\u043B\u0438\u0442\u0435 \u0432 \u0411\u044A\u043B\u0433\u0430\u0440\u0438\u044F \u0441\u043F\u0435\u0446\u0438\u0430\u043B\u0438\u0441\u0442\u0438 \u0438 \u043D\u0430 \u0438\u0437\u043F\u0440\u0430\u0442\u0435\u043D\u0438\u0442\u0435 \u0432 \u0411\u0435\u0441\u0430\u0440\u0430\u0431\u0438\u044F \u0443\u0447\u0438\u0442\u0435\u043B\u0438.\n\t\t\t') } })])]), rightColumn({ state: state, actions: actions })];
 };
 
-},{"../right-column":45,"iblokz-snabbdom-helpers":7,"marked":19}],41:[function(require,module,exports){
+},{"../right-column":54,"iblokz-snabbdom-helpers":10,"marked":22}],50:[function(require,module,exports){
 'use strict';
 
 var _require = require('iblokz-snabbdom-helpers');
@@ -21553,7 +22542,7 @@ module.exports = function (_ref) {
 	}))])]), rightColumn({ state: state, actions: actions })];
 };
 
-},{"../right-column":45,"iblokz-snabbdom-helpers":7,"marked":19,"moment":21}],42:[function(require,module,exports){
+},{"../right-column":54,"iblokz-snabbdom-helpers":10,"marked":22,"moment":24}],51:[function(require,module,exports){
 'use strict';
 
 var _require = require('iblokz-snabbdom-helpers');
@@ -21604,7 +22593,7 @@ module.exports = function (_ref) {
 	}))), rightColumn({ state: state, actions: actions })];
 };
 
-},{"../right-column":45,"iblokz-snabbdom-helpers":7,"marked":19,"moment":21}],43:[function(require,module,exports){
+},{"../right-column":54,"iblokz-snabbdom-helpers":10,"marked":22,"moment":24}],52:[function(require,module,exports){
 'use strict';
 
 var _require = require('iblokz-snabbdom-helpers');
@@ -21638,7 +22627,7 @@ module.exports = function (_ref) {
 	return [section('.content', [section('.post', [h1('Връзки')]), section('.post', [p({ props: { innerHTML: marked('\n- [\u0414\u044A\u0440\u0436\u0430\u0432\u043D\u0430 \u0430\u0433\u0435\u043D\u0446\u0438\u044F \u0437\u0430 \u0431\u044A\u043B\u0433\u0430\u0440\u0438\u0442\u0435 \u0432 \u0447\u0443\u0436\u0431\u0438\u043D\u0430](http://aba.government.bg)\n- [\u041C\u0438\u043D\u0438\u0441\u0442\u0435\u0440\u0441\u0442\u0432\u043E\u0442\u043E \u043D\u0430 \u043E\u0431\u0440\u0430\u0437\u043E\u0432\u0430\u043D\u0438\u0435\u0442\u043E \u0438 \u043D\u0430\u0443\u043A\u0430\u0442\u0430 > \u0417\u0430 \u0431\u044A\u043B\u0433\u0430\u0440\u0438\u0442\u0435 \u0437\u0430\u0434 \u0433\u0440\u0430\u043D\u0438\u0446\u0430](http://www.mon.bg/?go=page&amp;pageId=15&amp;subpageId=173)\n- [\u041D\u0430\u0443\u0447\u043D\u043E \u0434\u0440\u0443\u0436\u0435\u0441\u0442\u0432\u043E \u043D\u0430 \u0431\u044A\u043B\u0433\u0430\u0440\u0438\u0441\u0442\u0438\u0442\u0435 \u0432 \u0420\u0435\u043F\u0443\u0431\u043B\u0438\u043A\u0430 \u041C\u043E\u043B\u0434\u043E\u0432\u0430](http://ndb.md/)\n- [\u0411\u044A\u043B\u0433\u0430\u0440\u0441\u043A\u0430 \u0412\u0438\u0440\u0442\u0443\u0430\u043B\u043D\u0430 \u0411\u0438\u0431\u043B\u0438\u043E\u0442\u0435\u043A\u0430](http://slovo.bg)\n- [\u0412\u0435\u0441\u0442\u043D\u0438\u043A "\u0420\u043E\u0434\u0435\u043D \u041A\u0440\u0430\u0439" - \u041E\u0434\u0435\u0441\u0430](http://www.rodenkray.od.ua/)\n- [\u0410\u0440\u0445\u0438\u0432\u043D\u0438 \u043C\u0430\u0442\u0435\u0440\u0438\u0430\u043B\u0438 \u0437\u0430 \u0420\u043E\u0434\u043E\u043B\u044E\u0431\u0435\u0446 (omda.bg)](http://prehod.omda.bg/page.php?IDMenu=642&IDLang=1)\n- [\u0410\u0440\u0445\u0438\u0432\u043D\u0438 \u043C\u0430\u0442\u0435\u0440\u0438\u0430\u043B\u0438 \u043F\u043E \u0432\u044A\u043F\u0440\u043E\u0441\u0438\u0442\u0435 \u043D\u0430 \u0431\u044A\u043B\u0433\u0430\u0440\u0438\u0442\u0435 \u0437\u0430\u0434 \u0433\u0440\u0430\u043D\u0438\u0446\u0430 (omda.bg)](http://prehod.omda.bg/page.php/?IDMenu=604)\n\t\t\t') } })])]), rightColumn({ state: state, actions: actions })];
 };
 
-},{"../right-column":45,"iblokz-snabbdom-helpers":7,"marked":19}],44:[function(require,module,exports){
+},{"../right-column":54,"iblokz-snabbdom-helpers":10,"marked":22}],53:[function(require,module,exports){
 'use strict';
 
 var moment = require('moment');
@@ -21702,7 +22691,7 @@ module.exports = function (_ref) {
 	}))])]);
 };
 
-},{"iblokz-snabbdom-helpers":7,"moment":21,"moment/locale/bg":20}],45:[function(require,module,exports){
+},{"iblokz-snabbdom-helpers":10,"moment":24,"moment/locale/bg":23}],54:[function(require,module,exports){
 'use strict';
 
 var _require = require('iblokz-snabbdom-helpers');
@@ -21735,7 +22724,7 @@ module.exports = function (_ref) {
 	return section('.right-column', [section([ul([li([a('[href="https://goo.gl/maps/nuw3q3d9CuK2"][target="_blank"]', [i('.fa.fa-map-marker'), 'бул. „Евлоги Георгиев“ 169, ет. II-ри'])]), li([a('[href="https://fb.com/groups/rodolubets"][target="_blank"]', [i('.fa.fa-facebook-official'), 'Facebook Група на д-во Родолюбец'])]), li([a('[href="https://www.youtube.com/channel/UC29vwswzZgc4QjO0NDJKzdQ"][target="_blank"]', [i('.fa.fa-youtube'), 'Youtube Канал на Дружеството'])]), li([a('[href="mailto:rodolubets@abv.bg"]', [i('.fa.fa-envelope-o'), 'Ел. Поща: rodolubets at abv dot bg'])])])]), section([h2('Предстои:'), ul([li([a('[href="https://www.facebook.com/events/616430778561488/"][target="_blank"]', '23.04 Великденска среща на д-во Родолюбец, 17:00 Славянска Беседа')])])]), section([h2('Минали събития:'), ul([li([a('[href="https://www.facebook.com/events/1878729519040663/"][target="_blank"]', '24.03 Нико Стоянов на 70 години, 18:00')]), li([a('[href="https://www.facebook.com/events/237310966716062/"][target="_blank"]', '24.02 Представяне на Алманах Родолюбец, брой 8-ми 2016г.')]), li([a('[href="https://www.facebook.com/events/224414394672363/"][target="_blank"]', '13.01 Отбелязване 90-годишнината от рождението на Петър Недов 17:30ч.')]), li([a('[href="https://www.facebook.com/events/391007054575193/"][target="_blank"]', '15.12 Коледно-новогодишна среща на д-во Родолюбец 18:00-22:00ч. читалище Славянска Беседа')]), li([a('[href="https://www.facebook.com/events/1781298892137645/"][target="_blank"]', '17-24.11 Честване на 100 годишнина от рождението на Мишо Хаджийски')]), li([a('[href="https://www.facebook.com/events/191852797922713/"][target="_blank"]', '27.10 18:30 Традиционен празничен концерт, посветен на Деня на Бесарабските Българи')])])]), calendar({ state: state, actions: actions })]);
 };
 
-},{"./calendar":44,"iblokz-snabbdom-helpers":7}],46:[function(require,module,exports){
+},{"./calendar":53,"iblokz-snabbdom-helpers":10}],55:[function(require,module,exports){
 'use strict';
 
 // lib
@@ -21777,7 +22766,53 @@ module.exports = {
 	adapt: adapt
 };
 
-},{"iblokz-data":2,"rx":23}],47:[function(require,module,exports){
+},{"iblokz-data":5,"rx":26}],56:[function(require,module,exports){
+'use strict';
+
+var toMarkdown = require('to-markdown');
+var marked = require('marked');
+
+var options = {
+	toMarkdown: {
+		converters: [{
+			filter: 'li',
+			replacement: function replacement(content, node) {
+				content = content.replace(/^\s+/, '').replace(/\n/gm, '\n ');
+				var prefix = '- ';
+				var parent = node.parentNode;
+				var index = Array.prototype.indexOf.call(parent.children, node) + 1;
+
+				prefix = /ol/i.test(parent.nodeName) ? index + '. ' : '- ';
+				return prefix + content;
+			}
+		}, {
+			filter: 'div',
+			replacement: function replacement(content, node) {
+				return '\n\n' + content;
+			}
+		}]
+	},
+	marked: {
+		gfm: true,
+		breaks: false
+	}
+};
+
+var toHTML = function toHTML(md) {
+	return marked(md, options.marked);
+};
+
+var fromHTML = function fromHTML(html) {
+	return toMarkdown(html, options.toMarkdown);
+};
+
+module.exports = {
+	options: options,
+	toHTML: toHTML,
+	fromHTML: fromHTML
+};
+
+},{"marked":22,"to-markdown":31}],57:[function(require,module,exports){
 'use strict';
 
 var Rx = require('rx');
@@ -21790,4 +22825,19 @@ superagent.Request.prototype.observe = function () {
 
 module.exports = superagent;
 
-},{"rx":23,"superagent":24}]},{},[29]);
+},{"rx":26,"superagent":27}],58:[function(require,module,exports){
+'use strict';
+
+var set = function set(key, value) {
+	return window.localStorage.setItem(key, JSON.stringify(value));
+};
+var get = function get(key, defaultValue) {
+	return window.localStorage.getItem(key) && JSON.parse(window.localStorage.getItem(key)) || defaultValue;
+};
+
+module.exports = {
+	set: set,
+	get: get
+};
+
+},{}]},{},[37]);

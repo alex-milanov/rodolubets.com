@@ -16,11 +16,16 @@ const parsePageParams = str => {
 	};
 };
 
-const change = page => state => Object.assign({}, state, {router: parsePageParams(page)});
+let change;
+let go;
 
-const go = page => {
+change = page => state => (page.match('admin') && (!state.auth.user || state.auth.user.role !== 'admin'))
+	? (go('home'), state)
+	: Object.assign({}, state, {router: parsePageParams(page)});
+
+go = page => {
 	window.location.hash = '/' + ((page !== 'home') ? page.split('.').join('/') : '');
-	return change(page);
+	// return state => state;
 };
 
 const actions = {
