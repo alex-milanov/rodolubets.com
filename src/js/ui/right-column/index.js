@@ -32,14 +32,18 @@ module.exports = ({state, actions}) => section('.right-column', [
 		h2('Предстои:'),
 		ul([
 			li([a(
-				'[href="https://www.facebook.com/events/685338601674669"][target="_blank"]',
-				'25.05 Представяне на "Да не угасват българските огнища извън България", 18:00'
+				'[href="https://www.facebook.com/events/1131134003697555"][target="_blank"]',
+				'21.07 Представяне на „Таврийски истории" на Леонид Паскалов", 18:00'
 			)])
 		])
 	]),
 	section([
 		h2('Минали събития:'),
 		ul([
+			li([a(
+				'[href="https://www.facebook.com/events/685338601674669"][target="_blank"]',
+				'25.05 Представяне на "Да не угасват българските огнища извън България", 18:00'
+			)]),
 			li([a(
 				'[href="https://www.facebook.com/events/616430778561488/"][target="_blank"]',
 				'23.04 Великденска среща на д-во Родолюбец, 17:00 Славянска Беседа'
