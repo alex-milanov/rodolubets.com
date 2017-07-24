@@ -183,7 +183,7 @@ function next(prev, current) {
 
 module.exports = collapseWhitespace;
 
-},{"block-elements":1,"void-elements":35}],4:[function(require,module,exports){
+},{"block-elements":1,"void-elements":37}],4:[function(require,module,exports){
 
 /**
  * Expose `Emitter`.
@@ -349,6 +349,132 @@ Emitter.prototype.hasListeners = function(event){
 };
 
 },{}],5:[function(require,module,exports){
+module.exports=[
+	"a",
+	"abbr",
+	"address",
+	"area",
+	"article",
+	"aside",
+	"audio",
+	"b",
+	"base",
+	"bdi",
+	"bdo",
+	"blockquote",
+	"body",
+	"br",
+	"button",
+	"canvas",
+	"caption",
+	"cite",
+	"code",
+	"col",
+	"colgroup",
+	"data",
+	"datalist",
+	"dd",
+	"del",
+	"details",
+	"dfn",
+	"dialog",
+	"div",
+	"dl",
+	"dt",
+	"em",
+	"embed",
+	"fieldset",
+	"figcaption",
+	"figure",
+	"footer",
+	"form",
+	"h1",
+	"h2",
+	"h3",
+	"h4",
+	"h5",
+	"h6",
+	"head",
+	"header",
+	"hgroup",
+	"hr",
+	"html",
+	"i",
+	"iframe",
+	"img",
+	"input",
+	"ins",
+	"kbd",
+	"keygen",
+	"label",
+	"legend",
+	"li",
+	"link",
+	"main",
+	"map",
+	"mark",
+	"math",
+	"menu",
+	"menuitem",
+	"meta",
+	"meter",
+	"nav",
+	"noscript",
+	"object",
+	"ol",
+	"optgroup",
+	"option",
+	"output",
+	"p",
+	"param",
+	"picture",
+	"pre",
+	"progress",
+	"q",
+	"rb",
+	"rp",
+	"rt",
+	"rtc",
+	"ruby",
+	"s",
+	"samp",
+	"script",
+	"section",
+	"select",
+	"slot",
+	"small",
+	"source",
+	"span",
+	"strong",
+	"style",
+	"sub",
+	"summary",
+	"sup",
+	"svg",
+	"table",
+	"tbody",
+	"td",
+	"template",
+	"textarea",
+	"tfoot",
+	"th",
+	"thead",
+	"time",
+	"title",
+	"tr",
+	"track",
+	"u",
+	"ul",
+	"var",
+	"video",
+	"wbr"
+]
+
+},{}],6:[function(require,module,exports){
+'use strict';
+module.exports = require('./html-tags.json');
+
+},{"./html-tags.json":5}],7:[function(require,module,exports){
 module.exports = {
 	obj: require('./lib/obj'),
 	arr: require('./lib/arr'),
@@ -356,7 +482,7 @@ module.exports = {
 	fn: require('./lib/fn')
 };
 
-},{"./lib/arr":6,"./lib/fn":7,"./lib/obj":8,"./lib/str":9}],6:[function(require,module,exports){
+},{"./lib/arr":8,"./lib/fn":9,"./lib/obj":10,"./lib/str":11}],8:[function(require,module,exports){
 'use strict';
 
 const add = (arr, item) => [].concat(arr, [item]);
@@ -376,22 +502,22 @@ module.exports = {
 	toggle
 };
 
-},{}],7:[function(require,module,exports){
+},{}],9:[function(require,module,exports){
 'use strict';
+
+const obj = require('./obj');
 
 const compose = (...fList) => (...args) => fList.reduce(
 	(r, f) => (r instanceof Array) && f.apply(null, r) || f(r), args
 );
 
-const _switch = (value, cases) => (typeof cases[value] !== 'undefined')
-	&& cases[value] || cases['default'] || false;
-
+// switch for backwards compatibility
 module.exports = {
 	compose,
-	switch: _switch
+	switch: obj.switch
 };
 
-},{}],8:[function(require,module,exports){
+},{"./obj":10}],10:[function(require,module,exports){
 'use strict';
 
 const keyValue = (k, v) => {
@@ -403,8 +529,8 @@ const keyValue = (k, v) => {
 const clone = o => Object.assign(Object.create(Object.getPrototypeOf(o) || {}), o);
 
 const sub = (o, p) => (p instanceof Array)
-	&& o[p[0]] && sub(o[p[0]], p.slice(1))
-	|| o[p] || false;
+	? o[p[0]] && [sub(o[p[0]], p.slice(1))].map(sO => (sO !== undefined ? sO : o[p[0]])).pop()
+	: o[p] !== undefined ? o[p] : false;
 
 const patch = (o, k, v) => Object.assign(clone(o),
 	(k instanceof Array)
@@ -435,6 +561,12 @@ const chainCall = (o, chain) => chain.reduce(
 	o
 );
 
+const _switch = (value, cases) =>
+	sub(cases, value) && sub(cases, value)['default'] || sub(cases, value)
+	|| (value instanceof Array)
+		&& value.length > 1 && _switch(value.slice(0, value.length - 1), cases)
+	|| cases['default'] || false;
+
 module.exports = {
 	keyValue,
 	clone,
@@ -442,17 +574,20 @@ module.exports = {
 	patch,
 	map,
 	traverse,
-	chainCall
+	chainCall,
+	switch: _switch
 };
 
-},{}],9:[function(require,module,exports){
+},{}],11:[function(require,module,exports){
 'use strict';
+
+const capitalize = chunk => chunk.charAt(0).toUpperCase() + chunk.slice(1);
 
 const toCamelCase = (str, glue) =>
 	str.split(glue || '_')
 		.map((chunk, i) => (i === 0)
 			? chunk
-			: chunk.charAt(0).toUpperCase() + chunk.slice(1))
+			: capitalize(chunk))
 		.join('');
 
 const fromCamelCase = (str, glue) =>
@@ -470,6 +605,7 @@ const pluralToSingular = str =>
 const toDocumentId = str => ':'.concat(pluralToSingular(toCamelCase(str, '-')), 'Id');
 
 module.exports = {
+	capitalize,
 	toCamelCase,
 	fromCamelCase,
 	singularToPlural,
@@ -477,21 +613,13 @@ module.exports = {
 	toDocumentId
 };
 
-},{}],10:[function(require,module,exports){
+},{}],12:[function(require,module,exports){
 'use strict';
 
 const snabbdom = require('snabbdom');
 const h = require('snabbdom/h').default;
 const {obj} = require('iblokz-data');
-
-const supportedTags = [
-	'h1', 'h2', 'h3', 'h4', 'section', 'header', 'article',
-	'div', 'p', 'span', 'pre', 'code', 'a', 'dd', 'dt', 'hr', 'br', 'b', 'i',
-	'table', 'thead', 'tbody', 'th', 'tr', 'td', 'ul', 'ol', 'li',
-	// form related
-	'form', 'fieldset', 'legend', 'input', 'textarea', 'label', 'button', 'select', 'option',
-	'canvas', 'video', 'img'
-];
+const htmlTags = require('html-tags');
 
 const patch = snabbdom.init([ // Init patch function with choosen modules
 	require('snabbdom/modules/class').default, // makes it easy to toggle classes
@@ -540,7 +668,7 @@ const processAttrs = args => {
 	return newArgs;
 };
 
-const hyperHelpers = supportedTags.reduce(
+const hyperHelpers = htmlTags.reduce(
 	(o, tag) => {
 		o[tag] = function() {
 			return [Array.from(arguments)]
@@ -566,8 +694,9 @@ module.exports = Object.assign(
 	hyperHelpers
 );
 
-},{"iblokz-data":5,"snabbdom":19,"snabbdom/h":11,"snabbdom/modules/attributes":14,"snabbdom/modules/class":15,"snabbdom/modules/eventlisteners":16,"snabbdom/modules/props":17,"snabbdom/modules/style":18}],11:[function(require,module,exports){
+},{"html-tags":6,"iblokz-data":7,"snabbdom":21,"snabbdom/h":13,"snabbdom/modules/attributes":16,"snabbdom/modules/class":17,"snabbdom/modules/eventlisteners":18,"snabbdom/modules/props":19,"snabbdom/modules/style":20}],13:[function(require,module,exports){
 "use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
 var vnode_1 = require("./vnode");
 var is = require("./is");
 function addNS(data, children, sel) {
@@ -623,11 +752,11 @@ function h(sel, b, c) {
 }
 exports.h = h;
 ;
-Object.defineProperty(exports, "__esModule", { value: true });
 exports.default = h;
 
-},{"./is":13,"./vnode":21}],12:[function(require,module,exports){
+},{"./is":15,"./vnode":23}],14:[function(require,module,exports){
 "use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
 function createElement(tagName) {
     return document.createElement(tagName);
 }
@@ -690,34 +819,36 @@ exports.htmlDomApi = {
     isText: isText,
     isComment: isComment,
 };
-Object.defineProperty(exports, "__esModule", { value: true });
 exports.default = exports.htmlDomApi;
 
-},{}],13:[function(require,module,exports){
+},{}],15:[function(require,module,exports){
 "use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
 exports.array = Array.isArray;
 function primitive(s) {
     return typeof s === 'string' || typeof s === 'number';
 }
 exports.primitive = primitive;
 
-},{}],14:[function(require,module,exports){
+},{}],16:[function(require,module,exports){
 "use strict";
-var NamespaceURIs = {
-    "xlink": "http://www.w3.org/1999/xlink"
-};
+Object.defineProperty(exports, "__esModule", { value: true });
 var booleanAttrs = ["allowfullscreen", "async", "autofocus", "autoplay", "checked", "compact", "controls", "declare",
     "default", "defaultchecked", "defaultmuted", "defaultselected", "defer", "disabled", "draggable",
     "enabled", "formnovalidate", "hidden", "indeterminate", "inert", "ismap", "itemscope", "loop", "multiple",
     "muted", "nohref", "noresize", "noshade", "novalidate", "nowrap", "open", "pauseonexit", "readonly",
     "required", "reversed", "scoped", "seamless", "selected", "sortable", "spellcheck", "translate",
     "truespeed", "typemustmatch", "visible"];
+var xlinkNS = 'http://www.w3.org/1999/xlink';
+var xmlNS = 'http://www.w3.org/XML/1998/namespace';
+var colonChar = 58;
+var xChar = 120;
 var booleanAttrsDict = Object.create(null);
 for (var i = 0, len = booleanAttrs.length; i < len; i++) {
     booleanAttrsDict[booleanAttrs[i]] = true;
 }
 function updateAttrs(oldVnode, vnode) {
-    var key, elm = vnode.elm, oldAttrs = oldVnode.data.attrs, attrs = vnode.data.attrs, namespaceSplit;
+    var key, elm = vnode.elm, oldAttrs = oldVnode.data.attrs, attrs = vnode.data.attrs;
     if (!oldAttrs && !attrs)
         return;
     if (oldAttrs === attrs)
@@ -738,9 +869,16 @@ function updateAttrs(oldVnode, vnode) {
                 }
             }
             else {
-                namespaceSplit = key.split(":");
-                if (namespaceSplit.length > 1 && NamespaceURIs.hasOwnProperty(namespaceSplit[0])) {
-                    elm.setAttributeNS(NamespaceURIs[namespaceSplit[0]], key, cur);
+                if (key.charCodeAt(0) !== xChar) {
+                    elm.setAttribute(key, cur);
+                }
+                else if (key.charCodeAt(3) === colonChar) {
+                    // Assume xml namespace
+                    elm.setAttributeNS(xmlNS, key, cur);
+                }
+                else if (key.charCodeAt(5) === colonChar) {
+                    // Assume xlink namespace
+                    elm.setAttributeNS(xlinkNS, key, cur);
                 }
                 else {
                     elm.setAttribute(key, cur);
@@ -758,11 +896,11 @@ function updateAttrs(oldVnode, vnode) {
     }
 }
 exports.attributesModule = { create: updateAttrs, update: updateAttrs };
-Object.defineProperty(exports, "__esModule", { value: true });
 exports.default = exports.attributesModule;
 
-},{}],15:[function(require,module,exports){
+},{}],17:[function(require,module,exports){
 "use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
 function updateClass(oldVnode, vnode) {
     var cur, name, elm = vnode.elm, oldClass = oldVnode.data.class, klass = vnode.data.class;
     if (!oldClass && !klass)
@@ -784,11 +922,11 @@ function updateClass(oldVnode, vnode) {
     }
 }
 exports.classModule = { create: updateClass, update: updateClass };
-Object.defineProperty(exports, "__esModule", { value: true });
 exports.default = exports.classModule;
 
-},{}],16:[function(require,module,exports){
+},{}],18:[function(require,module,exports){
 "use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
 function invokeHandler(handler, vnode, event) {
     if (typeof handler === "function") {
         // call function handler
@@ -880,11 +1018,11 @@ exports.eventListenersModule = {
     update: updateEventListeners,
     destroy: updateEventListeners
 };
-Object.defineProperty(exports, "__esModule", { value: true });
 exports.default = exports.eventListenersModule;
 
-},{}],17:[function(require,module,exports){
+},{}],19:[function(require,module,exports){
 "use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
 function updateProps(oldVnode, vnode) {
     var key, cur, old, elm = vnode.elm, oldProps = oldVnode.data.props, props = vnode.data.props;
     if (!oldProps && !props)
@@ -907,11 +1045,11 @@ function updateProps(oldVnode, vnode) {
     }
 }
 exports.propsModule = { create: updateProps, update: updateProps };
-Object.defineProperty(exports, "__esModule", { value: true });
 exports.default = exports.propsModule;
 
-},{}],18:[function(require,module,exports){
+},{}],20:[function(require,module,exports){
 "use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
 var raf = (typeof window !== 'undefined' && window.requestAnimationFrame) || setTimeout;
 var nextFrame = function (fn) { raf(function () { raf(fn); }); };
 function setNextFrame(obj, prop, val) {
@@ -938,11 +1076,11 @@ function updateStyle(oldVnode, vnode) {
     }
     for (name in style) {
         cur = style[name];
-        if (name === 'delayed') {
-            for (name in style.delayed) {
-                cur = style.delayed[name];
-                if (!oldHasDel || cur !== oldStyle.delayed[name]) {
-                    setNextFrame(elm.style, name, cur);
+        if (name === 'delayed' && style.delayed) {
+            for (var name2 in style.delayed) {
+                cur = style.delayed[name2];
+                if (!oldHasDel || cur !== oldStyle.delayed[name2]) {
+                    setNextFrame(elm.style, name2, cur);
                 }
             }
         }
@@ -994,11 +1132,11 @@ exports.styleModule = {
     destroy: applyDestroyStyle,
     remove: applyRemoveStyle
 };
-Object.defineProperty(exports, "__esModule", { value: true });
 exports.default = exports.styleModule;
 
-},{}],19:[function(require,module,exports){
+},{}],21:[function(require,module,exports){
 "use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
 var vnode_1 = require("./vnode");
 var is = require("./is");
 var htmldomapi_1 = require("./htmldomapi");
@@ -1078,9 +1216,9 @@ function init(modules, domApi) {
             var elm = vnode.elm = isDef(data) && isDef(i = data.ns) ? api.createElementNS(i, tag)
                 : api.createElement(tag);
             if (hash < dot)
-                elm.id = sel.slice(hash + 1, dot);
+                elm.setAttribute('id', sel.slice(hash + 1, dot));
             if (dotIdx > 0)
-                elm.className = sel.slice(dot + 1).replace(/\./g, ' ');
+                elm.setAttribute('class', sel.slice(dot + 1).replace(/\./g, ' '));
             for (i = 0; i < cbs.create.length; ++i)
                 cbs.create[i](emptyNode, vnode);
             if (is.array(children)) {
@@ -1304,8 +1442,9 @@ function init(modules, domApi) {
 }
 exports.init = init;
 
-},{"./h":11,"./htmldomapi":12,"./is":13,"./thunk":20,"./vnode":21}],20:[function(require,module,exports){
+},{"./h":13,"./htmldomapi":14,"./is":15,"./thunk":22,"./vnode":23}],22:[function(require,module,exports){
 "use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
 var h_1 = require("./h");
 function copyToThunk(vnode, thunk) {
     thunk.elm = vnode.elm;
@@ -1326,6 +1465,7 @@ function prepatch(oldVnode, thunk) {
     var oldArgs = old.args, args = cur.args;
     if (old.fn !== cur.fn || oldArgs.length !== args.length) {
         copyToThunk(cur.fn.apply(undefined, args), thunk);
+        return;
     }
     for (i = 0; i < args.length; ++i) {
         if (oldArgs[i] !== args[i]) {
@@ -1348,21 +1488,20 @@ exports.thunk = function thunk(sel, key, fn, args) {
         args: args
     });
 };
-Object.defineProperty(exports, "__esModule", { value: true });
 exports.default = exports.thunk;
 
-},{"./h":11}],21:[function(require,module,exports){
+},{"./h":13}],23:[function(require,module,exports){
 "use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
 function vnode(sel, data, children, text, elm) {
     var key = data === undefined ? undefined : data.key;
     return { sel: sel, data: data, children: children,
         text: text, elm: elm, key: key };
 }
 exports.vnode = vnode;
-Object.defineProperty(exports, "__esModule", { value: true });
 exports.default = vnode;
 
-},{}],22:[function(require,module,exports){
+},{}],24:[function(require,module,exports){
 (function (global){
 /**
  * marked - a markdown parser
@@ -2652,7 +2791,7 @@ if (typeof module !== 'undefined' && typeof exports === 'object') {
 }());
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],23:[function(require,module,exports){
+},{}],25:[function(require,module,exports){
 //! moment.js locale configuration
 //! locale : Bulgarian [bg]
 //! author : Krasen Borisov : https://github.com/kraz
@@ -2743,7 +2882,7 @@ if (typeof module !== 'undefined' && typeof exports === 'object') {
     return bg;
 
 }));
-},{"../moment":24}],24:[function(require,module,exports){
+},{"../moment":26}],26:[function(require,module,exports){
 //! moment.js
 //! version : 2.15.1
 //! authors : Tim Wood, Iskren Chernev, Moment.js contributors
@@ -6978,7 +7117,7 @@ if (typeof module !== 'undefined' && typeof exports === 'object') {
     return _moment;
 
 }));
-},{}],25:[function(require,module,exports){
+},{}],27:[function(require,module,exports){
 // shim for using process in browser
 var process = module.exports = {};
 
@@ -7160,7 +7299,7 @@ process.chdir = function (dir) {
 };
 process.umask = function() { return 0; };
 
-},{}],26:[function(require,module,exports){
+},{}],28:[function(require,module,exports){
 (function (process,global){
 // Copyright (c) Microsoft, All rights reserved. See License.txt in the project root for license information.
 
@@ -19552,7 +19691,7 @@ var ReactiveTest = Rx.ReactiveTest = {
 }.call(this));
 
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"_process":25}],27:[function(require,module,exports){
+},{"_process":27}],29:[function(require,module,exports){
 /**
  * Root reference for iframes.
  */
@@ -20530,7 +20669,7 @@ request.put = function(url, data, fn){
   return req;
 };
 
-},{"./is-object":28,"./request":30,"./request-base":29,"emitter":4}],28:[function(require,module,exports){
+},{"./is-object":30,"./request":32,"./request-base":31,"emitter":4}],30:[function(require,module,exports){
 /**
  * Check if `obj` is an object.
  *
@@ -20545,7 +20684,7 @@ function isObject(obj) {
 
 module.exports = isObject;
 
-},{}],29:[function(require,module,exports){
+},{}],31:[function(require,module,exports){
 /**
  * Module of mixed-in functions shared between node and client code
  */
@@ -20919,7 +21058,7 @@ exports.send = function(data){
   return this;
 };
 
-},{"./is-object":28}],30:[function(require,module,exports){
+},{"./is-object":30}],32:[function(require,module,exports){
 // The node and browser modules expose versions of this with the
 // appropriate constructor function bound as first argument
 /**
@@ -20953,7 +21092,7 @@ function request(RequestConstructor, method, url) {
 
 module.exports = request;
 
-},{}],31:[function(require,module,exports){
+},{}],33:[function(require,module,exports){
 /*
  * to-markdown - an HTML to Markdown converter
  *
@@ -21188,7 +21327,7 @@ toMarkdown.outer = outer
 
 module.exports = toMarkdown
 
-},{"./lib/gfm-converters":32,"./lib/html-parser":33,"./lib/md-converters":34,"collapse-whitespace":3}],32:[function(require,module,exports){
+},{"./lib/gfm-converters":34,"./lib/html-parser":35,"./lib/md-converters":36,"collapse-whitespace":3}],34:[function(require,module,exports){
 'use strict'
 
 function cell (content, node) {
@@ -21300,7 +21439,7 @@ module.exports = [
   }
 ]
 
-},{}],33:[function(require,module,exports){
+},{}],35:[function(require,module,exports){
 /*
  * Set up window for Node.js
  */
@@ -21378,7 +21517,7 @@ function shouldUseActiveX () {
 
 module.exports = canParseHtmlNatively() ? _window.DOMParser : createHtmlParser()
 
-},{"jsdom":2}],34:[function(require,module,exports){
+},{"jsdom":2}],36:[function(require,module,exports){
 'use strict'
 
 module.exports = [
@@ -21531,7 +21670,7 @@ module.exports = [
   }
 ]
 
-},{}],35:[function(require,module,exports){
+},{}],37:[function(require,module,exports){
 /**
  * This file automatically generated from `pre-publish.js`.
  * Do not manually edit.
@@ -21556,7 +21695,7 @@ module.exports = {
   "wbr": true
 };
 
-},{}],36:[function(require,module,exports){
+},{}],38:[function(require,module,exports){
 'use strict';
 
 var Rx = require('rx');
@@ -21599,7 +21738,7 @@ module.exports = {
 	initial: initial
 };
 
-},{"iblokz-data":5,"rx":26}],37:[function(require,module,exports){
+},{"iblokz-data":7,"rx":28}],39:[function(require,module,exports){
 'use strict';
 
 // lib
@@ -21715,7 +21854,7 @@ vdom.patchStream(ui$, '#ui');
 
 window.actions = actions;
 
-},{"./actions":36,"./services/auth":38,"./services/resource":39,"./services/router":40,"./ui":42,"./util/app":55,"iblokz-data":5,"iblokz-snabbdom-helpers":10,"moment/locale/bg":23,"rx":26}],38:[function(require,module,exports){
+},{"./actions":38,"./services/auth":40,"./services/resource":41,"./services/router":42,"./ui":44,"./util/app":57,"iblokz-data":7,"iblokz-snabbdom-helpers":12,"moment/locale/bg":25,"rx":28}],40:[function(require,module,exports){
 'use strict';
 
 var Rx = require('rx');
@@ -21781,7 +21920,7 @@ module.exports = {
 	hook: hook
 };
 
-},{"../util/request":57,"../util/store":58,"iblokz-data":5,"rx":26}],39:[function(require,module,exports){
+},{"../util/request":59,"../util/store":60,"iblokz-data":7,"rx":28}],41:[function(require,module,exports){
 'use strict';
 
 var Rx = require('rx');
@@ -21917,7 +22056,7 @@ module.exports = {
 	hook: hook
 };
 
-},{"../util/request":57,"iblokz-data":5,"rx":26}],40:[function(require,module,exports){
+},{"../util/request":59,"iblokz-data":7,"rx":28}],42:[function(require,module,exports){
 'use strict';
 
 var Rx = require('rx');
@@ -21975,7 +22114,7 @@ module.exports = {
 	hook: hook
 };
 
-},{"rx":26}],41:[function(require,module,exports){
+},{"rx":28}],43:[function(require,module,exports){
 'use strict';
 
 var _require = require('iblokz-snabbdom-helpers');
@@ -22046,7 +22185,7 @@ module.exports = function (_ref) {
 	}, [i('.fa.fa-sign-out')])])]))]);
 };
 
-},{"iblokz-snabbdom-helpers":10}],42:[function(require,module,exports){
+},{"iblokz-snabbdom-helpers":12}],44:[function(require,module,exports){
 'use strict';
 
 var _require = require('iblokz-snabbdom-helpers');
@@ -22082,7 +22221,7 @@ module.exports = function (_ref) {
 	return section('#ui', [section(state.router.admin ? '#admin' : '#front', [].concat([header({ state: state, actions: actions })], _switch(state.router.path, pages)({ state: state, actions: actions })))]);
 };
 
-},{"./header":41,"./pages/about":43,"./pages/admin":47,"./pages/admin/articles":45,"./pages/admin/pages":48,"./pages/almanac":49,"./pages/articles":50,"./pages/home":51,"./pages/links":52,"iblokz-data":5,"iblokz-snabbdom-helpers":10}],43:[function(require,module,exports){
+},{"./header":43,"./pages/about":45,"./pages/admin":49,"./pages/admin/articles":47,"./pages/admin/pages":50,"./pages/almanac":51,"./pages/articles":52,"./pages/home":53,"./pages/links":54,"iblokz-data":7,"iblokz-snabbdom-helpers":12}],45:[function(require,module,exports){
 'use strict';
 
 var _require = require('iblokz-snabbdom-helpers');
@@ -22118,7 +22257,7 @@ module.exports = function (_ref) {
 	return [section('.content', [section('.post', [h1('За Дружеството')]), section('.post', [p({ props: { innerHTML: marked('\n\u0414\u0440\u0443\u0436\u0435\u0441\u0442\u0432\u043E\u0442\u043E \u0437\u0430 \u043F\u0440\u0438\u044F\u0442\u0435\u043B\u0441\u0442\u0432\u043E \u0438 \u043A\u0443\u043B\u0442\u0443\u0440\u043D\u0438 \u0432\u0440\u044A\u0437\u043A\u0438 \u0441 \u0431\u0435\u0441\u0430\u0440\u0430\u0431\u0441\u043A\u0438\u0442\u0435 \u0438 \u0442\u0430\u0432\u0440\u0438\u0439\u0441\u043A\u0438\u0442\u0435 \u0431\u044A\u043B\u0433\u0430\u0440\u0438 \u201E\u0420\u043E\u0434\u043E\u043B\u044E\u0431\u0435\u0446\u201D \u0435 \u043E\u0441\u043D\u043E\u0432\u0430\u043D\u043E \u0432 \u043D\u0430\u0447\u0430\u043B\u043E\u0442\u043E \u043D\u0430 1990 \u0433.\n\n\u041D\u0430 15 \u044F\u043D\u0443\u0430\u0440\u0438 \u0432 \u0421\u043E\u0444\u0438\u044F \u0443\u0447\u0440\u0435\u0434\u0438\u0442\u0435\u043B\u043D\u043E\u0442\u043E \u0441\u044A\u0431\u0440\u0430\u043D\u0438\u0435 \u043F\u0440\u0438\u0435\u043C\u0430 \u0423\u0441\u0442\u0430\u0432\u0430 \u043D\u0430 \u0434\u0440\u0443\u0436\u0435\u0441\u0442\u0432\u043E\u0442\u043E, \u0430 \u0440\u0435\u0448\u0435\u043D\u0438\u0435\u0442\u043E \u0437\u0430 \u0440\u0435\u0433\u0438\u0441\u0442\u0440\u0430\u0446\u0438\u044F \u043D\u0430 \u0421\u043E\u0444\u0438\u0439\u0441\u043A\u0438\u044F \u0433\u0440\u0430\u0434\u0441\u043A\u0438 \u0441\u044A\u0434 \u0435 \u043E\u0442 28.06.1990 \u0433.\n\n\u041F\u0440\u0435\u0437 \u0442\u0435\u0437\u0438 \u043F\u043E\u0432\u0435\u0447\u0435 \u043E\u0442 25 \u0433\u043E\u0434\u0438\u043D\u0438 \u0434\u0440\u0443\u0436\u0435\u0441\u0442\u0432\u043E \u201E\u0420\u043E\u0434\u043E\u043B\u044E\u0431\u0435\u0446\u201D \u043F\u043E\u0435 \u043E\u0442\u0433\u0432\u043E\u0440\u043D\u043E\u0441\u0442\u0430 \u0438 \u043E\u0433\u0440\u043E\u043C\u043D\u0430\u0442\u0430 \u0437\u0430\u0434\u0430\u0447\u0430 \u0434\u0430 \u0437\u0430\u043F\u043E\u0437\u043D\u0430\u0435 \u0431\u044A\u043B\u0433\u0430\u0440\u0438\u0442\u0435 \u0432 \u0411\u044A\u043B\u0433\u0430\u0440\u0438\u044F \u0441\u044A\u0441 \u0441\u044A\u0449\u0435\u0441\u0442\u0432\u0443\u0432\u0430\u043D\u0435\u0442\u043E \u043D\u0430 \u043D\u0430\u0448\u0438 \u0441\u044A\u043D\u0430\u0440\u043E\u0434\u043D\u0438\u0446\u0438 \u0432 \u041C\u043E\u043B\u0434\u043E\u0432\u0430, \u0423\u043A\u0440\u0430\u0439\u043D\u0430, \u041A\u0430\u0437\u0430\u0445\u0441\u0442\u0430\u043D, \u0421\u0438\u0431\u0438\u0440... \u0414\u0440\u0443\u0436\u0435\u0441\u0442\u0432\u043E\u0442\u043E \u0438\u043C\u0430 \u0437\u0430\u0441\u043B\u0443\u0433\u0430 \u0438 \u0437\u0430 \u043F\u043E\u044F\u0432\u0430\u0442\u0430 \u043D\u0430 103 \u043F\u043E\u0441\u0442\u0430\u043D\u043E\u0432\u043B\u0435\u043D\u0438\u0435 \u043D\u0430 \u041C\u0438\u043D\u0438\u0441\u0442\u0435\u0440\u0441\u043A\u0438\u044F \u0441\u044A\u0432\u0435\u0442 \u043D\u0430 \u0420\u0435\u043F\u0443\u0431\u043B\u0438\u043A\u0430 \u0411\u044A\u043B\u0433\u0430\u0440\u0438\u044F \u0437\u0430 \u043F\u0440\u0438\u0435\u043C\u0430\u043D\u0435 \u043D\u0430 \u043D\u0430\u0448\u0438 \u0441\u044A\u043D\u0430\u0440\u043E\u0434\u043D\u0438\u0446\u0438 \u043E\u0442 \u0431\u0438\u0432\u0448\u0438\u0442\u0435 \u0441\u044A\u0432\u0435\u0442\u0441\u043A\u0438 \u0440\u0435\u043F\u0443\u0431\u043B\u0438\u043A\u0438 \u0437\u0430 \u0441\u0442\u0443\u0434\u0435\u043D\u0442\u0438 \u0443 \u043D\u0430\u0441.\n\n\u0418\u0437\u0434\u0430\u0432\u0430\u043D\u0435\u0442\u043E \u043D\u0430 \u0430\u043B\u043C\u0430\u043D\u0430\u0445\u0430 \u201E\u0420\u043E\u0434\u043E\u043B\u044E\u0431\u0435\u0446\u201D \u0441\u0442\u0430\u043D\u0430 \u043D\u0435\u043E\u0431\u0445\u043E\u0434\u0438\u043C\u043E \u043F\u043E\u043C\u0430\u0433\u0430\u043B\u043E \u043D\u0430 \u0443\u0447\u0438\u0442\u0435\u043B\u0438\u0442\u0435, \u043A\u043E\u0438\u0442\u043E \u0442\u0440\u044A\u0433\u0432\u0430\u0442 \u043A\u044A\u043C \u043D\u0430\u0448\u0438\u0442\u0435 \u0437\u0430\u0431\u0440\u0430\u0432\u0435\u043D\u0438 \u0441\u044A\u043D\u0430\u0440\u043E\u0434\u043D\u0438\u0446\u0438. \u0412 1998 \u0433. \u0434\u0440\u0443\u0436\u0435\u0441\u0442\u0432\u043E\u0442\u043E \u0432\u044A\u0437\u0441\u0442\u0430\u043D\u043E\u0432\u0438 \u043E\u0442\u0431\u0435\u043B\u044F\u0437\u0432\u0430\u043D\u0435\u0442\u043E \u0414\u0435\u043D\u044F \u043D\u0430 \u0431\u0435\u0441\u0430\u0440\u0430\u0431\u0441\u043A\u0438\u0442\u0435 \u0431\u044A\u043B\u0433\u0430\u0440\u0438. \u0420\u0430\u0434\u043E\u0441\u0442\u043D\u043E \u0435, \u0447\u0435 \u0438 \u0432 \u0441\u0435\u043B\u0438\u0449\u0430\u0442\u0430 \u043D\u0430 \u043D\u0430\u0448\u0438\u0442\u0435 \u0441\u044A\u043D\u0430\u0440\u043E\u0434\u043D\u0438\u0446\u0438 \u0432 \u043D\u044F\u043A\u043E\u0433\u0430\u0448\u043D\u0438\u0442\u0435 \u0411\u0435\u0441\u0430\u0440\u0430\u0431\u0438\u044F \u0438 \u0422\u0430\u0432\u0440\u0438\u044F \u0442\u043E\u0437\u0438 \u0414\u0435\u043D \u0432\u0435\u0447\u0435 \u043D\u0430\u043C\u0438\u0440\u0430 \u043C\u044F\u0441\u0442\u043E \u0432 \u043F\u0440\u0430\u0437\u043D\u0438\u0447\u043D\u0438\u044F \u0438\u043C \u043A\u0430\u043B\u0435\u043D\u0434\u0430\u0440.\n\n\u0427\u043B\u0435\u043D\u043E\u0432\u0435 \u043D\u0430 \u043D\u0430\u0448\u0435\u0442\u043E \u0434\u0440\u0443\u0436\u0435\u0441\u0442\u0432\u043E \u0438\u0437\u043D\u0430\u0441\u044F\u0442 \u0432 \u0441\u0435\u043B\u0438\u0449\u0430 \u0441 \u043A\u043E\u043C\u043F\u0430\u043A\u0442\u043D\u043E \u0431\u044A\u043B\u0433\u0430\u0440\u0441\u043A\u043E \u043D\u0430\u0441\u0435\u043B\u0435\u043D\u0438\u0435 \u043A\u043E\u043D\u0446\u0435\u0440\u0442\u0438 \u2013 \u0442\u043E\u043F\u043B\u0430 \u0438 \u0441\u044A\u0440\u0434\u0435\u0447\u043D\u0430 \u0432\u0440\u044A\u0437\u043A\u0430 \u0441\u044A\u0441 \u0441\u0442\u0430\u0440\u0430\u0442\u0430 \u0440\u043E\u0434\u0438\u043D\u0430. \u0421\u0442\u0443\u0434\u0435\u043D\u0442\u0438\u0442\u0435 \u0438 \u0437\u0430\u0432\u0440\u044A\u0449\u0430\u0449\u0438\u0442\u0435 \u0441\u0435 \u0437\u0430\u0432\u0438\u043D\u0430\u0433\u0438 \u0432 \u0411\u044A\u043B\u0433\u0430\u0440\u0438\u044F \u0431\u0435\u0441\u0430\u0440\u0430\u0431\u0441\u043A\u0438 \u0438 \u0442\u0430\u0432\u0440\u0438\u0439\u0441\u043A\u0438 \u0431\u044A\u043B\u0433\u0430\u0440\u0438 \u043C\u043E\u0433\u0430\u0442 \u0434\u0430 \u0440\u0430\u0437\u0447\u0438\u0442\u0430\u0442 \u043D\u0430 \u043F\u0440\u0438\u044F\u0442\u0435\u043B\u0441\u043A\u0430 \u043F\u043E\u0434\u043A\u0440\u0435\u043F\u0430 \u043E\u0442 \u0434\u0440\u0443\u0436\u0435\u0441\u0442\u0432\u043E \u201E\u0420\u043E\u0434\u043E\u043B\u044E\u0431\u0435\u0446\u201D.\n\n') } })]), section('.post', [p({ props: { innerHTML: marked('\n[\u0410\u0440\u0445\u0438\u0432\u043D\u0438 \u043C\u0430\u0442\u0435\u0440\u0438\u0430\u043B\u0438 \u0437\u0430 \u0420\u043E\u0434\u043E\u043B\u044E\u0431\u0435\u0446 (omda.bg)](http://prehod.omda.bg/page.php?IDMenu=642&IDLang=1)\n') } })])]), rightColumn({ state: state, actions: actions })];
 };
 
-},{"../right-column":54,"iblokz-snabbdom-helpers":10,"marked":22}],44:[function(require,module,exports){
+},{"../right-column":56,"iblokz-snabbdom-helpers":12,"marked":24}],46:[function(require,module,exports){
 'use strict';
 
 var _require = require('iblokz-snabbdom-helpers');
@@ -22277,7 +22416,7 @@ module.exports = function (_ref) {
 	})])]), div([button('[type="submit"]', 'Save')])])]) : '';
 };
 
-},{"../../../../util/md":56,"iblokz-snabbdom-helpers":10,"moment":24,"rx":26}],45:[function(require,module,exports){
+},{"../../../../util/md":58,"iblokz-snabbdom-helpers":12,"moment":26,"rx":28}],47:[function(require,module,exports){
 'use strict';
 
 var _require = require('iblokz-snabbdom-helpers');
@@ -22323,7 +22462,7 @@ module.exports = function (_ref) {
 	})), !state.router.pageId ? list({ state: state, actions: actions }) : edit({ state: state, actions: actions })])];
 };
 
-},{"./edit":44,"./list":46,"iblokz-snabbdom-helpers":10,"marked":22,"moment":24}],46:[function(require,module,exports){
+},{"./edit":46,"./list":48,"iblokz-snabbdom-helpers":12,"marked":24,"moment":26}],48:[function(require,module,exports){
 'use strict';
 
 var _require = require('iblokz-snabbdom-helpers');
@@ -22364,8 +22503,20 @@ module.exports = function (_ref) {
 		on: { click: function click() {
 				return actions.router.go('admin/articles/new');
 			} }
-	}, [i('.fa.fa-plus'), 'Добави публикация'])]), table('.crud', [thead([tr([th('[width="600"]', 'Заглавие'), th('Автор'), th('Категории'), th('Дата'), th('Издание'), th('[width="120"]', 'Действия')])]), tbody(state.articles.list.map(function (article) {
-		return tr([td(article.title), td(article.author), td(article.categories), td(article.createdAt), td(article.publishedIn), td([button('.fa.fa-external-link', {
+	}, [i('.fa.fa-plus'), 'Добави публикация'])]), table('.crud', [thead([tr([th('[width="600"]', 'Заглавие'), th('Автор'), th('Категории'), th('Дата'), th('Издание'), th('Закачена'), th('[width="120"]', 'Действия')])]), tbody(state.articles.list.map(function (article) {
+		return tr([td(article.title), td(article.author), td(article.categories), td(article.createdAt), td(article.publishedIn), td('[align="center"]', [a(i('.fa', {
+			on: {
+				click: function click() {
+					return actions.articles.update(article._id, {
+						pinned: !article.pinned
+					}, state.auth.token);
+				}
+			},
+			class: {
+				'fa-toggle-on': article.pinned,
+				'fa-toggle-off': !article.pinned
+			}
+		}))]), td([button('.fa.fa-external-link', {
 			on: { click: function click() {
 					return actions.router.go('articles/' + article._id);
 				} }
@@ -22377,7 +22528,7 @@ module.exports = function (_ref) {
 	}))])]);
 };
 
-},{"iblokz-snabbdom-helpers":10,"marked":22,"moment":24}],47:[function(require,module,exports){
+},{"iblokz-snabbdom-helpers":12,"marked":24,"moment":26}],49:[function(require,module,exports){
 'use strict';
 
 var _require = require('iblokz-snabbdom-helpers');
@@ -22411,7 +22562,7 @@ module.exports = function (_ref) {
 	})), section('.post', [p({ props: { innerHTML: marked('\n\t\t\t\t\u0414\u043E\u0431\u0440\u0435 \u0414\u043E\u0448\u043B\u0438!\n\t\t\t') } })])])];
 };
 
-},{"iblokz-snabbdom-helpers":10,"marked":22}],48:[function(require,module,exports){
+},{"iblokz-snabbdom-helpers":12,"marked":24}],50:[function(require,module,exports){
 'use strict';
 
 var _require = require('iblokz-snabbdom-helpers');
@@ -22445,7 +22596,7 @@ module.exports = function (_ref) {
 	})), section('.post', [p({ props: { innerHTML: marked('\n\t\t\t\t\u0414\u043E\u0431\u0440\u0435 \u0414\u043E\u0448\u043B\u0438!\n\t\t\t') } })])])];
 };
 
-},{"iblokz-snabbdom-helpers":10,"marked":22}],49:[function(require,module,exports){
+},{"iblokz-snabbdom-helpers":12,"marked":24}],51:[function(require,module,exports){
 'use strict';
 
 var _require = require('iblokz-snabbdom-helpers');
@@ -22478,7 +22629,7 @@ module.exports = function (_ref) {
 	return [section('.content', [section('.post', [h1('Алманах “Родолюбец“')]), section('.post', [p({ props: { innerHTML: marked('\n\u041A\u0430\u0442\u043E \u043F\u0435\u0447\u0430\u0442\u043D\u043E \u0438\u0437\u0434\u0430\u043D\u0438\u0435 \u043D\u0430 \u0434\u0440\u0443\u0436\u0435\u0441\u0442\u0432\u043E \u201C\u0420\u043E\u0434\u043E\u043B\u044E\u0431\u0435\u0446\u201D \u0432\u0441\u044F\u043A\u0430 \u0447\u0435\u0442\u043D\u0430 \u0433\u043E\u0434\u0438\u043D\u0430 \u0438\u0437\u043B\u0438\u0437\u0430 \u0430\u043B\u043C\u0430\u043D\u0430\u0445\u044A\u0442 \u201C\u0420\u043E\u0434\u043E\u043B\u044E\u0431\u0435\u0446\u201D, \u0435\u0434\u043D\u0430 \u0438\u0441\u0442\u0438\u043D\u0441\u043A\u0430 \u201C\u0445\u0440\u0438\u0441\u0442\u043E\u043C\u0430\u0442\u0438\u044F \u043F\u043E \u0440\u043E\u0434\u043E\u043B\u044E\u0431\u0438\u0435\u201D.\n\n\u041A\u0430\u0442\u043E \u0441\u0431\u043E\u0440\u043D\u0438\u043A \u043E\u0442 \u043F\u043E\u043B\u0435\u0437\u043D\u0438, \u0442\u0435\u043C\u0430\u0442\u0438\u0447\u043D\u0438 \u0447\u0435\u0442\u0438\u0432\u0430, \u0410\u043B\u043C\u0430\u043D\u0430\u0445\u044A\u0442 \u0438\u043C\u0430 \u0443\u0442\u0432\u044A\u0440\u0434\u0435\u043D\u0438 8 \u0434\u044F\u043B\u0430, \u043A\u043E\u0438\u0442\u043E \u0441\u0435 \u043F\u043E\u0434\u0434\u044A\u0440\u0436\u0430\u0442 \u0432\u044A\u0432 \u0432\u0441\u0435\u043A\u0438 \u0431\u0440\u043E\u0439, \u043A\u0430\u043A\u0442\u043E \u0441\u043B\u0435\u0434\u0432\u0430:\n- **\u0414\u044F\u043B I. \u0414\u0415 \u0415 \u0411\u042A\u041B\u0413\u0410\u0420\u0418\u042F?** - \u0433\u0435\u043E\u0433\u0440\u0430\u0444\u0441\u043A\u0438 \u043E\u0447\u0435\u0440\u0446\u0438 \u0437\u0430 \u0411\u044A\u043B\u0433\u0430\u0440\u0438\u044F \u0438\u043B\u0438 \u0437\u0430 \u043D\u0435\u0439\u043D\u0438 \u043E\u0431\u043B\u0430\u0441\u0442\u0438 \u0438 \u043E\u0447\u0435\u0440\u0446\u0438 \u0437\u0430 \u043E\u0431\u0435\u043A\u0442\u0438 \u0432 \u0442\u044F\u0445.\n- **\u0414\u044F\u043B II. \u0411\u042A\u041B\u0413\u0410\u0420\u0418\u042F \u041F\u0420\u0415\u0417 \u0412\u0415\u041A\u041E\u0412\u0415\u0422\u0415** - \u0418\u0441\u0442\u043E\u0440\u0438\u0447\u0435\u0441\u043A\u0438 \u043E\u0447\u0435\u0440\u0446\u0438 \u0437\u0430 \u0411\u044A\u043B\u0433\u0430\u0440\u0438\u044F.\n- **\u0414\u044F\u043B III. \u042E\u0411\u0418\u041B\u0415\u0419\u041D\u0418 \u0413\u041E\u0414\u0418\u0428\u041D\u0418\u041D\u0418** - \u041E\u0442\u0440\u0430\u0437\u044F\u0432\u0430\u0442 \u0441\u0435 \u0437\u043D\u0430\u0447\u0438\u0442\u0435\u043B\u043D\u0438 \u0441\u044A\u0431\u0438\u0442\u0438\u044F \u043E\u0442 \u0431\u044A\u043B\u0433\u0430\u0440\u0441\u043A\u0430\u0442\u0430 \u0438\u0441\u0442\u043E\u0440\u0438\u044F, \u044F\u0432\u044F\u0432\u0430\u0449\u0438 \u0441\u0435 \u044E\u0431\u0438\u043B\u0435\u0439\u043D\u0438 \u043A\u044A\u043C \u0433\u043E\u0434\u0438\u043D\u0430\u0442\u0430 \u043D\u0430 \u0438\u0437\u0434\u0430\u0432\u0430\u043D\u0435\u0442\u043E \u043D\u0430 \u0410\u043B\u043C\u0430\u043D\u0430\u0445\u0430.\n- **\u0414\u044F\u043B IV. \u0411\u042A\u041B\u0413\u0410\u0420\u0421\u041A\u0418 \u041F\u0410\u041D\u0422\u0415\u041E\u041D** - \u0420\u0430\u0437\u0434\u0435\u043B, \u0432 \u043A\u043E\u0439\u0442\u043E \u0441\u0430 \u043E\u0442\u0431\u0435\u043B\u044F\u0437\u0430\u043D\u0438 \u0437\u043D\u0430\u0447\u0438\u043C\u0438 \u043B\u0438\u0447\u043D\u043E\u0441\u0442\u0438 \u043E\u0442 \u0431\u044A\u043B\u0433\u0430\u0440\u0441\u043A\u0430\u0442\u0430 \u043F\u043E\u043B\u0438\u0442\u0438\u0447\u0435\u0441\u043A\u0430 \u0438 \u043A\u0443\u043B\u0442\u0443\u0440\u043D\u0430 \u0438\u0441\u0442\u043E\u0440\u0438\u044F.\n- **\u0414\u044F\u043B V. \u0421\u042A\u041A\u0420\u041E\u0412\u0418\u0429\u041D\u0418\u0426\u0410 \u041D\u0410 \u041D\u0410\u0420\u041E\u0414\u041D\u0418\u042F \u0414\u0423\u0425** - \u0421\u0442\u0430\u0442\u0438\u0438 \u0438 \u043E\u0447\u0435\u0440\u0446\u0438 \u0432\u044A\u0440\u0445\u0443 \u0431\u044A\u043B\u0433\u0430\u0440\u0441\u043A\u0438\u044F \u0444\u043E\u043B\u043A\u043B\u043E\u0440 \u0438 \u043E\u0431\u0440\u0430\u0437\u0446\u0438 \u043E\u0442 \u043D\u0430\u0440\u043E\u0434\u043D\u0438 \u043F\u0435\u0441\u043D\u0438 \u0438 \u043F\u0440\u0438\u043A\u0430\u0437\u043A\u0438.\n- **\u0414\u044F\u043B VI. \u0421 \u0411\u042A\u041B\u0413\u0410\u0420\u0418\u042F \u0412 \u0421\u042A\u0420\u0426\u0415\u0422\u041E** - \u041D\u0430\u0439-\u0432\u0430\u0436\u043D\u0438\u044F\u0442 \u0438 \u043D\u0430\u0439-\u043E\u0431\u0435\u043C\u0438\u0441\u0442 \u0434\u044F\u043B \u043E\u0442 \u0441\u0431\u043E\u0440\u043D\u0438\u043A\u0430, \u0438\u0437\u043F\u044A\u043B\u043D\u0435\u043D \u0441 \u0438\u0437\u043F\u043E\u0432\u0435\u0434\u0438, \u0441\u043F\u043E\u043C\u0435\u043D\u0438, \u0441\u0442\u0430\u0442\u0438\u0438 \u0438 \u043E\u0447\u0435\u0440\u0446\u0438 \u043D\u0430 \u0431\u0435\u0441\u0430\u0440\u0430\u0431\u0441\u043A\u0438 \u0438 \u0437\u0430 \u0431\u0435\u0441\u0430\u0440\u0430\u0431\u0441\u043A\u0438 \u0431\u044A\u043B\u0433\u0430\u0440\u0438, \u043E\u0447\u0435\u0440\u0446\u0438 \u0437\u0430 \u0431\u044A\u043B\u0433\u0430\u0440\u0438\u0442\u0435-\u0433\u0430\u0433\u0430\u0443\u0437\u0438 \u0432 \u0411\u0435\u0441\u0430\u0440\u0430\u0431\u0438\u044F \u0438 \u0432 \u0411\u044A\u043B\u0433\u0430\u0440\u0438\u044F \u0438 \u0437\u0430 \u0431\u044A\u043B\u0433\u0430\u0440\u0438\u0442\u0435 \u0436\u0438\u0432\u0435\u0435\u0449\u0438 \u0432\u044A\u043D \u043E\u0442 \u0433\u0440\u0430\u043D\u0438\u0446\u0438\u0442\u0435 \u043D\u0430 \u0411\u044A\u043B\u0433\u0430\u0440\u0438\u044F.\n- **\u0414\u044F\u043B VII. \u0422\u0412\u041E\u0420\u0426\u0418 \u041E\u0422 \u0411\u0415\u0421\u0410\u0420\u0410\u0411\u0418\u042F** - \u043A\u0440\u0430\u0442\u043A\u0438 \u0431\u0438\u043E\u0433\u0440\u0430\u0444\u0438\u0447\u043D\u0438 \u0431\u0435\u043B\u0435\u0436\u043A\u0438 \u0438 \u0442\u0432\u043E\u0440\u0431\u0438 \u043D\u0430 \u0431\u0435\u0441\u0430\u0440\u0430\u0431\u0441\u043A\u0438 \u043F\u043E\u0435\u0442\u0438 \u0438 \u0442\u0432\u043E\u0440\u0446\u0438\n- **\u0414\u044F\u043B VIII. \u0420\u041E\u0414\u041E\u041B\u042E\u0411\u0415\u0426 \u0417\u0410 \u0421\u0415\u0411\u0415 \u0421\u0418** - \u0440\u0430\u0437\u0434\u0435\u043B, \u0432 \u043A\u043E\u0439\u0442\u043E \u0434\u0440\u0443\u0436\u0435\u0441\u0442\u0432\u043E\u0442\u043E \u043E\u0442\u0440\u0430\u0437\u044F\u0432\u0430 \u043D\u044F\u043A\u043E\u0438 \u043E\u0442 \u0441\u0432\u043E\u0438\u0442\u0435 \u0434\u0435\u0439\u043D\u043E\u0441\u0442\u0438, \u043F\u0443\u0431\u043B\u0438\u043A\u0443\u0432\u0430 \u043D\u043E\u0440\u043C\u0430\u0442\u0438\u0432\u043D\u0438 \u0434\u043E\u043A\u0443\u043C\u0435\u043D\u0442\u0438, \u0441\u0432\u044A\u0440\u0437\u0430\u043D\u0438 \u0441 \u043E\u0431\u0443\u0447\u0435\u043D\u0438\u0435\u0442\u043E \u043D\u0430 \u0441\u0442\u0443\u0434\u0435\u043D\u0442\u0438\u0442\u0435 \u043E\u0442 \u0431\u044A\u043B\u0433\u0430\u0440\u0441\u043A\u0430\u0442\u0430 \u0434\u0438\u0430\u0441\u043F\u043E\u0440\u0430 \u0438\u0437\u0432\u044A\u043D \u0433\u0440\u0430\u043D\u0438\u0446\u0438\u0442\u0435 \u043D\u0430 \u0434\u043D\u0435\u0448\u043D\u0430 \u0411\u044A\u043B\u0433\u0430\u0440\u0438\u044F, \u0441\u043F\u0435\u0446\u0438\u0430\u043B\u0438\u0441\u0442\u0438 \u0438 \u043E\u0431\u043D\u0430\u0440\u043E\u0434\u0432\u0430 \u0441\u043F\u0438\u0441\u044A\u0446\u0438 \u043D\u0430 \u043F\u0440\u0438\u0435\u0442\u0438 \u0443 \u043D\u0430\u0441 \u0441\u0442\u0443\u0434\u0435\u043D\u0442\u0438, \u043D\u0430 \u0437\u0430\u0432\u044A\u0440\u0448\u0438\u043B\u0438\u0442\u0435 \u0432 \u0411\u044A\u043B\u0433\u0430\u0440\u0438\u044F \u0441\u043F\u0435\u0446\u0438\u0430\u043B\u0438\u0441\u0442\u0438 \u0438 \u043D\u0430 \u0438\u0437\u043F\u0440\u0430\u0442\u0435\u043D\u0438\u0442\u0435 \u0432 \u0411\u0435\u0441\u0430\u0440\u0430\u0431\u0438\u044F \u0443\u0447\u0438\u0442\u0435\u043B\u0438.\n\t\t\t') } })])]), rightColumn({ state: state, actions: actions })];
 };
 
-},{"../right-column":54,"iblokz-snabbdom-helpers":10,"marked":22}],50:[function(require,module,exports){
+},{"../right-column":56,"iblokz-snabbdom-helpers":12,"marked":24}],52:[function(require,module,exports){
 'use strict';
 
 var _require = require('iblokz-snabbdom-helpers');
@@ -22542,7 +22693,7 @@ module.exports = function (_ref) {
 	}))])]), rightColumn({ state: state, actions: actions })];
 };
 
-},{"../right-column":54,"iblokz-snabbdom-helpers":10,"marked":22,"moment":24}],51:[function(require,module,exports){
+},{"../right-column":56,"iblokz-snabbdom-helpers":12,"marked":24,"moment":26}],53:[function(require,module,exports){
 'use strict';
 
 var _require = require('iblokz-snabbdom-helpers');
@@ -22593,7 +22744,7 @@ module.exports = function (_ref) {
 	}))), rightColumn({ state: state, actions: actions })];
 };
 
-},{"../right-column":54,"iblokz-snabbdom-helpers":10,"marked":22,"moment":24}],52:[function(require,module,exports){
+},{"../right-column":56,"iblokz-snabbdom-helpers":12,"marked":24,"moment":26}],54:[function(require,module,exports){
 'use strict';
 
 var _require = require('iblokz-snabbdom-helpers');
@@ -22627,7 +22778,7 @@ module.exports = function (_ref) {
 	return [section('.content', [section('.post', [h1('Връзки')]), section('.post', [p({ props: { innerHTML: marked('\n- [\u0414\u044A\u0440\u0436\u0430\u0432\u043D\u0430 \u0430\u0433\u0435\u043D\u0446\u0438\u044F \u0437\u0430 \u0431\u044A\u043B\u0433\u0430\u0440\u0438\u0442\u0435 \u0432 \u0447\u0443\u0436\u0431\u0438\u043D\u0430](http://aba.government.bg)\n- [\u041C\u0438\u043D\u0438\u0441\u0442\u0435\u0440\u0441\u0442\u0432\u043E\u0442\u043E \u043D\u0430 \u043E\u0431\u0440\u0430\u0437\u043E\u0432\u0430\u043D\u0438\u0435\u0442\u043E \u0438 \u043D\u0430\u0443\u043A\u0430\u0442\u0430 > \u0417\u0430 \u0431\u044A\u043B\u0433\u0430\u0440\u0438\u0442\u0435 \u0437\u0430\u0434 \u0433\u0440\u0430\u043D\u0438\u0446\u0430](http://www.mon.bg/?go=page&amp;pageId=15&amp;subpageId=173)\n- [\u041D\u0430\u0443\u0447\u043D\u043E \u0434\u0440\u0443\u0436\u0435\u0441\u0442\u0432\u043E \u043D\u0430 \u0431\u044A\u043B\u0433\u0430\u0440\u0438\u0441\u0442\u0438\u0442\u0435 \u0432 \u0420\u0435\u043F\u0443\u0431\u043B\u0438\u043A\u0430 \u041C\u043E\u043B\u0434\u043E\u0432\u0430](http://ndb.md/)\n- [\u0411\u044A\u043B\u0433\u0430\u0440\u0441\u043A\u0430 \u0412\u0438\u0440\u0442\u0443\u0430\u043B\u043D\u0430 \u0411\u0438\u0431\u043B\u0438\u043E\u0442\u0435\u043A\u0430](http://slovo.bg)\n- [\u0412\u0435\u0441\u0442\u043D\u0438\u043A "\u0420\u043E\u0434\u0435\u043D \u041A\u0440\u0430\u0439" - \u041E\u0434\u0435\u0441\u0430](http://www.rodenkray.od.ua/)\n- [\u0410\u0440\u0445\u0438\u0432\u043D\u0438 \u043C\u0430\u0442\u0435\u0440\u0438\u0430\u043B\u0438 \u0437\u0430 \u0420\u043E\u0434\u043E\u043B\u044E\u0431\u0435\u0446 (omda.bg)](http://prehod.omda.bg/page.php?IDMenu=642&IDLang=1)\n- [\u0410\u0440\u0445\u0438\u0432\u043D\u0438 \u043C\u0430\u0442\u0435\u0440\u0438\u0430\u043B\u0438 \u043F\u043E \u0432\u044A\u043F\u0440\u043E\u0441\u0438\u0442\u0435 \u043D\u0430 \u0431\u044A\u043B\u0433\u0430\u0440\u0438\u0442\u0435 \u0437\u0430\u0434 \u0433\u0440\u0430\u043D\u0438\u0446\u0430 (omda.bg)](http://prehod.omda.bg/page.php/?IDMenu=604)\n\t\t\t') } })])]), rightColumn({ state: state, actions: actions })];
 };
 
-},{"../right-column":54,"iblokz-snabbdom-helpers":10,"marked":22}],53:[function(require,module,exports){
+},{"../right-column":56,"iblokz-snabbdom-helpers":12,"marked":24}],55:[function(require,module,exports){
 'use strict';
 
 var moment = require('moment');
@@ -22691,7 +22842,7 @@ module.exports = function (_ref) {
 	}))])]);
 };
 
-},{"iblokz-snabbdom-helpers":10,"moment":24,"moment/locale/bg":23}],54:[function(require,module,exports){
+},{"iblokz-snabbdom-helpers":12,"moment":26,"moment/locale/bg":25}],56:[function(require,module,exports){
 'use strict';
 
 var _require = require('iblokz-snabbdom-helpers');
@@ -22724,7 +22875,7 @@ module.exports = function (_ref) {
 	return section('.right-column', [section([ul([li([a('[href="https://goo.gl/maps/nuw3q3d9CuK2"][target="_blank"]', [i('.fa.fa-map-marker'), 'бул. „Евлоги Георгиев“ 169, ет. II-ри'])]), li([a('[href="https://fb.com/groups/rodolubets"][target="_blank"]', [i('.fa.fa-facebook-official'), 'Facebook Група на д-во Родолюбец'])]), li([a('[href="https://www.youtube.com/channel/UC29vwswzZgc4QjO0NDJKzdQ"][target="_blank"]', [i('.fa.fa-youtube'), 'Youtube Канал на Дружеството'])]), li([a('[href="mailto:rodolubets@abv.bg"]', [i('.fa.fa-envelope-o'), 'Ел. Поща: rodolubets at abv dot bg'])])])]), section([h2('Предстои:'), ul([li([a('[href="https://www.facebook.com/events/1131134003697555"][target="_blank"]', '21.07 Представяне на „Таврийски истории" на Леонид Паскалов", 18:00')])])]), section([h2('Минали събития:'), ul([li([a('[href="https://www.facebook.com/events/685338601674669"][target="_blank"]', '25.05 Представяне на "Да не угасват българските огнища извън България", 18:00')]), li([a('[href="https://www.facebook.com/events/616430778561488/"][target="_blank"]', '23.04 Великденска среща на д-во Родолюбец, 17:00 Славянска Беседа')]), li([a('[href="https://www.facebook.com/events/1878729519040663/"][target="_blank"]', '24.03 Нико Стоянов на 70 години, 18:00')]), li([a('[href="https://www.facebook.com/events/237310966716062/"][target="_blank"]', '24.02 Представяне на Алманах Родолюбец, брой 8-ми 2016г.')]), li([a('[href="https://www.facebook.com/events/224414394672363/"][target="_blank"]', '13.01 Отбелязване 90-годишнината от рождението на Петър Недов 17:30ч.')]), li([a('[href="https://www.facebook.com/events/391007054575193/"][target="_blank"]', '15.12 Коледно-новогодишна среща на д-во Родолюбец 18:00-22:00ч. читалище Славянска Беседа')]), li([a('[href="https://www.facebook.com/events/1781298892137645/"][target="_blank"]', '17-24.11 Честване на 100 годишнина от рождението на Мишо Хаджийски')]), li([a('[href="https://www.facebook.com/events/191852797922713/"][target="_blank"]', '27.10 18:30 Традиционен празничен концерт, посветен на Деня на Бесарабските Българи')])])]), calendar({ state: state, actions: actions })]);
 };
 
-},{"./calendar":53,"iblokz-snabbdom-helpers":10}],55:[function(require,module,exports){
+},{"./calendar":55,"iblokz-snabbdom-helpers":12}],57:[function(require,module,exports){
 'use strict';
 
 // lib
@@ -22766,7 +22917,7 @@ module.exports = {
 	adapt: adapt
 };
 
-},{"iblokz-data":5,"rx":26}],56:[function(require,module,exports){
+},{"iblokz-data":7,"rx":28}],58:[function(require,module,exports){
 'use strict';
 
 var toMarkdown = require('to-markdown');
@@ -22812,7 +22963,7 @@ module.exports = {
 	fromHTML: fromHTML
 };
 
-},{"marked":22,"to-markdown":31}],57:[function(require,module,exports){
+},{"marked":24,"to-markdown":33}],59:[function(require,module,exports){
 'use strict';
 
 var Rx = require('rx');
@@ -22825,7 +22976,7 @@ superagent.Request.prototype.observe = function () {
 
 module.exports = superagent;
 
-},{"rx":26,"superagent":27}],58:[function(require,module,exports){
+},{"rx":28,"superagent":29}],60:[function(require,module,exports){
 'use strict';
 
 var set = function set(key, value) {
@@ -22840,4 +22991,4 @@ module.exports = {
 	get: get
 };
 
-},{}]},{},[37]);
+},{}]},{},[39]);

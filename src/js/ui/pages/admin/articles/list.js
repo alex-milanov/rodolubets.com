@@ -21,6 +21,7 @@ module.exports = ({state, actions}) => div([
 			th('Категории'),
 			th('Дата'),
 			th('Издание'),
+			th('Закачена'),
 			th('[width="120"]', 'Действия')
 		])]),
 		tbody(state.articles.list.map(article => tr([
@@ -29,6 +30,17 @@ module.exports = ({state, actions}) => div([
 			td(article.categories),
 			td(article.createdAt),
 			td(article.publishedIn),
+			td('[align="center"]', [a(i('.fa', {
+				on: {
+					click: () => actions.articles.update(article._id, {
+						pinned: !article.pinned
+					}, state.auth.token)
+				},
+				class: {
+					'fa-toggle-on': article.pinned,
+					'fa-toggle-off': !article.pinned
+				}
+			}))]),
 			td([
 				button('.fa.fa-external-link', {
 					on: {click: () => actions.router.go(`articles/${article._id}`)}
