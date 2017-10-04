@@ -94,7 +94,7 @@ module.exports = ({state, actions}) =>
 				input('[type="text"][name="author"]', {props: {value: state.articles.doc.author || ''}})
 			]),
 			div([
-				label('Публикуван в'),
+				label('Издание'),
 				input('[type="text"][name="publishedIn"]', {props: {value: state.articles.doc.publishedIn || ''}})
 			]),
 			div([
