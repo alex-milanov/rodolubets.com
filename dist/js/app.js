@@ -21881,16 +21881,13 @@ var forceLogout = function forceLogout() {
 var login = function login(data) {
 	return request.post('/api/auth').send(data).set('Accept', 'application/json').observe().map(function (res) {
 		return res.body;
-	}).map(function (body) {
-		if (body.success) {
-			store.set('user', body.user);
-			store.set('token', body.token);
-			window.location = '#/admin';
-			return function (state) {
-				return obj.patch(state, 'auth', { user: body.user });
-			};
-		}
-		return function (state) {
+	}).map(function (_ref) {
+		var success = _ref.success;
+		var user = _ref.user;
+		var token = _ref.token;
+		return success ? (store.set('user', user), store.set('token', token), window.location = '#/admin', function (state) {
+			return obj.patch(state, 'auth', { user: user, token: token });
+		}) : function (state) {
 			return state;
 		};
 	});

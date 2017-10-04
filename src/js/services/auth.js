@@ -22,15 +22,16 @@ const login = data => request
 	.set('Accept', 'application/json')
 	.observe()
 	.map(res => res.body)
-	.map(body => {
-		if (body.success) {
-			store.set('user', body.user);
-			store.set('token', body.token);
-			window.location = '#/admin';
-			return state => obj.patch(state, 'auth', {user: body.user});
-		}
-		return state => state;
-	});
+	.map(({success, user, token}) =>
+		(success)
+			? (
+				store.set('user', user),
+				store.set('token', token),
+				(window.location = '#/admin'),
+				state => obj.patch(state, 'auth', {user, token})
+			)
+			: state => state
+	);
 
 const logout = token => request
 	.delete('/api/auth')
