@@ -22364,7 +22364,7 @@ module.exports = function (_ref) {
 				return false;
 			}
 		}
-	}, [state.articles.doc._id && input('[type="hidden"][name="_id"]', { props: { value: state.articles.doc._id || '' } }) || '', div([label('Заглавие'), input('[type="text"][name="title"]', { props: { value: state.articles.doc.title || '' } })]), div([label('Автор'), input('[type="text"][name="author"]', { props: { value: state.articles.doc.author || '' } })]), div([label('Категории'), input('[type="text"][name="categories"]', { props: { value: (state.articles.doc.categories || []).join(', ') } })]), div([label(['Текст', span('.right', [button('[type="button"]', {
+	}, [state.articles.doc._id && input('[type="hidden"][name="_id"]', { props: { value: state.articles.doc._id || '' } }) || '', div([label('Заглавие'), input('[type="text"][name="title"]', { props: { value: state.articles.doc.title || '' } })]), div([label('Автор'), input('[type="text"][name="author"]', { props: { value: state.articles.doc.author || '' } })]), div([label('Публикуван в'), input('[type="text"][name="publishedIn"]', { props: { value: state.articles.doc.publishedIn || '' } })]), div([label('Категории'), input('[type="text"][name="categories"]', { props: { value: (state.articles.doc.categories || []).join(', ') } })]), div([label(['Текст', span('.right', [button('[type="button"]', {
 		class: { on: state.editor.wysiwyg },
 		on: { click: function click() {
 				return actions.toggle(['editor', 'wysiwyg']);
