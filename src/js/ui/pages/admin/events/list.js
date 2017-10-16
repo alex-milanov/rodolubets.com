@@ -22,18 +22,20 @@ module.exports = ({state, actions}) => div([
 			th('Край'),
 			th('[width="120"]', 'Действия')
 		])]),
-		tbody(state.events.list.map(event => tr([
-			td(event.name),
-			td(event.url),
-			td(event.start),
-			td(event.end),
-			td([
-				a(`.fa.fa-external-link[href="${event.url}"][target="_blank"]`),
-				button('.fa.fa-pencil', {
-					on: {click: () => actions.router.go(`admin/events/${event._id}`)}
-				}),
-				button('.fa.fa-trash')
-			])
-		])))
+		tbody(state.events.list
+			.sort((a, b) => new Date(a.start) < new Date(b.start) ? 1 : -1)
+			.map(event => tr([
+				td(event.name),
+				td(event.url),
+				td(moment(event.start).format('lll')),
+				td(moment(event.start).format('lll')),
+				td([
+					a(`.fa.fa-external-link[href="${event.url}"][target="_blank"]`),
+					button('.fa.fa-pencil', {
+						on: {click: () => actions.router.go(`admin/events/${event._id}`)}
+					}),
+					button('.fa.fa-trash')
+				])
+			])))
 	])
 ]);
