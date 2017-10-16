@@ -22,6 +22,7 @@
 			"schema": {
 				"name": "String",
 				"start": "Date",
+				"end": "Date",
 				"url": "String"
 			}
 		}
@@ -44,6 +45,16 @@
 				}
 			},
 			"articles": {
+				"_meta": {
+					"access": {
+						"admin": "all",
+						"publisher": "own",
+						"user": "list,view",
+						"anonymous": "list,view"
+					}
+				}
+			},
+			"events": {
 				"_meta": {
 					"access": {
 						"admin": "all",

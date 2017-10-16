@@ -19,6 +19,7 @@ const pages = {
 	admin: {
 		default: require('./pages/admin'),
 		articles: require('./pages/admin/articles'),
+		events: require('./pages/admin/events'),
 		pages: require('./pages/admin/pages')
 	}
 };

@@ -94,7 +94,7 @@
 				box-sizing: border-box
 				&:not(:last-child)
 					padding: 0px 5px
-				button
+				button, a
 					+clear-form-control
 					+panel-button(10px)
 					float: left
@@ -105,10 +105,13 @@
 					height: 40px
 					width: 39px
 					background: inherit
+					text-decoration: none
 					border: 0px
 			tr > :not(:first-child)
 				border-left: 1px solid #ccc
 			tr:not(:first-child) > *
 				border-top: 1px solid #ccc
 			thead > tr:last-child > *
-				border-bottom: 1px solid #aaa
+			thead
+				background: rgba(255, 255, 255, 0.3)
+				box-shadow: 0px 1px 1px #bbb, 0px 7px 3px rgba(230, 230, 230, 0.3)

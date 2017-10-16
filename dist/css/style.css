@@ -2651,7 +2651,7 @@ h1, h2, h3, h4, h5 {
         box-sizing: border-box; }
         #ui > #admin .content table.crud td:not(:last-child), #ui > #admin .content table.crud th:not(:last-child) {
           padding: 0px 5px; }
-        #ui > #admin .content table.crud td button, #ui > #admin .content table.crud th button {
+        #ui > #admin .content table.crud td button, #ui > #admin .content table.crud td a, #ui > #admin .content table.crud th button, #ui > #admin .content table.crud th a {
           margin: 0px;
           padding: 0px;
           outline: none;
@@ -2675,30 +2675,32 @@ h1, h2, h3, h4, h5 {
           height: 40px;
           width: 39px;
           background: inherit;
+          text-decoration: none;
           border: 0px; }
-          #ui > #admin .content table.crud td button:focus, #ui > #admin .content table.crud td button:active, #ui > #admin .content table.crud td button::-moz-focus-inner, #ui > #admin .content table.crud td button:-moz-focusring, #ui > #admin .content table.crud td button::-moz-focus-outer, #ui > #admin .content table.crud th button:focus, #ui > #admin .content table.crud th button:active, #ui > #admin .content table.crud th button::-moz-focus-inner, #ui > #admin .content table.crud th button:-moz-focusring, #ui > #admin .content table.crud th button::-moz-focus-outer {
+          #ui > #admin .content table.crud td button:focus, #ui > #admin .content table.crud td button:active, #ui > #admin .content table.crud td button::-moz-focus-inner, #ui > #admin .content table.crud td button:-moz-focusring, #ui > #admin .content table.crud td button::-moz-focus-outer, #ui > #admin .content table.crud td a:focus, #ui > #admin .content table.crud td a:active, #ui > #admin .content table.crud td a::-moz-focus-inner, #ui > #admin .content table.crud td a:-moz-focusring, #ui > #admin .content table.crud td a::-moz-focus-outer, #ui > #admin .content table.crud th button:focus, #ui > #admin .content table.crud th button:active, #ui > #admin .content table.crud th button::-moz-focus-inner, #ui > #admin .content table.crud th button:-moz-focusring, #ui > #admin .content table.crud th button::-moz-focus-outer, #ui > #admin .content table.crud th a:focus, #ui > #admin .content table.crud th a:active, #ui > #admin .content table.crud th a::-moz-focus-inner, #ui > #admin .content table.crud th a:-moz-focusring, #ui > #admin .content table.crud th a::-moz-focus-outer {
             outline: none;
             border-radius: 0px;
             border-image: none; }
-          #ui > #admin .content table.crud td button:hover, #ui > #admin .content table.crud td button.active, #ui > #admin .content table.crud th button:hover, #ui > #admin .content table.crud th button.active {
+          #ui > #admin .content table.crud td button:hover, #ui > #admin .content table.crud td button.active, #ui > #admin .content table.crud td a:hover, #ui > #admin .content table.crud td a.active, #ui > #admin .content table.crud th button:hover, #ui > #admin .content table.crud th button.active, #ui > #admin .content table.crud th a:hover, #ui > #admin .content table.crud th a.active {
             color: #333;
             background: #e5ede4;
             box-shadow: inset 0px 0px 10px #d5d5d5; }
-          #ui > #admin .content table.crud td button:active, #ui > #admin .content table.crud th button:active {
+          #ui > #admin .content table.crud td button:active, #ui > #admin .content table.crud td a:active, #ui > #admin .content table.crud th button:active, #ui > #admin .content table.crud th a:active {
             transition: background .3s, box-shadow .1s;
             background: #e5eae5;
             padding: 11px 10px 9px 10px; }
-          #ui > #admin .content table.crud td button:focus, #ui > #admin .content table.crud th button:focus {
+          #ui > #admin .content table.crud td button:focus, #ui > #admin .content table.crud td a:focus, #ui > #admin .content table.crud th button:focus, #ui > #admin .content table.crud th a:focus {
             outline: none; }
-          #ui > #admin .content table.crud td button a, #ui > #admin .content table.crud th button a {
+          #ui > #admin .content table.crud td button a, #ui > #admin .content table.crud td a a, #ui > #admin .content table.crud th button a, #ui > #admin .content table.crud th a a {
             text-decoration: none;
             color: inherit; }
       #ui > #admin .content table.crud tr > :not(:first-child) {
         border-left: 1px solid #ccc; }
       #ui > #admin .content table.crud tr:not(:first-child) > * {
         border-top: 1px solid #ccc; }
-      #ui > #admin .content table.crud thead > tr:last-child > * {
-        border-bottom: 1px solid #aaa; }
+      #ui > #admin .content table.crud thead {
+        background: rgba(255, 255, 255, 0.3);
+        box-shadow: 0px 1px 1px #bbb, 0px 7px 3px rgba(230, 230, 230, 0.3); }
 
 #ui .right-column {
   display: inline-block;
