@@ -28,7 +28,7 @@ module.exports = ({state, actions}) => div([
 				td(event.name),
 				td(event.url),
 				td(moment(event.start).format('lll')),
-				td(moment(event.start).format('lll')),
+				td(moment(event.end).format('lll')),
 				td([
 					a(`.fa.fa-external-link[href="${event.url}"][target="_blank"]`),
 					button('.fa.fa-pencil', {

@@ -22736,7 +22736,7 @@ module.exports = function (_ref) {
 	}, [i('.fa.fa-plus'), 'Добави събитие'])]), table('.crud', [thead([tr([th('[width="400"]', 'Текст'), th('[width="300"]', 'Връзка'), th('Начало'), th('Край'), th('[width="120"]', 'Действия')])]), tbody(state.events.list.sort(function (a, b) {
 		return new Date(a.start) < new Date(b.start) ? 1 : -1;
 	}).map(function (event) {
-		return tr([td(event.name), td(event.url), td(moment(event.start).format('lll')), td(moment(event.start).format('lll')), td([a('.fa.fa-external-link[href="' + event.url + '"][target="_blank"]'), button('.fa.fa-pencil', {
+		return tr([td(event.name), td(event.url), td(moment(event.start).format('lll')), td(moment(event.end).format('lll')), td([a('.fa.fa-external-link[href="' + event.url + '"][target="_blank"]'), button('.fa.fa-pencil', {
 			on: { click: function click() {
 					return actions.router.go('admin/events/' + event._id);
 				} }
