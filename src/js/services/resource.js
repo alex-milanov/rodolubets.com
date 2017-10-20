@@ -9,7 +9,7 @@ const {obj} = require('iblokz-data');
 const request = require('../util/request');
 
 const initial = {
-	query: {},
+	query: {limit: 100},
 	list: [],
 	doc: {},
 	dirty: true

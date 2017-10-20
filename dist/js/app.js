@@ -21936,7 +21936,7 @@ var obj = _require.obj;
 var request = require('../util/request');
 
 var initial = {
-	query: {},
+	query: { limit: 100 },
 	list: [],
 	doc: {},
 	dirty: true
