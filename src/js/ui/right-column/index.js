@@ -14,7 +14,7 @@ const formatDate = ev => (moment(ev.start).format('DD') !== moment(ev.end).forma
 	? moment(ev.start).format('DD') + '-' + moment(ev.end).format('DD.MM')
 	: moment(ev.start).format('DD.MM HH:mm');
 
-module.exports = ({state, actions}) => section('.right-column', [
+module.exports = ({state, actions}) => section('.right-column', [].concat(
 	section([
 		ul([
 			li([a('[href="https://goo.gl/maps/nuw3q3d9CuK2"][target="_blank"]', [
@@ -35,27 +35,28 @@ module.exports = ({state, actions}) => section('.right-column', [
 			])])
 		])
 	]),
-	section([
-		h2('Предстои:'),
-		ul(
-			state.events.list.filter(ev => new Date(ev.end) >= new Date())
-				.sort((a, b) => new Date(a.start) < new Date(b.start) ? 1 : -1)
-				.map(ev =>
-					li([a(
-						`[href="${ev.url}"][target="_blank"]`,
-						formatDate(ev) + ' ' + ev.name
-					)])
-				)
-		)
-		/*
-		ul([
-			li([a(
-				'[href="https://www.facebook.com/events/678792822320208"][target="_blank"]',
-				'26-28.10 Прояви по случай Деня на бесарабските българи'
-			)])
-		])
-		*/
-	]),
+	state.events.list.filter(ev => new Date(ev.end) >= new Date()).length > 0
+		? section([
+			h2('Предстои:'),
+			ul(
+				state.events.list.filter(ev => new Date(ev.end) >= new Date())
+					.sort((a, b) => new Date(a.start) < new Date(b.start) ? 1 : -1)
+					.map(ev =>
+						li([a(
+							`[href="${ev.url}"][target="_blank"]`,
+							formatDate(ev) + ' ' + ev.name
+						)])
+					)
+			)
+			/*
+			ul([
+				li([a(
+					'[href="https://www.facebook.com/events/678792822320208"][target="_blank"]',
+					'26-28.10 Прояви по случай Деня на бесарабските българи'
+				)])
+			])
+			*/
+		]) : [],
 	section([
 		h2('Минали събития:'),
 		ul(
@@ -108,4 +109,4 @@ module.exports = ({state, actions}) => section('.right-column', [
 		)
 	]),
 	calendar({state, actions})
-]);
+));

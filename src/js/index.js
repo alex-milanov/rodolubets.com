@@ -27,9 +27,11 @@ let ui = require('./ui');
 const router = require('./services/router');
 actions.router = router.actions;
 // resources
+const resList = ['articles', 'events', 'pages'];
 const resource = require('./services/resource');
-actions = resource.attach(actions, 'articles');
-actions = resource.attach(actions, 'events');
+resList.forEach(res => (
+	actions = resource.attach(actions, res)
+));
 // auth
 const auth = require('./services/auth');
 actions.auth = auth.actions;
@@ -52,8 +54,9 @@ if (module.hot) {
 					router: router.actions,
 					auth: auth.actions
 				},
-				obj.keyValue('articles', resource.applyNs(resource.actions, 'articles')),
-				obj.keyValue('events', resource.applyNs(resource.actions, 'events'))
+				resList.reduce(
+					(o, res) => obj.patch(o, res, resource.applyNs(resource.actions, res)), {}
+				)
 			));
 			return actions.stream.startWith(state => state);
 		}).merge(actions.stream);
@@ -75,15 +78,16 @@ const state$ = actions$
 
 // state change hooks
 router.hook({state$, actions});
-resource.hook('articles')({state$, actions});
-resource.hook('events')({state$, actions});
+resList.forEach(res => (
+	resource.hook(res)({state$, actions})
+));
 auth.hook({state$, actions});
 
 // trigger read action on pageId param
 state$
 	.distinctUntilChanged(state => state.router.pageId)
 	.filter(state => state.router.pageId !== null)
-	.subscribe(state => ['articles', 'events'].forEach(res =>
+	.subscribe(state => resList.forEach(res =>
 		state.router.page.match(res) && (state.router.pageId === 'new'
 			? actions[res].reset()
 			: actions[res].read(state.router.pageId))

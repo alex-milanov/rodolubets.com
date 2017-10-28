@@ -23,7 +23,19 @@
 				"name": "String",
 				"start": "Date",
 				"end": "Date",
-				"url": "String"
+				"url": "String",
+				"createdBy" : { "type": "ObjectId", "ref":"User", "required": false},
+				"createdOn": { "type": "Date", "default": "Date.now" }
+			}
+		},
+		"pages": {
+			"model": "Page",
+			"schema": {
+				"title": "String",
+				"path": "String",
+				"content": "String",
+				"createdBy" : { "type": "ObjectId", "ref":"User", "required": false},
+				"createdOn": { "type": "Date", "default": "Date.now" }
 			}
 		}
 	},
@@ -55,6 +67,16 @@
 				}
 			},
 			"events": {
+				"_meta": {
+					"access": {
+						"admin": "all",
+						"publisher": "own",
+						"user": "list,view",
+						"anonymous": "list,view"
+					}
+				}
+			},
+			"pages": {
 				"_meta": {
 					"access": {
 						"admin": "all",

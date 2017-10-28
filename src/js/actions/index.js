@@ -21,9 +21,15 @@ const editArticle = (text, sel) => state => obj.patch(
 	'editor', {sel}
 );
 
+const edit = ({res, field, value, sel}) => state => obj.patch(
+	obj.patch(state, [res, 'doc', field], value),
+	'editor', {sel}
+);
+
 module.exports = {
 	set,
 	toggle,
 	editArticle,
+	edit,
 	initial
 };

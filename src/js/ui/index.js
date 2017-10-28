@@ -3,6 +3,10 @@
 const {section} = require('iblokz-snabbdom-helpers');
 const {obj} = require('iblokz-data');
 
+// comp
+const pageComp = require('./comp/page');
+const rightColumn = require('./right-column');
+
 const _switch = (value, cases) =>
 	obj.sub(cases, value) && obj.sub(cases, value)['default'] || obj.sub(cases, value)
 	|| (value instanceof Array)
@@ -27,6 +31,12 @@ const pages = {
 module.exports = ({state, actions}) => section('#ui', [
 	section((state.router.admin ? '#admin' : '#front'), [].concat(
 		[header({state, actions})],
-		_switch(state.router.path, pages)({state, actions})
+		_switch(state.router.path, state.pages.list.reduce(
+			(pages, page) => obj.patch(pages, page.path.split('.'),
+				({state, actions}) => pageComp({state, actions, page, rightColumn:
+				rightColumn({state, actions})})
+			),
+			pages
+		))({state, actions})
 	))
 ]);
