@@ -183,7 +183,7 @@ function next(prev, current) {
 
 module.exports = collapseWhitespace;
 
-},{"block-elements":1,"void-elements":37}],4:[function(require,module,exports){
+},{"block-elements":1,"void-elements":38}],4:[function(require,module,exports){
 
 /**
  * Expose `Emitter`.
@@ -621,6 +621,8 @@ const h = require('snabbdom/h').default;
 const {obj} = require('iblokz-data');
 const htmlTags = require('html-tags');
 
+const attrs = require('./util/attrs');
+
 const patch = snabbdom.init([ // Init patch function with choosen modules
 	require('snabbdom/modules/class').default, // makes it easy to toggle classes
 	require('snabbdom/modules/props').default, // for setting properties on DOM elements
@@ -637,42 +639,11 @@ const patchStream = (stream, dom) => {
 	).subscribe();
 };
 
-const processAttrs = args => {
-	let newArgs = args.slice();
-
-	let selector = newArgs[0] && typeof newArgs[0] === 'string' && newArgs[0] || '';
-	if (selector !== '') newArgs = newArgs.slice(1);
-
-	const attrRegExp = /\[[a-z\-0-9]+="[^"]+"\]/ig;
-
-	let attrs = selector && selector.match(attrRegExp);
-	selector = selector.replace(attrRegExp, '');
-
-	attrs = attrs && attrs.map && attrs
-		.map(c => c.replace(/[[\]"]/g, '').split('='))
-		.reduce((o, attr) => obj.patch(o, attr[0], attr[1]), {}) || {};
-
-	if (attrs && Object.keys(attrs).length > 0) {
-		if (!newArgs[0] || newArgs[0]
-			&& typeof newArgs[0] === 'object' && !(newArgs[0] instanceof Array)) {
-			attrs = Object.assign({}, newArgs[0] && newArgs[0].attrs || {}, attrs);
-			newArgs[0] = Object.assign({}, newArgs[0] || {}, {attrs});
-		} else {
-			newArgs = [{attrs}].concat(newArgs);
-		}
-	}
-
-	if (selector !== '') newArgs = [selector].concat(newArgs);
-
-	// console.log(args, newArgs);
-	return newArgs;
-};
-
 const hyperHelpers = htmlTags.reduce(
 	(o, tag) => {
 		o[tag] = function() {
 			return [Array.from(arguments)]
-				.map(processAttrs)
+				.map(attrs.process)
 				.map(args => (
 					// is the first argument a selector
 					args[0] && typeof args[0] === 'string' && args[0].match(/^(\.|#)[a-zA-Z\-_0-9]+/ig))
@@ -694,7 +665,7 @@ module.exports = Object.assign(
 	hyperHelpers
 );
 
-},{"html-tags":6,"iblokz-data":7,"snabbdom":21,"snabbdom/h":13,"snabbdom/modules/attributes":16,"snabbdom/modules/class":17,"snabbdom/modules/eventlisteners":18,"snabbdom/modules/props":19,"snabbdom/modules/style":20}],13:[function(require,module,exports){
+},{"./util/attrs":24,"html-tags":6,"iblokz-data":7,"snabbdom":21,"snabbdom/h":13,"snabbdom/modules/attributes":16,"snabbdom/modules/class":17,"snabbdom/modules/eventlisteners":18,"snabbdom/modules/props":19,"snabbdom/modules/style":20}],13:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var vnode_1 = require("./vnode");
@@ -1502,6 +1473,54 @@ exports.vnode = vnode;
 exports.default = vnode;
 
 },{}],24:[function(require,module,exports){
+'use strict';
+
+const {obj} = require('iblokz-data');
+
+const strParse = s =>
+	s.match(/^[0-9]+$/) ? parseInt(s, 10)
+	: s.match(/^[0-9.]+$/) ? parseFloat(s)
+	: s === 'true' ? true
+	: s === 'false' ? false
+	: s;
+
+const process = args => {
+	let newArgs = args.slice();
+
+	let selector = newArgs[0] && typeof newArgs[0] === 'string' && newArgs[0] || '';
+	if (selector !== '') newArgs = newArgs.slice(1);
+
+	const attrRegExp = /\[[a-z\-0-9]+=("[^"]+"|'[^']+'|[0-9.]+|true|false|[^\]^=^"^']+)\]/ig;
+
+	let attrs = selector && selector.match(attrRegExp);
+	selector = selector.replace(attrRegExp, '');
+
+	attrs = attrs && attrs.map && attrs
+		.map(c => c.replace(/[[\]("|')]/g, '').split('='))
+		.reduce((o, attr) => obj.patch(o, attr[0], strParse(attr[1])), {}) || {};
+
+	if (attrs && Object.keys(attrs).length > 0) {
+		if (!newArgs[0] || newArgs[0]
+			&& typeof newArgs[0] === 'object' && !(newArgs[0] instanceof Array)) {
+			attrs = Object.assign({}, newArgs[0] && newArgs[0].attrs || {}, attrs);
+			newArgs[0] = Object.assign({}, newArgs[0] || {}, {attrs});
+		} else {
+			newArgs = [{attrs}].concat(newArgs);
+		}
+	}
+
+	if (selector !== '') newArgs = [selector].concat(newArgs);
+
+	// console.log(args, newArgs);
+	return newArgs;
+};
+
+module.exports = {
+	strParse,
+	process
+};
+
+},{"iblokz-data":7}],25:[function(require,module,exports){
 (function (global){
 /**
  * marked - a markdown parser
@@ -2791,7 +2810,7 @@ if (typeof module !== 'undefined' && typeof exports === 'object') {
 }());
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],25:[function(require,module,exports){
+},{}],26:[function(require,module,exports){
 //! moment.js locale configuration
 //! locale : Bulgarian [bg]
 //! author : Krasen Borisov : https://github.com/kraz
@@ -2882,7 +2901,7 @@ if (typeof module !== 'undefined' && typeof exports === 'object') {
     return bg;
 
 }));
-},{"../moment":26}],26:[function(require,module,exports){
+},{"../moment":27}],27:[function(require,module,exports){
 //! moment.js
 //! version : 2.15.1
 //! authors : Tim Wood, Iskren Chernev, Moment.js contributors
@@ -7117,7 +7136,7 @@ if (typeof module !== 'undefined' && typeof exports === 'object') {
     return _moment;
 
 }));
-},{}],27:[function(require,module,exports){
+},{}],28:[function(require,module,exports){
 // shim for using process in browser
 var process = module.exports = {};
 
@@ -7299,7 +7318,7 @@ process.chdir = function (dir) {
 };
 process.umask = function() { return 0; };
 
-},{}],28:[function(require,module,exports){
+},{}],29:[function(require,module,exports){
 (function (process,global){
 // Copyright (c) Microsoft, All rights reserved. See License.txt in the project root for license information.
 
@@ -19691,7 +19710,7 @@ var ReactiveTest = Rx.ReactiveTest = {
 }.call(this));
 
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"_process":27}],29:[function(require,module,exports){
+},{"_process":28}],30:[function(require,module,exports){
 /**
  * Root reference for iframes.
  */
@@ -20669,7 +20688,7 @@ request.put = function(url, data, fn){
   return req;
 };
 
-},{"./is-object":30,"./request":32,"./request-base":31,"emitter":4}],30:[function(require,module,exports){
+},{"./is-object":31,"./request":33,"./request-base":32,"emitter":4}],31:[function(require,module,exports){
 /**
  * Check if `obj` is an object.
  *
@@ -20684,7 +20703,7 @@ function isObject(obj) {
 
 module.exports = isObject;
 
-},{}],31:[function(require,module,exports){
+},{}],32:[function(require,module,exports){
 /**
  * Module of mixed-in functions shared between node and client code
  */
@@ -21058,7 +21077,7 @@ exports.send = function(data){
   return this;
 };
 
-},{"./is-object":30}],32:[function(require,module,exports){
+},{"./is-object":31}],33:[function(require,module,exports){
 // The node and browser modules expose versions of this with the
 // appropriate constructor function bound as first argument
 /**
@@ -21092,7 +21111,7 @@ function request(RequestConstructor, method, url) {
 
 module.exports = request;
 
-},{}],33:[function(require,module,exports){
+},{}],34:[function(require,module,exports){
 /*
  * to-markdown - an HTML to Markdown converter
  *
@@ -21327,7 +21346,7 @@ toMarkdown.outer = outer
 
 module.exports = toMarkdown
 
-},{"./lib/gfm-converters":34,"./lib/html-parser":35,"./lib/md-converters":36,"collapse-whitespace":3}],34:[function(require,module,exports){
+},{"./lib/gfm-converters":35,"./lib/html-parser":36,"./lib/md-converters":37,"collapse-whitespace":3}],35:[function(require,module,exports){
 'use strict'
 
 function cell (content, node) {
@@ -21439,7 +21458,7 @@ module.exports = [
   }
 ]
 
-},{}],35:[function(require,module,exports){
+},{}],36:[function(require,module,exports){
 /*
  * Set up window for Node.js
  */
@@ -21517,7 +21536,7 @@ function shouldUseActiveX () {
 
 module.exports = canParseHtmlNatively() ? _window.DOMParser : createHtmlParser()
 
-},{"jsdom":2}],36:[function(require,module,exports){
+},{"jsdom":2}],37:[function(require,module,exports){
 'use strict'
 
 module.exports = [
@@ -21670,7 +21689,7 @@ module.exports = [
   }
 ]
 
-},{}],37:[function(require,module,exports){
+},{}],38:[function(require,module,exports){
 /**
  * This file automatically generated from `pre-publish.js`.
  * Do not manually edit.
@@ -21695,7 +21714,7 @@ module.exports = {
   "wbr": true
 };
 
-},{}],38:[function(require,module,exports){
+},{}],39:[function(require,module,exports){
 'use strict';
 
 var Rx = require('rx');
@@ -21749,7 +21768,7 @@ module.exports = {
 	initial: initial
 };
 
-},{"iblokz-data":7,"rx":28}],39:[function(require,module,exports){
+},{"iblokz-data":7,"rx":29}],40:[function(require,module,exports){
 'use strict';
 
 // lib
@@ -21874,7 +21893,7 @@ vdom.patchStream(ui$, '#ui');
 
 window.actions = actions;
 
-},{"./actions":38,"./services/auth":40,"./services/resource":41,"./services/router":42,"./ui":45,"./util/app":63,"iblokz-data":7,"iblokz-snabbdom-helpers":12,"moment/locale/bg":25,"rx":28}],40:[function(require,module,exports){
+},{"./actions":39,"./services/auth":41,"./services/resource":42,"./services/router":43,"./ui":47,"./util/app":65,"iblokz-data":7,"iblokz-snabbdom-helpers":12,"moment/locale/bg":26,"rx":29}],41:[function(require,module,exports){
 'use strict';
 
 var Rx = require('rx');
@@ -21937,7 +21956,7 @@ module.exports = {
 	hook: hook
 };
 
-},{"../util/request":65,"../util/store":66,"iblokz-data":7,"rx":28}],41:[function(require,module,exports){
+},{"../util/request":69,"../util/store":70,"iblokz-data":7,"rx":29}],42:[function(require,module,exports){
 'use strict';
 
 var Rx = require('rx');
@@ -22073,7 +22092,7 @@ module.exports = {
 	hook: hook
 };
 
-},{"../util/request":65,"iblokz-data":7,"rx":28}],42:[function(require,module,exports){
+},{"../util/request":69,"iblokz-data":7,"rx":29}],43:[function(require,module,exports){
 'use strict';
 
 var Rx = require('rx');
@@ -22131,7 +22150,7 @@ module.exports = {
 	hook: hook
 };
 
-},{"rx":28}],43:[function(require,module,exports){
+},{"rx":29}],44:[function(require,module,exports){
 'use strict';
 
 var _require = require('iblokz-snabbdom-helpers');
@@ -22166,7 +22185,89 @@ module.exports = function (_ref) {
 	return [section('.content', [section('.post', [h1(page.title)]), section('.post', [p({ props: { innerHTML: marked(page.content) } })])]), rightColumn];
 };
 
-},{"iblokz-snabbdom-helpers":12,"marked":24}],44:[function(require,module,exports){
+},{"iblokz-snabbdom-helpers":12,"marked":25}],45:[function(require,module,exports){
+'use strict';
+
+var _require = require('iblokz-snabbdom-helpers');
+
+var section = _require.section;
+var h1 = _require.h1;
+var h2 = _require.h2;
+var h3 = _require.h3;
+var hr = _require.hr;
+var header = _require.header;
+var i = _require.i;
+var ul = _require.ul;
+var li = _require.li;
+var p = _require.p;
+var div = _require.div;
+var table = _require.table;
+var thead = _require.thead;
+var tbody = _require.tbody;
+var tr = _require.tr;
+var td = _require.td;
+var th = _require.th;
+var button = _require.button;
+var textarea = _require.textarea;
+
+var _require2 = require('rx');
+
+var $ = _require2.Observable;
+
+
+var md = require('../../util/md');
+var caret = require('../../util/caret');
+
+module.exports = function (_ref) {
+	var toggled = _ref.toggled;
+	var content = _ref.content;
+	var field = _ref.field;
+	var sel = _ref.sel;
+	var cb = _ref.cb;
+	return div({
+		class: {
+			wysiwyg: toggled
+		}
+	}, [div('[contenteditable="true"]', {
+		props: { innerHTML: md.toHTML(content || '<p>&nbsp;</p>') },
+		on: {
+			focus: function focus(_ref2) {
+				var target = _ref2.target;
+				return $.fromEvent(target, 'input').map(function (ev) {
+					return ev.target;
+				}).takeUntil($.fromEvent(target, 'blur')).debounce(500).subscribe(function (el) {
+					return cb({
+						value: md.fromHTML(el.innerHTML),
+						sel: caret.get(el)
+					});
+				});
+			}
+		},
+		hook: {
+			postpatch: function postpatch(oldvnode, _ref3) {
+				var elm = _ref3.elm;
+				return toggled && caret.set(elm, sel);
+			}
+		}
+	}), textarea('[name="' + field + '"]', {
+		on: {
+			focus: function focus(_ref4) {
+				var target = _ref4.target;
+				return $.fromEvent(target, 'input').map(function (ev) {
+					return ev.target;
+				}).takeUntil($.fromEvent(target, 'blur')).debounce(500).subscribe(function (_ref5) {
+					var value = _ref5.value;
+					return cb({ value: value, sel: sel });
+				});
+			}
+		},
+		props: {
+			innerHTML: content || ''
+		}
+	})]);
+};
+
+},{"../../util/caret":66,"../../util/md":68,"iblokz-snabbdom-helpers":12,"rx":29}],46:[function(require,module,exports){
 'use strict';
 
 var _require = require('iblokz-snabbdom-helpers');
@@ -22237,7 +22338,7 @@ module.exports = function (_ref) {
 	}, [i('.fa.fa-sign-out')])])]))]);
 };
 
-},{"iblokz-snabbdom-helpers":12}],45:[function(require,module,exports){
+},{"iblokz-snabbdom-helpers":12}],47:[function(require,module,exports){
 'use strict';
 
 var _require = require('iblokz-snabbdom-helpers');
@@ -22284,7 +22385,7 @@ module.exports = function (_ref) {
 	}, pages))({ state: state, actions: actions })))]);
 };
 
-},{"./comp/page":43,"./header":44,"./pages/about":46,"./pages/admin":53,"./pages/admin/articles":48,"./pages/admin/events":51,"./pages/admin/pages":55,"./pages/almanac":57,"./pages/articles":58,"./pages/home":59,"./pages/links":60,"./right-column":62,"iblokz-data":7,"iblokz-snabbdom-helpers":12}],46:[function(require,module,exports){
+},{"./comp/page":44,"./header":46,"./pages/about":48,"./pages/admin":55,"./pages/admin/articles":50,"./pages/admin/events":53,"./pages/admin/pages":57,"./pages/almanac":59,"./pages/articles":60,"./pages/home":61,"./pages/links":62,"./right-column":64,"iblokz-data":7,"iblokz-snabbdom-helpers":12}],48:[function(require,module,exports){
 'use strict';
 
 var _require = require('iblokz-snabbdom-helpers');
@@ -22320,98 +22421,48 @@ module.exports = function (_ref) {
 	return [section('.content', [section('.post', [h1('За Дружеството')]), section('.post', [p({ props: { innerHTML: marked('\n\u0414\u0440\u0443\u0436\u0435\u0441\u0442\u0432\u043E\u0442\u043E \u0437\u0430 \u043F\u0440\u0438\u044F\u0442\u0435\u043B\u0441\u0442\u0432\u043E \u0438 \u043A\u0443\u043B\u0442\u0443\u0440\u043D\u0438 \u0432\u0440\u044A\u0437\u043A\u0438 \u0441 \u0431\u0435\u0441\u0430\u0440\u0430\u0431\u0441\u043A\u0438\u0442\u0435 \u0438 \u0442\u0430\u0432\u0440\u0438\u0439\u0441\u043A\u0438\u0442\u0435 \u0431\u044A\u043B\u0433\u0430\u0440\u0438 \u201E\u0420\u043E\u0434\u043E\u043B\u044E\u0431\u0435\u0446\u201D \u0435 \u043E\u0441\u043D\u043E\u0432\u0430\u043D\u043E \u0432 \u043D\u0430\u0447\u0430\u043B\u043E\u0442\u043E \u043D\u0430 1990 \u0433.\n\n\u041D\u0430 15 \u044F\u043D\u0443\u0430\u0440\u0438 \u0432 \u0421\u043E\u0444\u0438\u044F \u0443\u0447\u0440\u0435\u0434\u0438\u0442\u0435\u043B\u043D\u043E\u0442\u043E \u0441\u044A\u0431\u0440\u0430\u043D\u0438\u0435 \u043F\u0440\u0438\u0435\u043C\u0430 \u0423\u0441\u0442\u0430\u0432\u0430 \u043D\u0430 \u0434\u0440\u0443\u0436\u0435\u0441\u0442\u0432\u043E\u0442\u043E, \u0430 \u0440\u0435\u0448\u0435\u043D\u0438\u0435\u0442\u043E \u0437\u0430 \u0440\u0435\u0433\u0438\u0441\u0442\u0440\u0430\u0446\u0438\u044F \u043D\u0430 \u0421\u043E\u0444\u0438\u0439\u0441\u043A\u0438\u044F \u0433\u0440\u0430\u0434\u0441\u043A\u0438 \u0441\u044A\u0434 \u0435 \u043E\u0442 28.06.1990 \u0433.\n\n\u041F\u0440\u0435\u0437 \u0442\u0435\u0437\u0438 \u043F\u043E\u0432\u0435\u0447\u0435 \u043E\u0442 25 \u0433\u043E\u0434\u0438\u043D\u0438 \u0434\u0440\u0443\u0436\u0435\u0441\u0442\u0432\u043E \u201E\u0420\u043E\u0434\u043E\u043B\u044E\u0431\u0435\u0446\u201D \u043F\u043E\u0435 \u043E\u0442\u0433\u0432\u043E\u0440\u043D\u043E\u0441\u0442\u0430 \u0438 \u043E\u0433\u0440\u043E\u043C\u043D\u0430\u0442\u0430 \u0437\u0430\u0434\u0430\u0447\u0430 \u0434\u0430 \u0437\u0430\u043F\u043E\u0437\u043D\u0430\u0435 \u0431\u044A\u043B\u0433\u0430\u0440\u0438\u0442\u0435 \u0432 \u0411\u044A\u043B\u0433\u0430\u0440\u0438\u044F \u0441\u044A\u0441 \u0441\u044A\u0449\u0435\u0441\u0442\u0432\u0443\u0432\u0430\u043D\u0435\u0442\u043E \u043D\u0430 \u043D\u0430\u0448\u0438 \u0441\u044A\u043D\u0430\u0440\u043E\u0434\u043D\u0438\u0446\u0438 \u0432 \u041C\u043E\u043B\u0434\u043E\u0432\u0430, \u0423\u043A\u0440\u0430\u0439\u043D\u0430, \u041A\u0430\u0437\u0430\u0445\u0441\u0442\u0430\u043D, \u0421\u0438\u0431\u0438\u0440... \u0414\u0440\u0443\u0436\u0435\u0441\u0442\u0432\u043E\u0442\u043E \u0438\u043C\u0430 \u0437\u0430\u0441\u043B\u0443\u0433\u0430 \u0438 \u0437\u0430 \u043F\u043E\u044F\u0432\u0430\u0442\u0430 \u043D\u0430 103 \u043F\u043E\u0441\u0442\u0430\u043D\u043E\u0432\u043B\u0435\u043D\u0438\u0435 \u043D\u0430 \u041C\u0438\u043D\u0438\u0441\u0442\u0435\u0440\u0441\u043A\u0438\u044F \u0441\u044A\u0432\u0435\u0442 \u043D\u0430 \u0420\u0435\u043F\u0443\u0431\u043B\u0438\u043A\u0430 \u0411\u044A\u043B\u0433\u0430\u0440\u0438\u044F \u0437\u0430 \u043F\u0440\u0438\u0435\u043C\u0430\u043D\u0435 \u043D\u0430 \u043D\u0430\u0448\u0438 \u0441\u044A\u043D\u0430\u0440\u043E\u0434\u043D\u0438\u0446\u0438 \u043E\u0442 \u0431\u0438\u0432\u0448\u0438\u0442\u0435 \u0441\u044A\u0432\u0435\u0442\u0441\u043A\u0438 \u0440\u0435\u043F\u0443\u0431\u043B\u0438\u043A\u0438 \u0437\u0430 \u0441\u0442\u0443\u0434\u0435\u043D\u0442\u0438 \u0443 \u043D\u0430\u0441.\n\n\u0418\u0437\u0434\u0430\u0432\u0430\u043D\u0435\u0442\u043E \u043D\u0430 \u0430\u043B\u043C\u0430\u043D\u0430\u0445\u0430 \u201E\u0420\u043E\u0434\u043E\u043B\u044E\u0431\u0435\u0446\u201D \u0441\u0442\u0430\u043D\u0430 \u043D\u0435\u043E\u0431\u0445\u043E\u0434\u0438\u043C\u043E \u043F\u043E\u043C\u0430\u0433\u0430\u043B\u043E \u043D\u0430 \u0443\u0447\u0438\u0442\u0435\u043B\u0438\u0442\u0435, \u043A\u043E\u0438\u0442\u043E \u0442\u0440\u044A\u0433\u0432\u0430\u0442 \u043A\u044A\u043C \u043D\u0430\u0448\u0438\u0442\u0435 \u0437\u0430\u0431\u0440\u0430\u0432\u0435\u043D\u0438 \u0441\u044A\u043D\u0430\u0440\u043E\u0434\u043D\u0438\u0446\u0438. \u0412 1998 \u0433. \u0434\u0440\u0443\u0436\u0435\u0441\u0442\u0432\u043E\u0442\u043E \u0432\u044A\u0437\u0441\u0442\u0430\u043D\u043E\u0432\u0438 \u043E\u0442\u0431\u0435\u043B\u044F\u0437\u0432\u0430\u043D\u0435\u0442\u043E \u0414\u0435\u043D\u044F \u043D\u0430 \u0431\u0435\u0441\u0430\u0440\u0430\u0431\u0441\u043A\u0438\u0442\u0435 \u0431\u044A\u043B\u0433\u0430\u0440\u0438. \u0420\u0430\u0434\u043E\u0441\u0442\u043D\u043E \u0435, \u0447\u0435 \u0438 \u0432 \u0441\u0435\u043B\u0438\u0449\u0430\u0442\u0430 \u043D\u0430 \u043D\u0430\u0448\u0438\u0442\u0435 \u0441\u044A\u043D\u0430\u0440\u043E\u0434\u043D\u0438\u0446\u0438 \u0432 \u043D\u044F\u043A\u043E\u0433\u0430\u0448\u043D\u0438\u0442\u0435 \u0411\u0435\u0441\u0430\u0440\u0430\u0431\u0438\u044F \u0438 \u0422\u0430\u0432\u0440\u0438\u044F \u0442\u043E\u0437\u0438 \u0414\u0435\u043D \u0432\u0435\u0447\u0435 \u043D\u0430\u043C\u0438\u0440\u0430 \u043C\u044F\u0441\u0442\u043E \u0432 \u043F\u0440\u0430\u0437\u043D\u0438\u0447\u043D\u0438\u044F \u0438\u043C \u043A\u0430\u043B\u0435\u043D\u0434\u0430\u0440.\n\n\u0427\u043B\u0435\u043D\u043E\u0432\u0435 \u043D\u0430 \u043D\u0430\u0448\u0435\u0442\u043E \u0434\u0440\u0443\u0436\u0435\u0441\u0442\u0432\u043E \u0438\u0437\u043D\u0430\u0441\u044F\u0442 \u0432 \u0441\u0435\u043B\u0438\u0449\u0430 \u0441 \u043A\u043E\u043C\u043F\u0430\u043A\u0442\u043D\u043E \u0431\u044A\u043B\u0433\u0430\u0440\u0441\u043A\u043E \u043D\u0430\u0441\u0435\u043B\u0435\u043D\u0438\u0435 \u043A\u043E\u043D\u0446\u0435\u0440\u0442\u0438 \u2013 \u0442\u043E\u043F\u043B\u0430 \u0438 \u0441\u044A\u0440\u0434\u0435\u0447\u043D\u0430 \u0432\u0440\u044A\u0437\u043A\u0430 \u0441\u044A\u0441 \u0441\u0442\u0430\u0440\u0430\u0442\u0430 \u0440\u043E\u0434\u0438\u043D\u0430. \u0421\u0442\u0443\u0434\u0435\u043D\u0442\u0438\u0442\u0435 \u0438 \u0437\u0430\u0432\u0440\u044A\u0449\u0430\u0449\u0438\u0442\u0435 \u0441\u0435 \u0437\u0430\u0432\u0438\u043D\u0430\u0433\u0438 \u0432 \u0411\u044A\u043B\u0433\u0430\u0440\u0438\u044F \u0431\u0435\u0441\u0430\u0440\u0430\u0431\u0441\u043A\u0438 \u0438 \u0442\u0430\u0432\u0440\u0438\u0439\u0441\u043A\u0438 \u0431\u044A\u043B\u0433\u0430\u0440\u0438 \u043C\u043E\u0433\u0430\u0442 \u0434\u0430 \u0440\u0430\u0437\u0447\u0438\u0442\u0430\u0442 \u043D\u0430 \u043F\u0440\u0438\u044F\u0442\u0435\u043B\u0441\u043A\u0430 \u043F\u043E\u0434\u043A\u0440\u0435\u043F\u0430 \u043E\u0442 \u0434\u0440\u0443\u0436\u0435\u0441\u0442\u0432\u043E \u201E\u0420\u043E\u0434\u043E\u043B\u044E\u0431\u0435\u0446\u201D.\n\n') } })]), section('.post', [p({ props: { innerHTML: marked('\n[\u0410\u0440\u0445\u0438\u0432\u043D\u0438 \u043C\u0430\u0442\u0435\u0440\u0438\u0430\u043B\u0438 \u0437\u0430 \u0420\u043E\u0434\u043E\u043B\u044E\u0431\u0435\u0446 (omda.bg)](http://prehod.omda.bg/page.php?IDMenu=642&IDLang=1)\n') } })])]), rightColumn({ state: state, actions: actions })];
 };
 
-},{"../right-column":62,"iblokz-snabbdom-helpers":12,"marked":24}],47:[function(require,module,exports){
+},{"../right-column":64,"iblokz-snabbdom-helpers":12,"marked":25}],49:[function(require,module,exports){
 'use strict';
+// lib
 
-var _require = require('iblokz-snabbdom-helpers');
+var _require = require('rx');
 
-var section = _require.section;
-var h1 = _require.h1;
-var h2 = _require.h2;
-var h3 = _require.h3;
-var hr = _require.hr;
-var header = _require.header;
-var i = _require.i;
-var ul = _require.ul;
-var li = _require.li;
-var p = _require.p;
-var button = _require.button;
-var div = _require.div;
-var span = _require.span;
-var table = _require.table;
-var thead = _require.thead;
-var tbody = _require.tbody;
-var tr = _require.tr;
-var td = _require.td;
-var th = _require.th;
-var a = _require.a;
-var form = _require.form;
-var label = _require.label;
-var input = _require.input;
-var textarea = _require.textarea;
+var $ = _require.Observable;
+// util
 
+var formUtil = require('../../../../util/form');
 
-var $ = require('rx').Observable;
+// ui
 
-var md = require('../../../../util/md');
-var moment = require('moment');
+var _require2 = require('iblokz-snabbdom-helpers');
 
-var find = function find(q) {
-	var el = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : document;
-	return Array.from(el.querySelectorAll(q));
-};
+var section = _require2.section;
+var h1 = _require2.h1;
+var h2 = _require2.h2;
+var h3 = _require2.h3;
+var hr = _require2.hr;
+var header = _require2.header;
+var i = _require2.i;
+var ul = _require2.ul;
+var li = _require2.li;
+var p = _require2.p;
+var button = _require2.button;
+var div = _require2.div;
+var span = _require2.span;
+var table = _require2.table;
+var thead = _require2.thead;
+var tbody = _require2.tbody;
+var tr = _require2.tr;
+var td = _require2.td;
+var th = _require2.th;
+var a = _require2.a;
+var form = _require2.form;
+var label = _require2.label;
+var input = _require2.input;
+var textarea = _require2.textarea;
+// comp
 
-var getParent = function getParent(el, tagName) {
-	return [].concat(tagName).indexOf(el.tagName) > -1 ? el : getParent(el.parentNode, tagName);
-};
-
-var getRangePoint = function getRangePoint(el, offset) {
-	return el.nodeType === 3 || el.childNodes.length === 0 ? { el: el, offset: el.textContent.length < offset ? el.textContent.length : offset } : Array.from(el.childNodes).reduce(function (rp, child, index) {
-		return rp.el !== el ? rp : child.textContent.length >= rp.offset ? getRangePoint(child, rp.offset) : index < el.childNodes.length - 1 ? { el: el, offset: rp.offset - child.textContent.length } : { el: child, offset: child.textContent.length };
-	}, { el: el, offset: offset });
-};
-
-var caret = {
-	get: function get(el) {
-		var rows = find('p, li, div', el);
-		console.log(rows);
-		var range = window.getSelection().getRangeAt(0);
-		var parentRow = getParent(range.startContainer, ['LI', 'P', 'DIV']);
-		var colRange = document.createRange();
-		colRange.setStart(parentRow, 0);
-		colRange.setEnd(range.startContainer, range.startOffset);
-		var row = rows.indexOf(parentRow);
-		var col = colRange.toString().length;
-		console.log(range.toString());
-		return {
-			row: row,
-			col: col,
-			length: range.toString().length
-		};
-	},
-	set: function set(el, pos) {
-		var parentRow = find('p, li, div', el)[pos.row];
-		if (parentRow) {
-			var rp = getRangePoint(parentRow, pos.col);
-			var ep = pos.length === 0 ? rp : getRangePoint(parentRow, pos.col + pos.length);
-			console.log(parentRow, pos, rp);
-			var range = document.createRange();
-			range.setStart(rp.el, rp.offset);
-			range.setEnd(ep.el, ep.offset);
-			var sel = window.getSelection();
-			sel.removeAllRanges();
-			sel.addRange(range);
-		}
-	}
-};
-
-var formToData = function formToData(form) {
-	return Array.from(form.elements).filter(function (el) {
-		return el.name !== undefined;
-	}).reduce(function (o, el) {
-		return o[el.name] = el.value, o;
-	}, {});
-};
+var wysiwygComp = require('../../../comp/wysiwyg');
 
 module.exports = function (_ref) {
 	var state = _ref.state;
@@ -22420,7 +22471,7 @@ module.exports = function (_ref) {
 		on: {
 			submit: function submit(ev) {
 				ev.preventDefault();
-				var data = formToData(ev.target);
+				var data = formUtil.toData(ev.target);
 				data.categories = (data.categories || '').split(',').map(function (c) {
 					return c.trim();
 				});
@@ -22440,46 +22491,20 @@ module.exports = function (_ref) {
 		on: { click: function click() {
 				return actions.toggle(['editor', 'wysiwyg']);
 			} }
-	}, 'Markdown')])]), div({
-		class: {
-			wysiwyg: state.editor.wysiwyg
+	}, 'Markdown')])]), wysiwygComp({
+		toggled: state.editor.wysiwyg,
+		content: state.articles.doc.text,
+		sel: state.editor.sel,
+		field: 'text',
+		cb: function cb(_ref2) {
+			var value = _ref2.value;
+			var sel = _ref2.sel;
+			return actions.edit({ res: 'articles', field: 'text', value: value, sel: sel });
 		}
-	}, [div('[contenteditable="true"]', {
-		props: { innerHTML: md.toHTML(state.articles.doc.text || '<p>&nbsp;</p>') },
-		on: {
-			focus: function focus(_ref2) {
-				var target = _ref2.target;
-				return $.fromEvent(target, 'input').map(function (ev) {
-					return ev.target;
-				}).takeUntil($.fromEvent(target, 'blur')).debounce(500).subscribe(function (el) {
-					return actions.editArticle(md.fromHTML(el.innerHTML), caret.get(el));
-				});
-			}
-		},
-		hook: {
-			postpatch: function postpatch(oldvnode, _ref3) {
-				var elm = _ref3.elm;
-				return caret.set(elm, state.editor.sel);
-			}
-		}
-	}), textarea('[name="text"]', {
-		on: {
-			focus: function focus(_ref4) {
-				var target = _ref4.target;
-				return $.fromEvent(target, 'input').map(function (ev) {
-					return ev.target;
-				}).takeUntil($.fromEvent(target, 'blur')).debounce(500).subscribe(function (el) {
-					return actions.set(['articles', 'doc', 'text'], el.value);
-				});
-			}
-		},
-		props: {
-			innerHTML: state.articles.doc.text || ''
-		}
-	})])]), div([button('[type="submit"]', 'Save')])])]) : '';
+	})]), div([button('[type="submit"]', 'Save')])])]) : '';
 };
 
-},{"../../../../util/md":64,"iblokz-snabbdom-helpers":12,"moment":26,"rx":28}],48:[function(require,module,exports){
+},{"../../../../util/form":67,"../../../comp/wysiwyg":45,"iblokz-snabbdom-helpers":12,"rx":29}],50:[function(require,module,exports){
 'use strict';
 
 var _require = require('iblokz-snabbdom-helpers');
@@ -22525,7 +22550,7 @@ module.exports = function (_ref) {
 	})), !state.router.pageId ? list({ state: state, actions: actions }) : edit({ state: state, actions: actions })])];
 };
 
-},{"./edit":47,"./list":49,"iblokz-snabbdom-helpers":12,"marked":24,"moment":26}],49:[function(require,module,exports){
+},{"./edit":49,"./list":51,"iblokz-snabbdom-helpers":12,"marked":25,"moment":27}],51:[function(require,module,exports){
 'use strict';
 
 var _require = require('iblokz-snabbdom-helpers');
@@ -22591,7 +22616,7 @@ module.exports = function (_ref) {
 	}))])]);
 };
 
-},{"iblokz-snabbdom-helpers":12,"marked":24,"moment":26}],50:[function(require,module,exports){
+},{"iblokz-snabbdom-helpers":12,"marked":25,"moment":27}],52:[function(require,module,exports){
 'use strict';
 
 var _require = require('iblokz-snabbdom-helpers');
@@ -22707,7 +22732,7 @@ module.exports = function (_ref) {
 		} })]), div([button('[type="submit"]', 'Save')])])]) : '';
 };
 
-},{"../../../../util/md":64,"iblokz-snabbdom-helpers":12,"moment":26,"rx":28}],51:[function(require,module,exports){
+},{"../../../../util/md":68,"iblokz-snabbdom-helpers":12,"moment":27,"rx":29}],53:[function(require,module,exports){
 'use strict';
 
 var _require = require('iblokz-snabbdom-helpers');
@@ -22753,7 +22778,7 @@ module.exports = function (_ref) {
 	})), !state.router.pageId ? list({ state: state, actions: actions }) : edit({ state: state, actions: actions })])];
 };
 
-},{"./edit":50,"./list":52,"iblokz-snabbdom-helpers":12,"marked":24,"moment":26}],52:[function(require,module,exports){
+},{"./edit":52,"./list":54,"iblokz-snabbdom-helpers":12,"marked":25,"moment":27}],54:[function(require,module,exports){
 'use strict';
 
 var _require = require('iblokz-snabbdom-helpers');
@@ -22805,7 +22830,7 @@ module.exports = function (_ref) {
 	}))])]);
 };
 
-},{"iblokz-snabbdom-helpers":12,"marked":24,"moment":26}],53:[function(require,module,exports){
+},{"iblokz-snabbdom-helpers":12,"marked":25,"moment":27}],55:[function(require,module,exports){
 'use strict';
 
 var _require = require('iblokz-snabbdom-helpers');
@@ -22839,7 +22864,7 @@ module.exports = function (_ref) {
 	})), section('.post', [p({ props: { innerHTML: marked('\n\t\t\t\t\u0414\u043E\u0431\u0440\u0435 \u0414\u043E\u0448\u043B\u0438!\n\t\t\t') } })])])];
 };
 
-},{"iblokz-snabbdom-helpers":12,"marked":24}],54:[function(require,module,exports){
+},{"iblokz-snabbdom-helpers":12,"marked":25}],56:[function(require,module,exports){
 'use strict';
 
 var _require = require('iblokz-snabbdom-helpers');
@@ -22869,68 +22894,17 @@ var label = _require.label;
 var input = _require.input;
 var textarea = _require.textarea;
 
+// comp
 
-var $ = require('rx').Observable;
+var wysiwygComp = require('../../../comp/wysiwyg');
 
-var md = require('../../../../util/md');
+var _require2 = require('rx');
+
+var $ = _require2.Observable;
+
 var moment = require('moment');
 
-var find = function find(q) {
-	var el = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : document;
-	return Array.from(el.querySelectorAll(q));
-};
-
-var getParent = function getParent(el, tagName) {
-	return [].concat(tagName).indexOf(el.tagName) > -1 ? el : getParent(el.parentNode, tagName);
-};
-
-var getRangePoint = function getRangePoint(el, offset) {
-	return el.nodeType === 3 || el.childNodes.length === 0 ? { el: el, offset: el.textContent.length < offset ? el.textContent.length : offset } : Array.from(el.childNodes).reduce(function (rp, child, index) {
-		return rp.el !== el ? rp : child.textContent.length >= rp.offset ? getRangePoint(child, rp.offset) : index < el.childNodes.length - 1 ? { el: el, offset: rp.offset - child.textContent.length } : { el: child, offset: child.textContent.length };
-	}, { el: el, offset: offset });
-};
-
-var caret = {
-	get: function get(el) {
-		var rows = find('p, li, div', el);
-		console.log(rows);
-		var range = window.getSelection().getRangeAt(0);
-		var parentRow = getParent(range.startContainer, ['LI', 'P', 'DIV']);
-		var colRange = document.createRange();
-		colRange.setStart(parentRow, 0);
-		colRange.setEnd(range.startContainer, range.startOffset);
-		var row = rows.indexOf(parentRow);
-		var col = colRange.toString().length;
-		console.log(range.toString());
-		return {
-			row: row,
-			col: col,
-			length: range.toString().length
-		};
-	},
-	set: function set(el, pos) {
-		var parentRow = find('p, li, div', el)[pos.row];
-		if (parentRow) {
-			var rp = getRangePoint(parentRow, pos.col);
-			var ep = pos.length === 0 ? rp : getRangePoint(parentRow, pos.col + pos.length);
-			console.log(parentRow, pos, rp);
-			var range = document.createRange();
-			range.setStart(rp.el, rp.offset);
-			range.setEnd(ep.el, ep.offset);
-			var sel = window.getSelection();
-			sel.removeAllRanges();
-			sel.addRange(range);
-		}
-	}
-};
-
-var formToData = function formToData(form) {
-	return Array.from(form.elements).filter(function (el) {
-		return el.name !== undefined;
-	}).reduce(function (o, el) {
-		return o[el.name] = el.value, o;
-	}, {});
-};
+var formUtil = require('../../../../util/form');
 
 module.exports = function (_ref) {
 	var state = _ref.state;
@@ -22939,7 +22913,7 @@ module.exports = function (_ref) {
 		on: {
 			submit: function submit(ev) {
 				ev.preventDefault();
-				var data = formToData(ev.target);
+				var data = formUtil.toData(ev.target);
 				console.log(data, state.auth);
 				actions.pages.save(data, state.auth.token);
 				actions.router.go('admin.pages');
@@ -22956,51 +22930,20 @@ module.exports = function (_ref) {
 		on: { click: function click() {
 				return actions.toggle(['editor', 'wysiwyg']);
 			} }
-	}, 'Markdown')])]), div({
-		class: {
-			wysiwyg: state.editor.wysiwyg
+	}, 'Markdown')])]), wysiwygComp({
+		toggled: state.editor.wysiwyg,
+		content: state.pages.doc.content,
+		sel: state.editor.sel,
+		field: 'content',
+		cb: function cb(_ref2) {
+			var value = _ref2.value;
+			var sel = _ref2.sel;
+			return actions.edit({ res: 'pages', field: 'content', value: value, sel: sel });
 		}
-	}, [div('[contenteditable="true"]', {
-		props: { innerHTML: md.toHTML(state.pages.doc.content || '<p>&nbsp;</p>') },
-		on: {
-			focus: function focus(_ref2) {
-				var target = _ref2.target;
-				return $.fromEvent(target, 'input').map(function (ev) {
-					return ev.target;
-				}).takeUntil($.fromEvent(target, 'blur')).debounce(500).subscribe(function (el) {
-					return actions.edit({
-						res: 'pages',
-						field: 'content',
-						value: md.fromHTML(el.innerHTML),
-						sel: caret.get(el)
-					});
-				});
-			}
-		},
-		hook: {
-			postpatch: function postpatch(oldvnode, _ref3) {
-				var elm = _ref3.elm;
-				return caret.set(elm, state.editor.sel);
-			}
-		}
-	}), textarea('[name="content"]', {
-		on: {
-			focus: function focus(_ref4) {
-				var target = _ref4.target;
-				return $.fromEvent(target, 'input').map(function (ev) {
-					return ev.target;
-				}).takeUntil($.fromEvent(target, 'blur')).debounce(500).subscribe(function (el) {
-					return actions.set(['pages', 'doc', 'text'], el.value);
-				});
-			}
-		},
-		props: {
-			innerHTML: state.pages.doc.content || ''
-		}
-	})])]), div([button('[type="submit"]', 'Save')])])]) : '';
+	})]), div([button('[type="submit"]', 'Save')])])]) : '';
 };
 
-},{"../../../../util/md":64,"iblokz-snabbdom-helpers":12,"moment":26,"rx":28}],55:[function(require,module,exports){
+},{"../../../../util/form":67,"../../../comp/wysiwyg":45,"iblokz-snabbdom-helpers":12,"moment":27,"rx":29}],57:[function(require,module,exports){
 'use strict';
 
 var _require = require('iblokz-snabbdom-helpers');
@@ -23049,7 +22992,7 @@ module.exports = function (_ref) {
 	})), !state.router.pageId ? list({ state: state, actions: actions }) : edit({ state: state, actions: actions })])];
 };
 
-},{"./edit":54,"./list":56,"iblokz-snabbdom-helpers":12,"marked":24,"moment":26}],56:[function(require,module,exports){
+},{"./edit":56,"./list":58,"iblokz-snabbdom-helpers":12,"marked":25,"moment":27}],58:[function(require,module,exports){
 'use strict';
 
 var _require = require('iblokz-snabbdom-helpers');
@@ -23099,7 +23042,7 @@ module.exports = function (_ref) {
 	}))])]);
 };
 
-},{"iblokz-snabbdom-helpers":12,"marked":24,"moment":26}],57:[function(require,module,exports){
+},{"iblokz-snabbdom-helpers":12,"marked":25,"moment":27}],59:[function(require,module,exports){
 'use strict';
 
 var _require = require('iblokz-snabbdom-helpers');
@@ -23132,7 +23075,7 @@ module.exports = function (_ref) {
 	return [section('.content', [section('.post', [h1('Алманах “Родолюбец“')]), section('.post', [p({ props: { innerHTML: marked('\n\u041A\u0430\u0442\u043E \u043F\u0435\u0447\u0430\u0442\u043D\u043E \u0438\u0437\u0434\u0430\u043D\u0438\u0435 \u043D\u0430 \u0434\u0440\u0443\u0436\u0435\u0441\u0442\u0432\u043E \u201C\u0420\u043E\u0434\u043E\u043B\u044E\u0431\u0435\u0446\u201D \u0432\u0441\u044F\u043A\u0430 \u0447\u0435\u0442\u043D\u0430 \u0433\u043E\u0434\u0438\u043D\u0430 \u0438\u0437\u043B\u0438\u0437\u0430 \u0430\u043B\u043C\u0430\u043D\u0430\u0445\u044A\u0442 \u201C\u0420\u043E\u0434\u043E\u043B\u044E\u0431\u0435\u0446\u201D, \u0435\u0434\u043D\u0430 \u0438\u0441\u0442\u0438\u043D\u0441\u043A\u0430 \u201C\u0445\u0440\u0438\u0441\u0442\u043E\u043C\u0430\u0442\u0438\u044F \u043F\u043E \u0440\u043E\u0434\u043E\u043B\u044E\u0431\u0438\u0435\u201D.\n\n\u041A\u0430\u0442\u043E \u0441\u0431\u043E\u0440\u043D\u0438\u043A \u043E\u0442 \u043F\u043E\u043B\u0435\u0437\u043D\u0438, \u0442\u0435\u043C\u0430\u0442\u0438\u0447\u043D\u0438 \u0447\u0435\u0442\u0438\u0432\u0430, \u0410\u043B\u043C\u0430\u043D\u0430\u0445\u044A\u0442 \u0438\u043C\u0430 \u0443\u0442\u0432\u044A\u0440\u0434\u0435\u043D\u0438 8 \u0434\u044F\u043B\u0430, \u043A\u043E\u0438\u0442\u043E \u0441\u0435 \u043F\u043E\u0434\u0434\u044A\u0440\u0436\u0430\u0442 \u0432\u044A\u0432 \u0432\u0441\u0435\u043A\u0438 \u0431\u0440\u043E\u0439, \u043A\u0430\u043A\u0442\u043E \u0441\u043B\u0435\u0434\u0432\u0430:\n- **\u0414\u044F\u043B I. \u0414\u0415 \u0415 \u0411\u042A\u041B\u0413\u0410\u0420\u0418\u042F?** - \u0433\u0435\u043E\u0433\u0440\u0430\u0444\u0441\u043A\u0438 \u043E\u0447\u0435\u0440\u0446\u0438 \u0437\u0430 \u0411\u044A\u043B\u0433\u0430\u0440\u0438\u044F \u0438\u043B\u0438 \u0437\u0430 \u043D\u0435\u0439\u043D\u0438 \u043E\u0431\u043B\u0430\u0441\u0442\u0438 \u0438 \u043E\u0447\u0435\u0440\u0446\u0438 \u0437\u0430 \u043E\u0431\u0435\u043A\u0442\u0438 \u0432 \u0442\u044F\u0445.\n- **\u0414\u044F\u043B II. \u0411\u042A\u041B\u0413\u0410\u0420\u0418\u042F \u041F\u0420\u0415\u0417 \u0412\u0415\u041A\u041E\u0412\u0415\u0422\u0415** - \u0418\u0441\u0442\u043E\u0440\u0438\u0447\u0435\u0441\u043A\u0438 \u043E\u0447\u0435\u0440\u0446\u0438 \u0437\u0430 \u0411\u044A\u043B\u0433\u0430\u0440\u0438\u044F.\n- **\u0414\u044F\u043B III. \u042E\u0411\u0418\u041B\u0415\u0419\u041D\u0418 \u0413\u041E\u0414\u0418\u0428\u041D\u0418\u041D\u0418** - \u041E\u0442\u0440\u0430\u0437\u044F\u0432\u0430\u0442 \u0441\u0435 \u0437\u043D\u0430\u0447\u0438\u0442\u0435\u043B\u043D\u0438 \u0441\u044A\u0431\u0438\u0442\u0438\u044F \u043E\u0442 \u0431\u044A\u043B\u0433\u0430\u0440\u0441\u043A\u0430\u0442\u0430 \u0438\u0441\u0442\u043E\u0440\u0438\u044F, \u044F\u0432\u044F\u0432\u0430\u0449\u0438 \u0441\u0435 \u044E\u0431\u0438\u043B\u0435\u0439\u043D\u0438 \u043A\u044A\u043C \u0433\u043E\u0434\u0438\u043D\u0430\u0442\u0430 \u043D\u0430 \u0438\u0437\u0434\u0430\u0432\u0430\u043D\u0435\u0442\u043E \u043D\u0430 \u0410\u043B\u043C\u0430\u043D\u0430\u0445\u0430.\n- **\u0414\u044F\u043B IV. \u0411\u042A\u041B\u0413\u0410\u0420\u0421\u041A\u0418 \u041F\u0410\u041D\u0422\u0415\u041E\u041D** - \u0420\u0430\u0437\u0434\u0435\u043B, \u0432 \u043A\u043E\u0439\u0442\u043E \u0441\u0430 \u043E\u0442\u0431\u0435\u043B\u044F\u0437\u0430\u043D\u0438 \u0437\u043D\u0430\u0447\u0438\u043C\u0438 \u043B\u0438\u0447\u043D\u043E\u0441\u0442\u0438 \u043E\u0442 \u0431\u044A\u043B\u0433\u0430\u0440\u0441\u043A\u0430\u0442\u0430 \u043F\u043E\u043B\u0438\u0442\u0438\u0447\u0435\u0441\u043A\u0430 \u0438 \u043A\u0443\u043B\u0442\u0443\u0440\u043D\u0430 \u0438\u0441\u0442\u043E\u0440\u0438\u044F.\n- **\u0414\u044F\u043B V. \u0421\u042A\u041A\u0420\u041E\u0412\u0418\u0429\u041D\u0418\u0426\u0410 \u041D\u0410 \u041D\u0410\u0420\u041E\u0414\u041D\u0418\u042F \u0414\u0423\u0425** - \u0421\u0442\u0430\u0442\u0438\u0438 \u0438 \u043E\u0447\u0435\u0440\u0446\u0438 \u0432\u044A\u0440\u0445\u0443 \u0431\u044A\u043B\u0433\u0430\u0440\u0441\u043A\u0438\u044F \u0444\u043E\u043B\u043A\u043B\u043E\u0440 \u0438 \u043E\u0431\u0440\u0430\u0437\u0446\u0438 \u043E\u0442 \u043D\u0430\u0440\u043E\u0434\u043D\u0438 \u043F\u0435\u0441\u043D\u0438 \u0438 \u043F\u0440\u0438\u043A\u0430\u0437\u043A\u0438.\n- **\u0414\u044F\u043B VI. \u0421 \u0411\u042A\u041B\u0413\u0410\u0420\u0418\u042F \u0412 \u0421\u042A\u0420\u0426\u0415\u0422\u041E** - \u041D\u0430\u0439-\u0432\u0430\u0436\u043D\u0438\u044F\u0442 \u0438 \u043D\u0430\u0439-\u043E\u0431\u0435\u043C\u0438\u0441\u0442 \u0434\u044F\u043B \u043E\u0442 \u0441\u0431\u043E\u0440\u043D\u0438\u043A\u0430, \u0438\u0437\u043F\u044A\u043B\u043D\u0435\u043D \u0441 \u0438\u0437\u043F\u043E\u0432\u0435\u0434\u0438, \u0441\u043F\u043E\u043C\u0435\u043D\u0438, \u0441\u0442\u0430\u0442\u0438\u0438 \u0438 \u043E\u0447\u0435\u0440\u0446\u0438 \u043D\u0430 \u0431\u0435\u0441\u0430\u0440\u0430\u0431\u0441\u043A\u0438 \u0438 \u0437\u0430 \u0431\u0435\u0441\u0430\u0440\u0430\u0431\u0441\u043A\u0438 \u0431\u044A\u043B\u0433\u0430\u0440\u0438, \u043E\u0447\u0435\u0440\u0446\u0438 \u0437\u0430 \u0431\u044A\u043B\u0433\u0430\u0440\u0438\u0442\u0435-\u0433\u0430\u0433\u0430\u0443\u0437\u0438 \u0432 \u0411\u0435\u0441\u0430\u0440\u0430\u0431\u0438\u044F \u0438 \u0432 \u0411\u044A\u043B\u0433\u0430\u0440\u0438\u044F \u0438 \u0437\u0430 \u0431\u044A\u043B\u0433\u0430\u0440\u0438\u0442\u0435 \u0436\u0438\u0432\u0435\u0435\u0449\u0438 \u0432\u044A\u043D \u043E\u0442 \u0433\u0440\u0430\u043D\u0438\u0446\u0438\u0442\u0435 \u043D\u0430 \u0411\u044A\u043B\u0433\u0430\u0440\u0438\u044F.\n- **\u0414\u044F\u043B VII. \u0422\u0412\u041E\u0420\u0426\u0418 \u041E\u0422 \u0411\u0415\u0421\u0410\u0420\u0410\u0411\u0418\u042F** - \u043A\u0440\u0430\u0442\u043A\u0438 \u0431\u0438\u043E\u0433\u0440\u0430\u0444\u0438\u0447\u043D\u0438 \u0431\u0435\u043B\u0435\u0436\u043A\u0438 \u0438 \u0442\u0432\u043E\u0440\u0431\u0438 \u043D\u0430 \u0431\u0435\u0441\u0430\u0440\u0430\u0431\u0441\u043A\u0438 \u043F\u043E\u0435\u0442\u0438 \u0438 \u0442\u0432\u043E\u0440\u0446\u0438\n- **\u0414\u044F\u043B VIII. \u0420\u041E\u0414\u041E\u041B\u042E\u0411\u0415\u0426 \u0417\u0410 \u0421\u0415\u0411\u0415 \u0421\u0418** - \u0440\u0430\u0437\u0434\u0435\u043B, \u0432 \u043A\u043E\u0439\u0442\u043E \u0434\u0440\u0443\u0436\u0435\u0441\u0442\u0432\u043E\u0442\u043E \u043E\u0442\u0440\u0430\u0437\u044F\u0432\u0430 \u043D\u044F\u043A\u043E\u0438 \u043E\u0442 \u0441\u0432\u043E\u0438\u0442\u0435 \u0434\u0435\u0439\u043D\u043E\u0441\u0442\u0438, \u043F\u0443\u0431\u043B\u0438\u043A\u0443\u0432\u0430 \u043D\u043E\u0440\u043C\u0430\u0442\u0438\u0432\u043D\u0438 \u0434\u043E\u043A\u0443\u043C\u0435\u043D\u0442\u0438, \u0441\u0432\u044A\u0440\u0437\u0430\u043D\u0438 \u0441 \u043E\u0431\u0443\u0447\u0435\u043D\u0438\u0435\u0442\u043E \u043D\u0430 \u0441\u0442\u0443\u0434\u0435\u043D\u0442\u0438\u0442\u0435 \u043E\u0442 \u0431\u044A\u043B\u0433\u0430\u0440\u0441\u043A\u0430\u0442\u0430 \u0434\u0438\u0430\u0441\u043F\u043E\u0440\u0430 \u0438\u0437\u0432\u044A\u043D \u0433\u0440\u0430\u043D\u0438\u0446\u0438\u0442\u0435 \u043D\u0430 \u0434\u043D\u0435\u0448\u043D\u0430 \u0411\u044A\u043B\u0433\u0430\u0440\u0438\u044F, \u0441\u043F\u0435\u0446\u0438\u0430\u043B\u0438\u0441\u0442\u0438 \u0438 \u043E\u0431\u043D\u0430\u0440\u043E\u0434\u0432\u0430 \u0441\u043F\u0438\u0441\u044A\u0446\u0438 \u043D\u0430 \u043F\u0440\u0438\u0435\u0442\u0438 \u0443 \u043D\u0430\u0441 \u0441\u0442\u0443\u0434\u0435\u043D\u0442\u0438, \u043D\u0430 \u0437\u0430\u0432\u044A\u0440\u0448\u0438\u043B\u0438\u0442\u0435 \u0432 \u0411\u044A\u043B\u0433\u0430\u0440\u0438\u044F \u0441\u043F\u0435\u0446\u0438\u0430\u043B\u0438\u0441\u0442\u0438 \u0438 \u043D\u0430 \u0438\u0437\u043F\u0440\u0430\u0442\u0435\u043D\u0438\u0442\u0435 \u0432 \u0411\u0435\u0441\u0430\u0440\u0430\u0431\u0438\u044F \u0443\u0447\u0438\u0442\u0435\u043B\u0438.\n\t\t\t') } })])]), rightColumn({ state: state, actions: actions })];
 };
 
-},{"../right-column":62,"iblokz-snabbdom-helpers":12,"marked":24}],58:[function(require,module,exports){
+},{"../right-column":64,"iblokz-snabbdom-helpers":12,"marked":25}],60:[function(require,module,exports){
 'use strict';
 
 var _require = require('iblokz-snabbdom-helpers');
@@ -23196,7 +23139,7 @@ module.exports = function (_ref) {
 	}))])]), rightColumn({ state: state, actions: actions })];
 };
 
-},{"../right-column":62,"iblokz-snabbdom-helpers":12,"marked":24,"moment":26}],59:[function(require,module,exports){
+},{"../right-column":64,"iblokz-snabbdom-helpers":12,"marked":25,"moment":27}],61:[function(require,module,exports){
 'use strict';
 
 var _require = require('iblokz-snabbdom-helpers');
@@ -23247,7 +23190,7 @@ module.exports = function (_ref) {
 	}))), rightColumn({ state: state, actions: actions })];
 };
 
-},{"../right-column":62,"iblokz-snabbdom-helpers":12,"marked":24,"moment":26}],60:[function(require,module,exports){
+},{"../right-column":64,"iblokz-snabbdom-helpers":12,"marked":25,"moment":27}],62:[function(require,module,exports){
 'use strict';
 
 var _require = require('iblokz-snabbdom-helpers');
@@ -23281,7 +23224,7 @@ module.exports = function (_ref) {
 	return [section('.content', [section('.post', [h1('Връзки')]), section('.post', [p({ props: { innerHTML: marked('\n- [\u0414\u044A\u0440\u0436\u0430\u0432\u043D\u0430 \u0430\u0433\u0435\u043D\u0446\u0438\u044F \u0437\u0430 \u0431\u044A\u043B\u0433\u0430\u0440\u0438\u0442\u0435 \u0432 \u0447\u0443\u0436\u0431\u0438\u043D\u0430](http://aba.government.bg)\n- [\u041C\u0438\u043D\u0438\u0441\u0442\u0435\u0440\u0441\u0442\u0432\u043E\u0442\u043E \u043D\u0430 \u043E\u0431\u0440\u0430\u0437\u043E\u0432\u0430\u043D\u0438\u0435\u0442\u043E \u0438 \u043D\u0430\u0443\u043A\u0430\u0442\u0430 > \u0417\u0430 \u0431\u044A\u043B\u0433\u0430\u0440\u0438\u0442\u0435 \u0437\u0430\u0434 \u0433\u0440\u0430\u043D\u0438\u0446\u0430](http://www.mon.bg/?go=page&amp;pageId=15&amp;subpageId=173)\n- [\u041D\u0430\u0443\u0447\u043D\u043E \u0434\u0440\u0443\u0436\u0435\u0441\u0442\u0432\u043E \u043D\u0430 \u0431\u044A\u043B\u0433\u0430\u0440\u0438\u0441\u0442\u0438\u0442\u0435 \u0432 \u0420\u0435\u043F\u0443\u0431\u043B\u0438\u043A\u0430 \u041C\u043E\u043B\u0434\u043E\u0432\u0430](http://ndb.md/)\n- [\u0411\u044A\u043B\u0433\u0430\u0440\u0441\u043A\u0430 \u0412\u0438\u0440\u0442\u0443\u0430\u043B\u043D\u0430 \u0411\u0438\u0431\u043B\u0438\u043E\u0442\u0435\u043A\u0430](http://slovo.bg)\n- [\u0412\u0435\u0441\u0442\u043D\u0438\u043A "\u0420\u043E\u0434\u0435\u043D \u041A\u0440\u0430\u0439" - \u041E\u0434\u0435\u0441\u0430](http://www.rodenkray.od.ua/)\n- [\u0410\u0440\u0445\u0438\u0432\u043D\u0438 \u043C\u0430\u0442\u0435\u0440\u0438\u0430\u043B\u0438 \u0437\u0430 \u0420\u043E\u0434\u043E\u043B\u044E\u0431\u0435\u0446 (omda.bg)](http://prehod.omda.bg/page.php?IDMenu=642&IDLang=1)\n- [\u0410\u0440\u0445\u0438\u0432\u043D\u0438 \u043C\u0430\u0442\u0435\u0440\u0438\u0430\u043B\u0438 \u043F\u043E \u0432\u044A\u043F\u0440\u043E\u0441\u0438\u0442\u0435 \u043D\u0430 \u0431\u044A\u043B\u0433\u0430\u0440\u0438\u0442\u0435 \u0437\u0430\u0434 \u0433\u0440\u0430\u043D\u0438\u0446\u0430 (omda.bg)](http://prehod.omda.bg/page.php/?IDMenu=604)\n\t\t\t') } })])]), rightColumn({ state: state, actions: actions })];
 };
 
-},{"../right-column":62,"iblokz-snabbdom-helpers":12,"marked":24}],61:[function(require,module,exports){
+},{"../right-column":64,"iblokz-snabbdom-helpers":12,"marked":25}],63:[function(require,module,exports){
 'use strict';
 
 var moment = require('moment');
@@ -23345,7 +23288,7 @@ module.exports = function (_ref) {
 	}))])]);
 };
 
-},{"iblokz-snabbdom-helpers":12,"moment":26,"moment/locale/bg":25}],62:[function(require,module,exports){
+},{"iblokz-snabbdom-helpers":12,"moment":27,"moment/locale/bg":26}],64:[function(require,module,exports){
 'use strict';
 
 var _require = require('iblokz-snabbdom-helpers');
@@ -23447,7 +23390,7 @@ module.exports = function (_ref) {
 	)]), calendar({ state: state, actions: actions })));
 };
 
-},{"./calendar":61,"iblokz-snabbdom-helpers":12,"moment":26,"moment/locale/bg":25}],63:[function(require,module,exports){
+},{"./calendar":63,"iblokz-snabbdom-helpers":12,"moment":27,"moment/locale/bg":26}],65:[function(require,module,exports){
 'use strict';
 
 // lib
@@ -23489,7 +23432,94 @@ module.exports = {
 	adapt: adapt
 };
 
-},{"iblokz-data":7,"rx":28}],64:[function(require,module,exports){
+},{"iblokz-data":7,"rx":29}],66:[function(require,module,exports){
+'use strict';
+
+var find = function find(q) {
+	var el = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : document;
+	return Array.from(el.querySelectorAll(q));
+};
+
+var getParent = function getParent(el, tagName) {
+	return [].concat(tagName).indexOf(el.tagName) === -1 ? getParent(el.parentNode, tagName) : el;
+};
+
+var getRangePoint = function getRangePoint(el, offset) {
+	return el.nodeType === 3 || el.childNodes.length === 0 ? { el: el, offset: el.textContent.length < offset ? el.textContent.length : offset } : Array.from(el.childNodes).reduce(function (rp, child, index) {
+		return rp.el !== el ? rp : child.textContent.length >= rp.offset ? getRangePoint(child, rp.offset) : index < el.childNodes.length - 1 ? { el: el, offset: rp.offset - child.textContent.length } : { el: child, offset: child.textContent.length };
+	}, { el: el, offset: offset });
+};
+
+var get = function get(el) {
+	var rows = find('p, li, div', el);
+	console.log(rows);
+	var range = window.getSelection().getRangeAt(0);
+	var parentRow = getParent(range.startContainer, ['LI', 'P', 'DIV']);
+	var colRange = document.createRange();
+	colRange.setStart(parentRow, 0);
+	colRange.setEnd(range.startContainer, range.startOffset);
+	var row = rows.indexOf(parentRow);
+	var col = colRange.toString().length;
+	console.log(range.toString());
+	return {
+		row: row,
+		col: col,
+		length: range.toString().length
+	};
+};
+
+var set = function set(el, pos) {
+	var parentRow = find('p, li, div', el)[pos.row];
+	if (parentRow) {
+		var rp = getRangePoint(parentRow, pos.col);
+		var ep = pos.length === 0 ? rp : getRangePoint(parentRow, pos.col + pos.length);
+		console.log(parentRow, pos, rp);
+		var range = document.createRange();
+		range.setStart(rp.el, rp.offset);
+		range.setEnd(ep.el, ep.offset);
+		var sel = window.getSelection();
+		sel.removeAllRanges();
+		sel.addRange(range);
+	}
+};
+
+module.exports = {
+	get: get,
+	set: set
+};
+
+},{}],67:[function(require,module,exports){
+'use strict';
+
+var _require = require('iblokz-data');
+
+var obj = _require.obj;
+
+
+var toData = function toData(form) {
+	return Array.from(form.elements)
+	// .map(el => (console.log(el.name), el))
+	.filter(function (el) {
+		return el.name !== undefined && el.name !== '';
+	}).reduce(function (o, el) {
+		return obj.patch(o, el.name.split('.'), el.type && el.type === 'number' ? Number(el.value) : el.value);
+	}, {});
+};
+
+var clear = function clear(form) {
+	return Array.from(form.elements).filter(function (el) {
+		return el.name !== undefined && el.name !== '';
+	}).forEach(function (el) {
+		return el.tagName === 'textarea' || el.type === 'text' ? el.value = '' : el.type === 'number' ? el.value = null : el.value = undefined;
+	});
+};
+
+module.exports = {
+	toData: toData,
+	clear: clear
+};
+
+},{"iblokz-data":7}],68:[function(require,module,exports){
 'use strict';
 
 var toMarkdown = require('to-markdown');
@@ -23535,7 +23565,7 @@ module.exports = {
 	fromHTML: fromHTML
 };
 
-},{"marked":24,"to-markdown":33}],65:[function(require,module,exports){
+},{"marked":25,"to-markdown":34}],69:[function(require,module,exports){
 'use strict';
 
 var Rx = require('rx');
@@ -23548,7 +23578,7 @@ superagent.Request.prototype.observe = function () {
 
 module.exports = superagent;
 
-},{"rx":28,"superagent":29}],66:[function(require,module,exports){
+},{"rx":29,"superagent":30}],70:[function(require,module,exports){
 'use strict';
 
 var set = function set(key, value) {
@@ -23563,4 +23593,4 @@ module.exports = {
 	get: get
 };
 
-},{}]},{},[39]);
+},{}]},{},[40]);
