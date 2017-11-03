@@ -1,0 +1,54 @@
+.assets
+	.folders
+		+no-margin-padding
+		+header-height(32px)
+		display: inline-block
+		list-style: none
+		min-height: 240px
+		width: 160px
+		vertical-align: top
+		border-left: 4px solid #aaa
+		border-right: 1px solid #ccc
+		li
+			+header-height(32px)
+			width: 100%
+			a
+				+header-height(32px)
+				padding: 0px 10px
+				font-size: 14px
+				width: 100%
+				&:hover
+					background: rgba(160, 160, 160, 0.1)
+	.files
+		display: inline-block
+		.file
+			margin: 10px
+			display: inline-block
+			width: 96px
+			min-height: 96px
+			cursor: pointer
+			&:hover
+				background: rgba(160, 160, 160, 0.1)
+			.thumb
+				width: 100%
+				height: 64px
+				line-height: 64px
+				text-align: center
+				vertical-align: middle
+			.name
+				width: 100%
+				min-height: 32px
+				line-height: 32px
+				text-align: center
+				vertical-align: middle
+				font-size: 12px
+		img
+			vertical-align: middle
+			max-width: 96px
+			max-height: 64px
+		i.fa
+			width: 96px
+			height: 64px
+			line-height: 64px
+			font-size: 42px
+			color: #333

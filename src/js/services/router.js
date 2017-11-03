@@ -6,8 +6,8 @@ const $ = Rx.Observable;
 const parsePageParams = str => {
 	const path = str.split('/');
 	const admin = path[0] === 'admin';
-	const pageId = path[admin ? 2 : 1] || null;
-	const page = (admin ? 'admin.' : '') + ((pageId) ? path[path.length - 2] : path[path.length - 1]) || 'home';
+	const pageId = path.length > (1 + admin ? 1 : 0) ? path.slice(admin ? 2 : 1).join('/') : null;
+	const page = (admin ? path.slice(0, 2).join('.') : path[0]) || 'home';
 	return {
 		path,
 		admin,

@@ -3,6 +3,7 @@
 const Rx = require('rx');
 const $ = Rx.Observable;
 const {Subject} = Rx;
+const path = require('path');
 
 const {obj} = require('iblokz-data');
 
@@ -16,7 +17,7 @@ const initial = {
 };
 
 // ns - namespace
-const list = ns => (query = {}) => request.get(`/api/${ns}`)
+const list = ns => (query = {}, ctrl = '') => request.get(`/api/${path.join(ns, ctrl)}`)
 	.query(query)
 	.observe()
 	.map(res => res.body)

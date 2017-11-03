@@ -2517,6 +2517,116 @@ h1, h2, h3, h4, h5 {
           vertical-align: top;
           font-size: 14px; }
 
+#ui .right-column {
+  display: inline-block;
+  vertical-align: top;
+  margin-top: 18px;
+  width: 30%;
+  padding: 0px 0px 0px 20px; }
+  #ui .right-column > section {
+    display: inline-block;
+    background: rgba(255, 255, 255, 0.7);
+    box-shadow: 0px 0px 3px #bbb;
+    border-bottom: 1px solid #bbb;
+    width: 100%;
+    margin-bottom: 20px; }
+    #ui .right-column > section h2 {
+      margin: 15px 10px 10px 10px;
+      font-size: 1.2em;
+      line-height: 1.3em; }
+    #ui .right-column > section ul {
+      margin: 0px;
+      padding: 0px;
+      font-size: 0.9em;
+      list-style: none;
+      margin: 10px 0px; }
+      #ui .right-column > section ul li {
+        -webkit-touch-callout: none;
+        -webkit-user-select: none;
+        -khtml-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        user-select: none;
+        padding: 10px;
+        cursor: pointer;
+        color: #555;
+        transition: background .7s, box-shadow .3s, color .5s, padding .1s; }
+        #ui .right-column > section ul li:hover, #ui .right-column > section ul li.active {
+          color: #333;
+          background: #e5ede4;
+          box-shadow: inset 0px 0px 10px #d5d5d5; }
+        #ui .right-column > section ul li:active {
+          transition: background .3s, box-shadow .1s;
+          background: #e5eae5;
+          padding: 11px 10px 9px 10px; }
+        #ui .right-column > section ul li:focus {
+          outline: none; }
+        #ui .right-column > section ul li a {
+          text-decoration: none;
+          color: inherit; }
+        #ui .right-column > section ul li a {
+          outline: none; }
+        #ui .right-column > section ul li .fa {
+          width: 30px;
+          text-align: center; }
+  #ui .right-column table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    font-size: 14px; }
+    #ui .right-column table td, #ui .right-column table th {
+      text-align: center;
+      width: 14.28%;
+      height: 40px;
+      box-sizing: border-box; }
+      #ui .right-column table td button, #ui .right-column table th button {
+        margin: 0px;
+        padding: 0px;
+        outline: none;
+        border-image: none;
+        box-sizing: border-box;
+        -webkit-touch-callout: none;
+        -webkit-user-select: none;
+        -khtml-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        user-select: none;
+        padding: 10px;
+        cursor: pointer;
+        color: #555;
+        transition: background .7s, box-shadow .3s, color .5s, padding .1s;
+        display: inline-block;
+        text-align: center;
+        font-size: 14px;
+        line-height: 14px;
+        height: 40px;
+        width: 100%;
+        background: inherit;
+        border: 0px; }
+        #ui .right-column table td button:focus, #ui .right-column table td button:active, #ui .right-column table td button::-moz-focus-inner, #ui .right-column table td button:-moz-focusring, #ui .right-column table td button::-moz-focus-outer, #ui .right-column table th button:focus, #ui .right-column table th button:active, #ui .right-column table th button::-moz-focus-inner, #ui .right-column table th button:-moz-focusring, #ui .right-column table th button::-moz-focus-outer {
+          outline: none;
+          border-radius: 0px;
+          border-image: none; }
+        #ui .right-column table td button:hover, #ui .right-column table td button.active, #ui .right-column table th button:hover, #ui .right-column table th button.active {
+          color: #333;
+          background: #e5ede4;
+          box-shadow: inset 0px 0px 10px #d5d5d5; }
+        #ui .right-column table td button:active, #ui .right-column table th button:active {
+          transition: background .3s, box-shadow .1s;
+          background: #e5eae5;
+          padding: 11px 10px 9px 10px; }
+        #ui .right-column table td button:focus, #ui .right-column table th button:focus {
+          outline: none; }
+        #ui .right-column table td button a, #ui .right-column table th button a {
+          text-decoration: none;
+          color: inherit; }
+    #ui .right-column table tr > :not(:first-child) {
+      border-left: 1px solid #ccc; }
+    #ui .right-column table tr:not(:first-child) > * {
+      border-top: 1px solid #ccc; }
+    #ui .right-column table thead > tr:last-child > * {
+      border-bottom: 1px solid #aaa; }
+
 #ui > #admin {
   margin: 20px; }
   #ui > #admin .content {
@@ -2648,7 +2758,8 @@ h1, h2, h3, h4, h5 {
       font-size: 14px; }
       #ui > #admin .content table.crud td, #ui > #admin .content table.crud th {
         height: 40px;
-        box-sizing: border-box; }
+        box-sizing: border-box;
+        transition: background .3s; }
         #ui > #admin .content table.crud td:not(:last-child), #ui > #admin .content table.crud th:not(:last-child) {
           padding: 0px 5px; }
         #ui > #admin .content table.crud td button, #ui > #admin .content table.crud td a, #ui > #admin .content table.crud th button, #ui > #admin .content table.crud th a {
@@ -2701,115 +2812,72 @@ h1, h2, h3, h4, h5 {
       #ui > #admin .content table.crud thead {
         background: rgba(255, 255, 255, 0.3);
         box-shadow: 0px 1px 1px #bbb, 0px 7px 3px rgba(230, 230, 230, 0.3); }
-
-#ui .right-column {
-  display: inline-block;
-  vertical-align: top;
-  margin-top: 18px;
-  width: 30%;
-  padding: 0px 0px 0px 20px; }
-  #ui .right-column > section {
-    display: inline-block;
-    background: rgba(255, 255, 255, 0.7);
-    box-shadow: 0px 0px 3px #bbb;
-    border-bottom: 1px solid #bbb;
-    width: 100%;
-    margin-bottom: 20px; }
-    #ui .right-column > section h2 {
-      margin: 15px 10px 10px 10px;
-      font-size: 1.2em;
-      line-height: 1.3em; }
-    #ui .right-column > section ul {
+      #ui > #admin .content table.crud tbody > tr:hover > td {
+        background: rgba(160, 160, 160, 0.1); }
+        #ui > #admin .content table.crud tbody > tr:hover > td:hover {
+          background: rgba(160, 160, 160, 0.2); }
+    #ui > #admin .content .assets .folders {
       margin: 0px;
       padding: 0px;
-      font-size: 0.9em;
+      display: inline-block;
+      box-sizing: border-box;
+      height: 32px;
+      line-height: 32px;
+      display: inline-block;
       list-style: none;
-      margin: 10px 0px; }
-      #ui .right-column > section ul li {
-        -webkit-touch-callout: none;
-        -webkit-user-select: none;
-        -khtml-user-select: none;
-        -moz-user-select: none;
-        -ms-user-select: none;
-        user-select: none;
-        padding: 10px;
-        cursor: pointer;
-        color: #555;
-        transition: background .7s, box-shadow .3s, color .5s, padding .1s; }
-        #ui .right-column > section ul li:hover, #ui .right-column > section ul li.active {
-          color: #333;
-          background: #e5ede4;
-          box-shadow: inset 0px 0px 10px #d5d5d5; }
-        #ui .right-column > section ul li:active {
-          transition: background .3s, box-shadow .1s;
-          background: #e5eae5;
-          padding: 11px 10px 9px 10px; }
-        #ui .right-column > section ul li:focus {
-          outline: none; }
-        #ui .right-column > section ul li a {
-          text-decoration: none;
-          color: inherit; }
-        #ui .right-column > section ul li a {
-          outline: none; }
-        #ui .right-column > section ul li .fa {
-          width: 30px;
-          text-align: center; }
-  #ui .right-column table {
-    width: 100%;
-    border-collapse: separate;
-    border-spacing: 0;
-    font-size: 14px; }
-    #ui .right-column table td, #ui .right-column table th {
-      text-align: center;
-      width: 14.28%;
-      height: 40px;
-      box-sizing: border-box; }
-      #ui .right-column table td button, #ui .right-column table th button {
-        margin: 0px;
-        padding: 0px;
-        outline: none;
-        border-image: none;
-        box-sizing: border-box;
-        -webkit-touch-callout: none;
-        -webkit-user-select: none;
-        -khtml-user-select: none;
-        -moz-user-select: none;
-        -ms-user-select: none;
-        user-select: none;
-        padding: 10px;
-        cursor: pointer;
-        color: #555;
-        transition: background .7s, box-shadow .3s, color .5s, padding .1s;
+      min-height: 240px;
+      width: 160px;
+      vertical-align: top;
+      border-left: 4px solid #aaa;
+      border-right: 1px solid #ccc; }
+      #ui > #admin .content .assets .folders li {
         display: inline-block;
-        text-align: center;
-        font-size: 14px;
-        line-height: 14px;
-        height: 40px;
-        width: 100%;
-        background: inherit;
-        border: 0px; }
-        #ui .right-column table td button:focus, #ui .right-column table td button:active, #ui .right-column table td button::-moz-focus-inner, #ui .right-column table td button:-moz-focusring, #ui .right-column table td button::-moz-focus-outer, #ui .right-column table th button:focus, #ui .right-column table th button:active, #ui .right-column table th button::-moz-focus-inner, #ui .right-column table th button:-moz-focusring, #ui .right-column table th button::-moz-focus-outer {
-          outline: none;
-          border-radius: 0px;
-          border-image: none; }
-        #ui .right-column table td button:hover, #ui .right-column table td button.active, #ui .right-column table th button:hover, #ui .right-column table th button.active {
-          color: #333;
-          background: #e5ede4;
-          box-shadow: inset 0px 0px 10px #d5d5d5; }
-        #ui .right-column table td button:active, #ui .right-column table th button:active {
-          transition: background .3s, box-shadow .1s;
-          background: #e5eae5;
-          padding: 11px 10px 9px 10px; }
-        #ui .right-column table td button:focus, #ui .right-column table th button:focus {
-          outline: none; }
-        #ui .right-column table td button a, #ui .right-column table th button a {
-          text-decoration: none;
-          color: inherit; }
-    #ui .right-column table tr > :not(:first-child) {
-      border-left: 1px solid #ccc; }
-    #ui .right-column table tr:not(:first-child) > * {
-      border-top: 1px solid #ccc; }
-    #ui .right-column table thead > tr:last-child > * {
-      border-bottom: 1px solid #aaa; }
+        box-sizing: border-box;
+        height: 32px;
+        line-height: 32px;
+        width: 100%; }
+        #ui > #admin .content .assets .folders li a {
+          display: inline-block;
+          box-sizing: border-box;
+          height: 32px;
+          line-height: 32px;
+          padding: 0px 10px;
+          font-size: 14px;
+          width: 100%; }
+          #ui > #admin .content .assets .folders li a:hover {
+            background: rgba(160, 160, 160, 0.1); }
+    #ui > #admin .content .assets .files {
+      display: inline-block; }
+      #ui > #admin .content .assets .files .file {
+        margin: 10px;
+        display: inline-block;
+        width: 96px;
+        min-height: 96px;
+        cursor: pointer; }
+        #ui > #admin .content .assets .files .file:hover {
+          background: rgba(160, 160, 160, 0.1); }
+        #ui > #admin .content .assets .files .file .thumb {
+          width: 100%;
+          height: 64px;
+          line-height: 64px;
+          text-align: center;
+          vertical-align: middle; }
+        #ui > #admin .content .assets .files .file .name {
+          width: 100%;
+          min-height: 32px;
+          line-height: 32px;
+          text-align: center;
+          vertical-align: middle;
+          font-size: 12px; }
+      #ui > #admin .content .assets .files img {
+        vertical-align: middle;
+        max-width: 96px;
+        max-height: 64px; }
+      #ui > #admin .content .assets .files i.fa {
+        width: 96px;
+        height: 64px;
+        line-height: 64px;
+        font-size: 42px;
+        color: #333; }
 
 /*# sourceMappingURL=style.css.map */

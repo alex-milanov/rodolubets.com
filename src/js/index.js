@@ -27,7 +27,7 @@ let ui = require('./ui');
 const router = require('./services/router');
 actions.router = router.actions;
 // resources
-const resList = ['articles', 'events', 'pages'];
+const resList = ['articles', 'events', 'pages', 'assets'];
 const resource = require('./services/resource');
 resList.forEach(res => (
 	actions = resource.attach(actions, res)
@@ -70,11 +70,12 @@ if (module.hot) {
 }
 
 // actions -> state
-const state$ = actions$
+const state$ = new Rx.BehaviorSubject();
+actions$
 	.startWith(() => actions.initial)
 	.scan((state, change) => change(state), {})
 	.map(state => (console.log(state), state))
-	.share();
+	.subscribe(state => state$.onNext(state));
 
 // state change hooks
 router.hook({state$, actions});
@@ -90,24 +91,10 @@ state$
 	.subscribe(state => resList.forEach(res =>
 		state.router.page.match(res) && (state.router.pageId === 'new'
 			? actions[res].reset()
-			: actions[res].read(state.router.pageId))
+			: res === 'assets'
+				? actions[res].list(actions[res].query, state.router.pageId)
+				: actions[res].read(state.router.pageId))
 	));
-
-/*
-state$
-	.skip(2)
-	.filter(state => state.router.page === 'articles')
-	.distinctUntilChanged(state => state.category)
-	.filter(state => state.category !== null)
-	.subscribe(state => actions.router.go('articles'));
-
-state$
-	.skip(2)
-	.filter(state => state.router.page === 'articles')
-	.distinctUntilChanged(state => state.router.pageId)
-	.filter(state => state.router.pageId !== null)
-	.subscribe(state => actions.selectCategory(null));
-*/
 
 // map state to ui
 const ui$ = state$.map(state => ui({state, actions}));
@@ -116,3 +103,9 @@ const ui$ = state$.map(state => ui({state, actions}));
 vdom.patchStream(ui$, '#ui');
 
 window.actions = actions;
+
+// livereload impl.
+if (module.hot) {
+	document.write(`<script src="http://${(location.host || 'localhost').split(':')[0]}` +
+	`:35729/livereload.js?snipver=1"></script>`);
+}

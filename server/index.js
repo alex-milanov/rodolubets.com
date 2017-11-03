@@ -35,6 +35,8 @@ require('./models/user');
 
 // auth
 require('./api/auth')({app, db, config});
+// assets
+require('./api/assets')({app, db, config});
 
 // initis rest endpoints
 restApi.initRoutes(app, config.rest, {}, db);
