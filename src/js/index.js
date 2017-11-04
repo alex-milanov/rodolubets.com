@@ -86,8 +86,8 @@ auth.hook({state$, actions});
 
 // trigger read action on pageId param
 state$
-	.distinctUntilChanged(state => state.router.pageId)
-	.filter(state => state.router.pageId !== null)
+	.distinctUntilChanged(state => state.router)
+	.filter(state => state.router.pageId !== null || state.router.page.match(/assets/))
 	.subscribe(state => resList.forEach(res =>
 		state.router.page.match(res) && (state.router.pageId === 'new'
 			? actions[res].reset()

@@ -3,6 +3,10 @@
 const path = require('path');
 const fse = require('fs-extra');
 
+// multer
+const multer = require('multer');
+const upload = multer({storage: multer.memoryStorage()});
+
 const basePath = path.join(__dirname, '../../../assets');
 // console.log({basePath});
 
@@ -22,11 +26,13 @@ const getAsset = (req, res) => (req.params[0] !== undefined)
 
 const putAsset = (req, res) => (req.params[0] !== undefined)
 	? [path.join(basePath, req.params[0])].map(filePath =>
-			!fse.existsSync(filePath)
+			!fse.existsSync(filePath) &&
+				fse.writeFile(filePath, req.file.buffer, (err, state) => res.send(err || state))
 		)
 	: res.next();
 
 module.exports = ({app, db, config}) => {
 	app.route('/api/assets*')
-		.get(getAsset);
+		.get(getAsset)
+		.put(upload.single('theFile'), putAsset);
 };

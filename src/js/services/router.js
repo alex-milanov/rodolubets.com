@@ -25,7 +25,7 @@ change = page => state => (page.match('admin') && (!state.auth.user || state.aut
 
 go = page => {
 	window.location.hash = '/' + ((page !== 'home') ? page.split('.').join('/') : '');
-	// return state => state;
+	return state => state;
 };
 
 const actions = {

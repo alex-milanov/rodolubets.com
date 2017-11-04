@@ -22089,9 +22089,9 @@ auth.hook({ state$: state$, actions: actions });
 
 // trigger read action on pageId param
 state$.distinctUntilChanged(function (state) {
-	return state.router.pageId;
+	return state.router;
 }).filter(function (state) {
-	return state.router.pageId !== null;
+	return state.router.pageId !== null || state.router.page.match(/assets/);
 }).subscribe(function (state) {
 	return resList.forEach(function (res) {
 		return state.router.page.match(res) && (state.router.pageId === 'new' ? actions[res].reset() : res === 'assets' ? actions[res].list(actions[res].query, state.router.pageId) : actions[res].read(state.router.pageId));
@@ -22176,7 +22176,7 @@ module.exports = {
 	hook: hook
 };
 
-},{"../util/request":71,"../util/store":72,"iblokz-data":7,"rx":30}],43:[function(require,module,exports){
+},{"../util/request":72,"../util/store":73,"iblokz-data":7,"rx":30}],43:[function(require,module,exports){
 'use strict';
 
 var Rx = require('rx');
@@ -22315,7 +22315,7 @@ module.exports = {
 	hook: hook
 };
 
-},{"../util/request":71,"iblokz-data":7,"path":28,"rx":30}],44:[function(require,module,exports){
+},{"../util/request":72,"iblokz-data":7,"path":28,"rx":30}],44:[function(require,module,exports){
 'use strict';
 
 var Rx = require('rx');
@@ -22345,7 +22345,9 @@ change = function change(page) {
 
 go = function go(page) {
 	window.location.hash = '/' + (page !== 'home' ? page.split('.').join('/') : '');
-	// return state => state;
+	return function (state) {
+		return state;
+	};
 };
 
 var actions = {
@@ -22490,7 +22492,7 @@ module.exports = function (_ref) {
 	})]);
 };
 
-},{"../../util/caret":68,"../../util/md":70,"iblokz-snabbdom-helpers":12,"rx":30}],47:[function(require,module,exports){
+},{"../../util/caret":68,"../../util/md":71,"iblokz-snabbdom-helpers":12,"rx":30}],47:[function(require,module,exports){
 'use strict';
 
 var _require = require('iblokz-snabbdom-helpers');
@@ -22728,7 +22730,7 @@ module.exports = function (_ref) {
 	})]), div([button('[type="submit"]', 'Save')])])]) : '';
 };
 
-},{"../../../../util/form":69,"../../../comp/wysiwyg":46,"iblokz-snabbdom-helpers":12,"rx":30}],51:[function(require,module,exports){
+},{"../../../../util/form":70,"../../../comp/wysiwyg":46,"iblokz-snabbdom-helpers":12,"rx":30}],51:[function(require,module,exports){
 'use strict';
 
 var _require = require('iblokz-snabbdom-helpers');
@@ -22873,12 +22875,31 @@ var label = _require.label;
 var input = _require.input;
 var textarea = _require.textarea;
 
+
+var agent = require('superagent');
+
 // comp
 // const grid = require('../../../comp/grid');
 
 // crud
 // const list = require('./list');
 // const edit = require('./edit');
+
+var fileUtil = require('../../../../util/file');
+
+var openDialog = function openDialog(cb) {
+	var fileEl = document.createElement('input');
+	fileEl.setAttribute('type', 'file');
+	fileEl.addEventListener('change', function (ev) {
+		console.log(ev.target.files, undefined);
+		cb(ev.target.files);
+	});
+	fileEl.dispatchEvent(new MouseEvent('click', {
+		view: window,
+		bubbles: true,
+		cancelable: true
+	}));
+};
 
 module.exports = function (_ref) {
 	var state = _ref.state;
@@ -22889,14 +22910,24 @@ module.exports = function (_ref) {
 		return asset.type === 'dir';
 	})).map(function (asset) {
 		return li(a('[href="#/admin/assets' + path.resolve(state.router.pageId || '', asset.name) + '"]', asset.name));
-	})), div('.files', state.assets.list.filter(function (asset) {
+	})), div('.files', [].concat(state.assets.list.filter(function (asset) {
 		return asset.type === 'file';
 	}).map(function (asset) {
 		return a('.file[target="_blank"][href="/api/assets' + path.resolve(state.router.pageId || '', asset.name) + '"]', [div('.thumb', asset.name.match(/.(gif|jpeg|jpg|png|svg)/) ? img('[src=/api/assets/' + path.resolve(state.router.pageId || '', asset.name) + ']') : i('.fa' + (asset.name.match(/.pdf/) ? '.fa-file-pdf-o' : '.fa-file-o'))), div('.name', asset.name)]);
-	}))])])])];
+	}), div('.file', {
+		on: {
+			click: function click(ev) {
+				return openDialog(function (files) {
+					return agent.put(path.resolve('/api/assets/', state.router.pageId || '', files[0].name)).attach('theFile', files[0]).then(function () {
+						return actions.assets.list(state.assets.query, state.router.pageId || '');
+					});
+				});
+			}
+		}
+	}, [div('.thumb', i('.fa.fa-upload')), div('.name', 'Качи нов файл')])))])])])];
 };
 
-},{"iblokz-snabbdom-helpers":12,"path":28}],54:[function(require,module,exports){
+},{"../../../../util/file":69,"iblokz-snabbdom-helpers":12,"path":28,"superagent":31}],54:[function(require,module,exports){
 'use strict';
 
 var _require = require('iblokz-snabbdom-helpers');
@@ -23012,7 +23043,7 @@ module.exports = function (_ref) {
 		} })]), div([button('[type="submit"]', 'Save')])])]) : '';
 };
 
-},{"../../../../util/md":70,"iblokz-snabbdom-helpers":12,"moment":27,"rx":30}],55:[function(require,module,exports){
+},{"../../../../util/md":71,"iblokz-snabbdom-helpers":12,"moment":27,"rx":30}],55:[function(require,module,exports){
 'use strict';
 
 var _require = require('iblokz-snabbdom-helpers');
@@ -23223,7 +23254,7 @@ module.exports = function (_ref) {
 	})]), div([button('[type="submit"]', 'Save')])])]) : '';
 };
 
-},{"../../../../util/form":69,"../../../comp/wysiwyg":46,"iblokz-snabbdom-helpers":12,"moment":27,"rx":30}],59:[function(require,module,exports){
+},{"../../../../util/form":70,"../../../comp/wysiwyg":46,"iblokz-snabbdom-helpers":12,"moment":27,"rx":30}],59:[function(require,module,exports){
 'use strict';
 
 var _require = require('iblokz-snabbdom-helpers');
@@ -23771,6 +23802,52 @@ module.exports = {
 },{}],69:[function(require,module,exports){
 'use strict';
 
+var Rx = require('rx');
+var $ = Rx.Observable;
+// const fileSaver = require('file-saver');
+// const jsZip = require("jszip");
+
+var _require = require("iblokz-data");
+
+var fn = _require.fn;
+var obj = _require.obj;
+
+
+var load = function load(file) {
+	var readAs = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 'text';
+	return $.create(function (stream) {
+		var fr = new FileReader();
+		fr.onload = function (ev) {
+			// console.log(readAs, ev.target.result);
+			stream.onNext(readAs === 'json' ? JSON.parse(ev.target.result) : ev.target.result);
+			stream.onCompleted();
+		};
+		// console.log(file, readAs);
+		(typeof file === 'string' ? $.fromPromise(fetch(file)).flatMap(function (res) {
+			return res.blob();
+		}) : $.just(file)).subscribe(function (f) {
+			return fn.switch(readAs, {
+				arrayBuffer: function arrayBuffer(f) {
+					return fr.readAsArrayBuffer(f);
+				},
+				dataUrl: function dataUrl(f) {
+					return fr.readAsDataURL(f);
+				},
+				default: function _default(f) {
+					return fr.readAsText(f);
+				}
+			})(f);
+		});
+	});
+};
+
+module.exports = {
+	load: load
+};
+
+},{"iblokz-data":7,"rx":30}],70:[function(require,module,exports){
+'use strict';
+
 var _require = require('iblokz-data');
 
 var obj = _require.obj;
@@ -23799,7 +23876,7 @@ module.exports = {
 	clear: clear
 };
 
-},{"iblokz-data":7}],70:[function(require,module,exports){
+},{"iblokz-data":7}],71:[function(require,module,exports){
 'use strict';
 
 var toMarkdown = require('to-markdown');
@@ -23845,7 +23922,7 @@ module.exports = {
 	fromHTML: fromHTML
 };
 
-},{"marked":25,"to-markdown":35}],71:[function(require,module,exports){
+},{"marked":25,"to-markdown":35}],72:[function(require,module,exports){
 'use strict';
 
 var Rx = require('rx');
@@ -23858,7 +23935,7 @@ superagent.Request.prototype.observe = function () {
 
 module.exports = superagent;
 
-},{"rx":30,"superagent":31}],72:[function(require,module,exports){
+},{"rx":30,"superagent":31}],73:[function(require,module,exports){
 'use strict';
 
 var set = function set(key, value) {
