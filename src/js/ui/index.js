@@ -32,12 +32,12 @@ const pages = {
 module.exports = ({state, actions}) => section('#ui', [
 	section((state.router.admin ? '#admin' : '#front'), [].concat(
 		[header({state, actions})],
-		_switch(state.router.path, state.pages.list.reduce(
+		_switch(state.router.path, state.pages.list && state.pages.list.reduce(
 			(pages, page) => obj.patch(pages, page.path.split('.'),
 				({state, actions}) => pageComp({state, actions, page, rightColumn:
 				rightColumn({state, actions})})
 			),
 			pages
-		))({state, actions})
+		) || pages)({state, actions})
 	))
 ]);

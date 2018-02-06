@@ -84,6 +84,8 @@ resList.forEach(res => (
 ));
 auth.hook({state$, actions});
 
+// console.log({actions});
+
 // trigger read action on pageId param
 state$
 	.distinctUntilChanged(state => state.router)

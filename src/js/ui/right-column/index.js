@@ -17,10 +17,10 @@ const formatDate = ev => (moment(ev.start).format('DD') !== moment(ev.end).forma
 module.exports = ({state, actions}) => section('.right-column', [].concat(
 	section([
 		ul([
-			li([a('[href="https://goo.gl/maps/nuw3q3d9CuK2"][target="_blank"]', [
-				i('.fa.fa-map-marker'),
-				'бул. „Евлоги Георгиев“ 169, ет. II-ри'
-			])]),
+			// li([a('[href="https://goo.gl/maps/nuw3q3d9CuK2"][target="_blank"]', [
+			// 	i('.fa.fa-map-marker'),
+			// 	'бул. „Евлоги Георгиев“ 169, ет. II-ри'
+			// ])]),
 			li([a('[href="https://fb.com/groups/rodolubets"][target="_blank"]', [
 				i('.fa.fa-facebook-official'),
 				'Facebook Група на д-во Родолюбец'
@@ -35,7 +35,7 @@ module.exports = ({state, actions}) => section('.right-column', [].concat(
 			])])
 		])
 	]),
-	state.events.list.filter(ev => new Date(ev.end) >= new Date()).length > 0
+	state.events.list && state.events.list.filter(ev => new Date(ev.end) >= new Date()).length > 0
 		? section([
 			h2('Предстои:'),
 			ul(
@@ -60,14 +60,14 @@ module.exports = ({state, actions}) => section('.right-column', [].concat(
 	section([
 		h2('Минали събития:'),
 		ul(
-			state.events.list.filter(ev => new Date(ev.end) < new Date())
+			state.events.list && state.events.list.filter(ev => new Date(ev.end) < new Date())
 				.sort((a, b) => new Date(a.start) < new Date(b.start) ? 1 : -1)
 				.map(ev =>
 					li([a(
 						`[href="${ev.url}"][target="_blank"]`,
 						formatDate(ev) + ' ' + ev.name
 					)])
-				)
+				) || []
 		/*
 			li([a(
 				'[href="https://www.facebook.com/events/1131134003697555"][target="_blank"]',

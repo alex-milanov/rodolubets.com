@@ -10,7 +10,7 @@ const rightColumn = require('../right-column');
 const marked = require('marked');
 const moment = require('moment');
 
-const pinnedFirst = articles => articles
+const pinnedFirst = (articles = []) => articles
 	.reduce((list, a) => a.pinned ? [a].concat(list) : list.concat(a), []);
 
 module.exports = ({state, actions}) => [

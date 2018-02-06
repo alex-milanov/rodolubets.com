@@ -64,7 +64,7 @@ const actions = {
 	reset
 };
 
-const applyNs = (o, ns) => obj.map(o, (v, k) => (v instanceof Function) ? v(ns) : v);
+const applyNs = (o, ns) => obj.map(o, (k, v) => (v instanceof Function) ? v(ns) : v);
 
 const attach = (o, ns) => obj.patch(o, ns, applyNs(actions, ns));
 

@@ -14,10 +14,7 @@ var userSchema = new mongoose.Schema({
 	lastLoginDate: Date
 });
 
-const hashPassword = password => {
-	console.log(password);
-	return crypto.createHash('sha256').update(password).digest('hex');
-};
+const hashPassword = password => crypto.createHash('sha256').update(password).digest('hex');
 
 // Hook a pre save method to hash the password
 userSchema.pre('save', function(next) {
