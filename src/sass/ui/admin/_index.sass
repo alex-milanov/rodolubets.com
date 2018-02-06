@@ -79,8 +79,25 @@
 					display: block
 				textarea
 					display: none
+				
+				ul.toolbar
+					visibility: visible
 			div
 				margin: 10px 0px
+			ul.toolbar
+				+no-margin-padding
+				+header-height(32px)
+				width: 100%
+				visibility: hidden
+				li
+					+header-height(32px)
+					float: left
+					button
+						+clear-form-control
+						+panel-button(8px)
+						border: 0px
+						background: inherit
+						height: 32px
 
 		table.crud
 			+rod-panel

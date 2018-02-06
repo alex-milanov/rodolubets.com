@@ -2882,8 +2882,61 @@ h1, h2, h3, h4, h5 {
         display: block; }
       #ui > #admin .content .edit .wysiwyg textarea {
         display: none; }
+      #ui > #admin .content .edit .wysiwyg ul.toolbar {
+        visibility: visible; }
       #ui > #admin .content .edit div {
         margin: 10px 0px; }
+      #ui > #admin .content .edit ul.toolbar {
+        margin: 0px;
+        padding: 0px;
+        display: inline-block;
+        box-sizing: border-box;
+        height: 32px;
+        line-height: 32px;
+        width: 100%;
+        visibility: hidden; }
+        #ui > #admin .content .edit ul.toolbar li {
+          display: inline-block;
+          box-sizing: border-box;
+          height: 32px;
+          line-height: 32px;
+          float: left; }
+          #ui > #admin .content .edit ul.toolbar li button {
+            margin: 0px;
+            padding: 0px;
+            outline: none;
+            border-image: none;
+            box-sizing: border-box;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            -khtml-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+            padding: 8px;
+            cursor: pointer;
+            color: #555;
+            transition: background .7s, box-shadow .3s, color .5s, padding .1s;
+            border: 0px;
+            background: inherit;
+            height: 32px; }
+            #ui > #admin .content .edit ul.toolbar li button:focus, #ui > #admin .content .edit ul.toolbar li button:active, #ui > #admin .content .edit ul.toolbar li button::-moz-focus-inner, #ui > #admin .content .edit ul.toolbar li button:-moz-focusring, #ui > #admin .content .edit ul.toolbar li button::-moz-focus-outer {
+              outline: none;
+              border-radius: 0px;
+              border-image: none; }
+            #ui > #admin .content .edit ul.toolbar li button:hover, #ui > #admin .content .edit ul.toolbar li button.active {
+              color: #333;
+              background: #e5ede4;
+              box-shadow: inset 0px 0px 10px #d5d5d5; }
+            #ui > #admin .content .edit ul.toolbar li button:active {
+              transition: background .3s, box-shadow .1s;
+              background: #e5eae5;
+              padding: 9px 8px 7px 8px; }
+            #ui > #admin .content .edit ul.toolbar li button:focus {
+              outline: none; }
+            #ui > #admin .content .edit ul.toolbar li button a {
+              text-decoration: none;
+              color: inherit; }
     #ui > #admin .content table.crud {
       display: inline-block;
       background: rgba(255, 255, 255, 0.7);

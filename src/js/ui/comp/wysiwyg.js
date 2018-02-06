@@ -15,6 +15,21 @@ module.exports = ({toggled, content, field, sel, cb}) => div({
 		wysiwyg: toggled
 	}
 }, [
+	ul('.toolbar', [
+		li(button('.fa.fa-bold', {on: {click: ev => (ev.preventDefault(), document.execCommand('bold'))}})),
+		li(button('.fa.fa-italic', {on: {click: ev => (ev.preventDefault(), document.execCommand('italic'))}})),
+		li(button('.fa.fa-underline', {on: {click: ev => (ev.preventDefault(), document.execCommand('underline'))}})),
+		li('  '),
+		li(button('.fa.fa-list-ul', {on: {click: ev => (ev.preventDefault(), document.execCommand('insertUnorderedList'))}})),
+		li(button('.fa.fa-list-ol', {on: {click: ev => (ev.preventDefault(), document.execCommand('insertOrderedList'))}})),
+		li('  '),
+		li(button('.fa.fa-outdent', {on: {click: ev => (ev.preventDefault(), document.execCommand('outdent'))}})),
+		li(button('.fa.fa-indent', {on: {click: ev => (ev.preventDefault(), document.execCommand('indent'))}})),
+		li('  '),
+		li(button('.fa.fa-image', {on: {click: ev => (ev.preventDefault())}})),
+		li(button('.fa.fa-link', {on: {click: ev => (ev.preventDefault())}}))
+		
+	]),
 	div('[contenteditable="true"]', {
 		props: {innerHTML: md.toHTML(content || '<p>&nbsp;</p>')},
 		on: {

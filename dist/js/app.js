@@ -22810,7 +22810,25 @@ module.exports = function (_ref) {
 		class: {
 			wysiwyg: toggled
 		}
-	}, [div('[contenteditable="true"]', {
+	}, [ul('.toolbar', [li(button('.fa.fa-bold', { on: { click: function click(ev) {
+				return ev.preventDefault(), document.execCommand('bold');
+			} } })), li(button('.fa.fa-italic', { on: { click: function click(ev) {
+				return ev.preventDefault(), document.execCommand('italic');
+			} } })), li(button('.fa.fa-underline', { on: { click: function click(ev) {
+				return ev.preventDefault(), document.execCommand('underline');
+			} } })), li('  '), li(button('.fa.fa-list-ul', { on: { click: function click(ev) {
+				return ev.preventDefault(), document.execCommand('insertUnorderedList');
+			} } })), li(button('.fa.fa-list-ol', { on: { click: function click(ev) {
+				return ev.preventDefault(), document.execCommand('insertOrderedList');
+			} } })), li('  '), li(button('.fa.fa-outdent', { on: { click: function click(ev) {
+				return ev.preventDefault(), document.execCommand('outdent');
+			} } })), li(button('.fa.fa-indent', { on: { click: function click(ev) {
+				return ev.preventDefault(), document.execCommand('indent');
+			} } })), li('  '), li(button('.fa.fa-image', { on: { click: function click(ev) {
+				return ev.preventDefault();
+			} } })), li(button('.fa.fa-link', { on: { click: function click(ev) {
+				return ev.preventDefault();
+			} } }))]), div('[contenteditable="true"]', {
 		props: { innerHTML: md.toHTML(content || '<p>&nbsp;</p>') },
 		on: {
 			focus: function focus(_ref2) {
